@@ -68,6 +68,8 @@ export class MemStorage implements IStorage {
   private carts: Map<number, Cart>;
   private cartItems: Map<number, CartItem>;
   private contactMessages: Map<number, ContactMessage>;
+  private admins: Map<number, Admin>;
+  private inventoryItems: Map<number, Inventory>;
   
   private productId: number = 1;
   private categoryId: number = 1;
@@ -75,15 +77,40 @@ export class MemStorage implements IStorage {
   private cartItemId: number = 1;
   private contactMessageId: number = 1;
 
+  private adminId: number = 1;
+  private inventoryId: number = 1;
+  
   constructor() {
     this.products = new Map();
     this.categories = new Map();
     this.carts = new Map();
     this.cartItems = new Map();
     this.contactMessages = new Map();
+    this.admins = new Map();
+    this.inventoryItems = new Map();
     
     // Initialize with seed data
     this.initializeData();
+    
+    // Add a default admin
+    this.createAdmin({
+      username: "admin",
+      password: "admin123",
+      email: "admin@moissanite.co.il",
+      firstName: "Site",
+      lastName: "Admin",
+      role: "admin"
+    });
+    
+    // Initialize inventory for products
+    this.products.forEach(product => {
+      this.createInventory({
+        productId: product.id,
+        quantity: product.inStock ? 10 : 0,
+        minimumStockLevel: 5,
+        onOrder: 0
+      });
+    });
   }
 
   private initializeData() {
@@ -260,6 +287,19 @@ export class MemStorage implements IStorage {
     return newProduct;
   }
   
+  async updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined> {
+    const existingProduct = this.products.get(id);
+    if (!existingProduct) return undefined;
+    
+    const updatedProduct: Product = { ...existingProduct, ...product };
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
+  }
+  
+  async deleteProduct(id: number): Promise<boolean> {
+    return this.products.delete(id);
+  }
+  
   // Category methods
   async getCategories(): Promise<Category[]> {
     return Array.from(this.categories.values());
@@ -279,6 +319,19 @@ export class MemStorage implements IStorage {
     const newCategory: Category = { ...category, id };
     this.categories.set(id, newCategory);
     return newCategory;
+  }
+  
+  async updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined> {
+    const existingCategory = this.categories.get(id);
+    if (!existingCategory) return undefined;
+    
+    const updatedCategory: Category = { ...existingCategory, ...category };
+    this.categories.set(id, updatedCategory);
+    return updatedCategory;
+  }
+  
+  async deleteCategory(id: number): Promise<boolean> {
+    return this.categories.delete(id);
   }
   
   // Cart methods
@@ -341,6 +394,440 @@ export class MemStorage implements IStorage {
     this.contactMessages.set(id, newMessage);
     return newMessage;
   }
+  
+  async getContactMessages(): Promise<ContactMessage[]> {
+    return Array.from(this.contactMessages.values())
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  // Admin methods
+  async getAdmins(): Promise<Admin[]> {
+    return Array.from(this.admins.values());
+  }
+  
+  async getAdminByUsername(username: string): Promise<Admin | undefined> {
+    return Array.from(this.admins.values())
+      .find(admin => admin.username === username);
+  }
+  
+  async getAdmin(id: number): Promise<Admin | undefined> {
+    return this.admins.get(id);
+  }
+  
+  async createAdmin(admin: InsertAdmin): Promise<Admin> {
+    const id = this.adminId++;
+    const timestamp = new Date();
+    const newAdmin: Admin = { ...admin, id, createdAt: timestamp, lastLogin: null };
+    this.admins.set(id, newAdmin);
+    return newAdmin;
+  }
+  
+  async updateAdmin(id: number, admin: Partial<InsertAdmin>): Promise<Admin | undefined> {
+    const existingAdmin = this.admins.get(id);
+    if (!existingAdmin) return undefined;
+    
+    const updatedAdmin: Admin = { ...existingAdmin, ...admin };
+    this.admins.set(id, updatedAdmin);
+    return updatedAdmin;
+  }
+  
+  async validateAdminLogin(username: string, password: string): Promise<Admin | undefined> {
+    const admin = await this.getAdminByUsername(username);
+    if (!admin || admin.password !== password) {
+      return undefined;
+    }
+    return admin;
+  }
+  
+  async updateAdminLastLogin(id: number): Promise<boolean> {
+    const admin = this.admins.get(id);
+    if (!admin) return false;
+    
+    admin.lastLogin = new Date();
+    this.admins.set(id, admin);
+    return true;
+  }
+  
+  // Inventory methods
+  async getInventory(): Promise<Inventory[]> {
+    const items = Array.from(this.inventoryItems.values());
+    
+    return Promise.all(items.map(async item => {
+      const product = await this.getProduct(item.productId);
+      return {
+        ...item,
+        productName: product?.name,
+        productSku: product?.sku
+      };
+    }));
+  }
+  
+  async getInventoryByProductId(productId: number): Promise<Inventory | undefined> {
+    const item = Array.from(this.inventoryItems.values())
+      .find(item => item.productId === productId);
+      
+    if (!item) return undefined;
+    
+    const product = await this.getProduct(productId);
+    return {
+      ...item,
+      productName: product?.name,
+      productSku: product?.sku
+    };
+  }
+  
+  async createInventory(item: InsertInventory): Promise<Inventory> {
+    const id = this.inventoryId++;
+    const timestamp = new Date();
+    const newItem: Inventory = { 
+      ...item, 
+      id, 
+      lastUpdated: timestamp,
+      expectedDelivery: item.expectedDelivery || null,
+      location: item.location || "main warehouse",
+      minimumStockLevel: item.minimumStockLevel || 5,
+      onOrder: item.onOrder || 0,
+      updatedBy: item.updatedBy || null
+    };
+    
+    this.inventoryItems.set(id, newItem);
+    return newItem;
+  }
+  
+  async updateInventory(id: number, item: Partial<InsertInventory>): Promise<Inventory | undefined> {
+    const existingItem = this.inventoryItems.get(id);
+    if (!existingItem) return undefined;
+    
+    const timestamp = new Date();
+    const updatedItem: Inventory = { 
+      ...existingItem, 
+      ...item, 
+      lastUpdated: timestamp 
+    };
+    
+    this.inventoryItems.set(id, updatedItem);
+    return updatedItem;
+  }
+  
+  async updateProductStock(productId: number, quantity: number): Promise<boolean> {
+    const inventoryItem = await this.getInventoryByProductId(productId);
+    
+    if (inventoryItem) {
+      // Update existing inventory
+      await this.updateInventory(inventoryItem.id, { quantity });
+    } else {
+      // Create new inventory item
+      await this.createInventory({ productId, quantity });
+    }
+    
+    // Update product inStock status
+    const product = await this.getProduct(productId);
+    if (!product) return false;
+    
+    const updatedProduct = { ...product, inStock: quantity > 0 };
+    this.products.set(productId, updatedProduct);
+    
+    return true;
+  }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // Product methods
+  async getProducts(): Promise<Product[]> {
+    const result = await db.select().from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id));
+    
+    return result.map(row => ({
+      ...row.products,
+      categoryName: row.categories?.name,
+      categorySlug: row.categories?.slug
+    }));
+  }
+  
+  async getProductsByCategory(categorySlug: string): Promise<Product[]> {
+    const category = await this.getCategoryBySlug(categorySlug);
+    if (!category) return [];
+    
+    const result = await db.select().from(products)
+      .where(eq(products.categoryId, category.id));
+      
+    return result.map(product => ({
+      ...product,
+      categoryName: category.name,
+      categorySlug: category.slug
+    }));
+  }
+  
+  async getFeaturedProducts(): Promise<Product[]> {
+    const result = await db.select().from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(eq(products.isFeatured, true));
+      
+    return result.map(row => ({
+      ...row.products,
+      categoryName: row.categories?.name,
+      categorySlug: row.categories?.slug
+    }));
+  }
+  
+  async getProduct(id: number): Promise<Product | undefined> {
+    const [result] = await db.select().from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(eq(products.id, id));
+      
+    if (!result) return undefined;
+    
+    return {
+      ...result.products,
+      categoryName: result.categories?.name,
+      categorySlug: result.categories?.slug
+    };
+  }
+  
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const [result] = await db.insert(products).values(product).returning();
+    return result;
+  }
+  
+  async updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined> {
+    const [result] = await db.update(products)
+      .set(product)
+      .where(eq(products.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async deleteProduct(id: number): Promise<boolean> {
+    const [result] = await db.delete(products)
+      .where(eq(products.id, id))
+      .returning();
+      
+    return !!result;
+  }
+  
+  // Category methods
+  async getCategories(): Promise<Category[]> {
+    return db.select().from(categories);
+  }
+  
+  async getCategory(id: number): Promise<Category | undefined> {
+    const [result] = await db.select().from(categories)
+      .where(eq(categories.id, id));
+      
+    return result;
+  }
+  
+  async getCategoryBySlug(slug: string): Promise<Category | undefined> {
+    const [result] = await db.select().from(categories)
+      .where(eq(categories.slug, slug));
+      
+    return result;
+  }
+  
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const [result] = await db.insert(categories).values(category).returning();
+    return result;
+  }
+  
+  async updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined> {
+    const [result] = await db.update(categories)
+      .set(category)
+      .where(eq(categories.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async deleteCategory(id: number): Promise<boolean> {
+    const [result] = await db.delete(categories)
+      .where(eq(categories.id, id))
+      .returning();
+      
+    return !!result;
+  }
+  
+  // Cart methods
+  async getCart(id: number): Promise<Cart | undefined> {
+    const [result] = await db.select().from(carts)
+      .where(eq(carts.id, id));
+      
+    return result;
+  }
+  
+  async getCartBySessionId(sessionId: string): Promise<Cart | undefined> {
+    const [result] = await db.select().from(carts)
+      .where(eq(carts.sessionId, sessionId));
+      
+    return result;
+  }
+  
+  async createCart(cart: InsertCart): Promise<Cart> {
+    const [result] = await db.insert(carts).values(cart).returning();
+    return result;
+  }
+  
+  // Cart Item methods
+  async getCartItems(cartId: number): Promise<CartItem[]> {
+    const result = await db.select().from(cartItems)
+      .leftJoin(products, eq(cartItems.productId, products.id))
+      .where(eq(cartItems.cartId, cartId));
+      
+    return result.map(row => ({
+      ...row.cart_items,
+      product: row.products
+    }));
+  }
+  
+  async createCartItem(cartItem: InsertCartItem): Promise<CartItem> {
+    const [result] = await db.insert(cartItems).values(cartItem).returning();
+    return result;
+  }
+  
+  async updateCartItem(id: number, quantity: number): Promise<CartItem | undefined> {
+    const [result] = await db.update(cartItems)
+      .set({ quantity })
+      .where(eq(cartItems.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async deleteCartItem(id: number): Promise<boolean> {
+    const [result] = await db.delete(cartItems)
+      .where(eq(cartItems.id, id))
+      .returning();
+      
+    return !!result;
+  }
+  
+  // Contact form methods
+  async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
+    const [result] = await db.insert(contactMessages).values(message).returning();
+    return result;
+  }
+  
+  async getContactMessages(): Promise<ContactMessage[]> {
+    return db.select().from(contactMessages)
+      .orderBy(desc(contactMessages.createdAt));
+  }
+  
+  // Admin methods
+  async getAdmins(): Promise<Admin[]> {
+    return db.select().from(admins);
+  }
+  
+  async getAdminByUsername(username: string): Promise<Admin | undefined> {
+    const [result] = await db.select().from(admins)
+      .where(eq(admins.username, username));
+      
+    return result;
+  }
+  
+  async getAdmin(id: number): Promise<Admin | undefined> {
+    const [result] = await db.select().from(admins)
+      .where(eq(admins.id, id));
+      
+    return result;
+  }
+  
+  async createAdmin(admin: InsertAdmin): Promise<Admin> {
+    const [result] = await db.insert(admins).values(admin).returning();
+    return result;
+  }
+  
+  async updateAdmin(id: number, admin: Partial<InsertAdmin>): Promise<Admin | undefined> {
+    const [result] = await db.update(admins)
+      .set(admin)
+      .where(eq(admins.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async validateAdminLogin(username: string, password: string): Promise<Admin | undefined> {
+    const [admin] = await db.select().from(admins)
+      .where(eq(admins.username, username));
+      
+    if (!admin || admin.password !== password) {
+      return undefined;
+    }
+    
+    return admin;
+  }
+  
+  async updateAdminLastLogin(id: number): Promise<boolean> {
+    const [result] = await db.update(admins)
+      .set({ lastLogin: new Date() })
+      .where(eq(admins.id, id))
+      .returning();
+      
+    return !!result;
+  }
+  
+  // Inventory methods
+  async getInventory(): Promise<Inventory[]> {
+    const result = await db.select().from(inventory)
+      .leftJoin(products, eq(inventory.productId, products.id));
+      
+    return result.map(row => ({
+      ...row.inventory,
+      productName: row.products?.name,
+      productSku: row.products?.sku
+    }));
+  }
+  
+  async getInventoryByProductId(productId: number): Promise<Inventory | undefined> {
+    const [result] = await db.select().from(inventory)
+      .leftJoin(products, eq(inventory.productId, products.id))
+      .where(eq(inventory.productId, productId));
+      
+    if (!result) return undefined;
+    
+    return {
+      ...result.inventory,
+      productName: result.products?.name,
+      productSku: result.products?.sku
+    };
+  }
+  
+  async createInventory(item: InsertInventory): Promise<Inventory> {
+    const [result] = await db.insert(inventory).values(item).returning();
+    return result;
+  }
+  
+  async updateInventory(id: number, item: Partial<InsertInventory>): Promise<Inventory | undefined> {
+    const [result] = await db.update(inventory)
+      .set({...item, lastUpdated: new Date()})
+      .where(eq(inventory.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async updateProductStock(productId: number, quantity: number): Promise<boolean> {
+    const inventoryItem = await this.getInventoryByProductId(productId);
+    
+    if (inventoryItem) {
+      // Update existing inventory
+      await this.updateInventory(inventoryItem.id, { quantity });
+    } else {
+      // Create new inventory item
+      await this.createInventory({ 
+        productId, 
+        quantity 
+      });
+    }
+    
+    // Update product inStock status
+    const [result] = await db.update(products)
+      .set({ inStock: quantity > 0 })
+      .where(eq(products.id, productId))
+      .returning();
+      
+    return !!result;
+  }
+}
+
+// Use DatabaseStorage for persistence
+export const storage = new DatabaseStorage();
