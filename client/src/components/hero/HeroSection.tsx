@@ -5,14 +5,14 @@ const HeroSection = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="relative h-[80vh] overflow-hidden">
+    <section className="relative h-screen w-full overflow-hidden">
       <div className="absolute inset-0 bg-black">
         <img 
           src="https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
           alt={t("hero_description")} 
           className="w-full h-full object-cover opacity-85"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
         
         {/* Luxury overlay patterns */}
         <div className="absolute inset-0 opacity-10" style={{ 

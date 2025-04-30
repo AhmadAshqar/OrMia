@@ -50,8 +50,8 @@ const Header = () => {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
-        isScrolled ? "bg-transparent backdrop-blur-sm" : "bg-transparent"
+        "absolute top-0 left-0 right-0 z-50 w-full transition-all duration-300",
+        isScrolled ? "bg-black/50 backdrop-blur-sm" : "bg-transparent"
       )}
     >
       <div className="container mx-auto px-4 py-4">
