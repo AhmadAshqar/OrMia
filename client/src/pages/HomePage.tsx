@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-import TopBar from "@/components/layout/TopBar";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import MainLayout from "@/components/layout/MainLayout";
 import HeroSection from "@/components/hero/HeroSection";
 import FeatureSection from "@/components/features/FeatureSection";
 import FeaturedProducts from "@/components/products/FeaturedProducts";
@@ -54,10 +52,7 @@ const HomePage = () => {
   }, []);
 
   return (
-    <>
-      <TopBar />
-      <Header />
-      
+    <MainLayout>
       {/* Hero Section */}
       <HeroSection />
       
@@ -267,111 +262,54 @@ const HomePage = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <a href="#" className="block group relative overflow-hidden slide-in">
-              <img 
-                src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80" 
-                alt="תמונת אינסטגרם" 
-                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Instagram className="text-white text-3xl" />
-              </div>
+            {/* Instagram Images - 6 of them */}
+            {Array.from({ length: 6 }).map((_, i) => (
+              <a href="#" key={i} className="block group relative overflow-hidden slide-in">
+                <img 
+                  src={`https://source.unsplash.com/random/300x300/?jewelry,diamond,${i}`}
+                  alt={t("instagram_image")}
+                  className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Instagram className="text-white text-3xl" />
+                </div>
+              </a>
+            ))}
+          </div>
+          
+          <div className="mt-8 text-center">
+            <a 
+              href="#" 
+              className="inline-flex items-center text-primary hover:underline font-medium"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Instagram className="h-5 w-5 mr-2" />
+              {t("follow_us")}
             </a>
-            
-            <a href="#" className="block group relative overflow-hidden slide-in">
-              <img 
-                src="https://images.unsplash.com/photo-1602752250015-52ff2eb9ea56?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80" 
-                alt="תמונת אינסטגרם" 
-                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Instagram className="text-white text-3xl" />
-              </div>
-            </a>
-            
-            <a href="#" className="block group relative overflow-hidden slide-in">
-              <img 
-                src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1587&q=80" 
-                alt="תמונת אינסטגרם" 
-                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Instagram className="text-white text-3xl" />
-              </div>
-            </a>
-            
-            <a href="#" className="block group relative overflow-hidden slide-in">
-              <img 
-                src="https://images.unsplash.com/photo-1610694955371-d4a3e0ce4b52?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80" 
-                alt="תמונת אינסטגרם" 
-                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Instagram className="text-white text-3xl" />
-              </div>
-            </a>
-            
-            <a href="#" className="block group relative overflow-hidden slide-in">
-              <img 
-                src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80" 
-                alt="תמונת אינסטגרם" 
-                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Instagram className="text-white text-3xl" />
-              </div>
-            </a>
-            
-            <a href="#" className="block group relative overflow-hidden slide-in">
-              <img 
-                src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80" 
-                alt="תמונת אינסטגרם" 
-                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Instagram className="text-white text-3xl" />
-              </div>
+            <a 
+              href="#" 
+              className="inline-flex items-center text-primary hover:underline font-medium mr-6"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Facebook className="h-5 w-5 mr-2" />
+              {t("like_us")}
             </a>
           </div>
         </div>
       </section>
-      
-      {/* Newsletter */}
-      <section className="py-16 bg-black text-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-serif mb-4">{t("newsletter")}</h2>
-            <p className="mb-8 text-white/80">{t("newsletter_desc")}</p>
-            
-            <form className="flex flex-col md:flex-row gap-4 max-w-xl mx-auto">
-              <input 
-                type="email" 
-                placeholder={t("email_placeholder")} 
-                className="flex-grow py-3 px-4 bg-white/10 border border-white/20 focus:border-primary outline-none transition-colors"
-              />
-              <Button 
-                type="submit" 
-                className="bg-primary hover:bg-primary/80 text-black py-3 px-6 font-medium transition-colors whitespace-nowrap"
-              >
-                {t("subscribe")}
-              </Button>
-            </form>
-          </div>
-        </div>
-      </section>
-      
-      <Footer />
       
       {/* Scroll to top button */}
-      <button 
+      <button
         id="scroll-to-top"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed bottom-6 right-6 bg-primary hover:bg-primary/80 text-black w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-colors hidden"
+        className="fixed bottom-8 right-8 bg-primary text-black p-3 rounded-full shadow-lg opacity-80 hover:opacity-100 transition-all duration-300 z-50 hidden"
         aria-label="Scroll to top"
       >
         <ArrowUp className="h-6 w-6" />
       </button>
-    </>
+    </MainLayout>
   );
 };
 

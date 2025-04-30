@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
-// import { useCart } from "@/components/cart/CartContext";
+import { useCart } from "@/components/cart/CartContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
   Dialog, 
@@ -21,14 +21,9 @@ import {
 } from "@/components/ui/popover";
 import { Search, ShoppingBag, Menu, X, User } from "lucide-react";
 
-// Define a simple cart item type
-interface TempCartItem {
-  quantity: number;
-}
-
 const Header = () => {
   const { t } = useTranslation();
-  const items: TempCartItem[] = []; // Temporary empty array instead of using useCart
+  const { items } = useCart();
   const [location] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
 

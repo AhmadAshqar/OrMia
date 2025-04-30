@@ -10,6 +10,7 @@ import CheckoutPage from "@/pages/CheckoutPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import FaqPage from "@/pages/FaqPage";
+import { CartProvider } from "@/components/cart/CartContext";
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 
