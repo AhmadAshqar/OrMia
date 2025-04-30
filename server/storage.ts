@@ -3,8 +3,12 @@ import {
   categories, type Category, type InsertCategory,
   carts, type Cart, type InsertCart,
   cartItems, type CartItem, type InsertCartItem,
-  contactMessages, type ContactMessage, type InsertContactMessage 
+  contactMessages, type ContactMessage, type InsertContactMessage,
+  admins, type Admin, type InsertAdmin,
+  inventory, type Inventory, type InsertInventory
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc, asc } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -15,12 +19,16 @@ export interface IStorage {
   getFeaturedProducts(): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined>;
+  deleteProduct(id: number): Promise<boolean>;
   
   // Category methods
   getCategories(): Promise<Category[]>;
   getCategory(id: number): Promise<Category | undefined>;
   getCategoryBySlug(slug: string): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined>;
+  deleteCategory(id: number): Promise<boolean>;
   
   // Cart methods
   getCart(id: number): Promise<Cart | undefined>;
@@ -35,6 +43,23 @@ export interface IStorage {
   
   // Contact form methods
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
+  getContactMessages(): Promise<ContactMessage[]>;
+  
+  // Admin methods
+  getAdmins(): Promise<Admin[]>;
+  getAdminByUsername(username: string): Promise<Admin | undefined>;
+  getAdmin(id: number): Promise<Admin | undefined>;
+  createAdmin(admin: InsertAdmin): Promise<Admin>;
+  updateAdmin(id: number, admin: Partial<InsertAdmin>): Promise<Admin | undefined>;
+  validateAdminLogin(username: string, password: string): Promise<Admin | undefined>;
+  updateAdminLastLogin(id: number): Promise<boolean>;
+  
+  // Inventory methods
+  getInventory(): Promise<Inventory[]>;
+  getInventoryByProductId(productId: number): Promise<Inventory | undefined>;
+  createInventory(item: InsertInventory): Promise<Inventory>;
+  updateInventory(id: number, item: Partial<InsertInventory>): Promise<Inventory | undefined>;
+  updateProductStock(productId: number, quantity: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {

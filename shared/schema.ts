@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, array, real, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, real, timestamp, primaryKey, varchar, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -11,7 +11,7 @@ export const products = pgTable("products", {
   price: integer("price").notNull(),
   salePrice: integer("sale_price"),
   mainImage: text("main_image").notNull(),
-  images: text("images").array(),
+  images: text("images").default('[]'),
   categoryId: integer("category_id").notNull(),
   sku: text("sku").notNull().unique(),
   inStock: boolean("in_stock").default(true).notNull(),
@@ -99,5 +99,52 @@ export type CartItem = typeof cartItems.$inferSelect & {
   product?: Product;
 };
 
+// Define Admin Users Schema
+export const admins = pgTable("admins", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  role: text("role").default("admin").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+});
+
+// Define Inventory Schema
+export const inventory = pgTable("inventory", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull(),
+  quantity: integer("quantity").notNull().default(0),
+  location: text("location").default("main warehouse"),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  minimumStockLevel: integer("minimum_stock_level").default(5),
+  onOrder: integer("on_order").default(0),
+  expectedDelivery: timestamp("expected_delivery"),
+  updatedBy: integer("updated_by").references(() => admins.id),
+});
+
+// Define Insert Schemas for new tables
+export const insertAdminSchema = createInsertSchema(admins).omit({ 
+  id: true,
+  createdAt: true,
+  lastLogin: true 
+});
+
+export const insertInventorySchema = createInsertSchema(inventory).omit({ 
+  id: true,
+  lastUpdated: true 
+});
+
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;
+
+export type InsertAdmin = z.infer<typeof insertAdminSchema>;
+export type Admin = typeof admins.$inferSelect;
+
+export type InsertInventory = z.infer<typeof insertInventorySchema>; 
+export type Inventory = typeof inventory.$inferSelect & {
+  productName?: string;
+  productSku?: string;
+};
