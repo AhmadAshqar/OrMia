@@ -85,11 +85,12 @@
   
   /* Luxury gold gradient text */
   .text-gold-gradient {
-    background: linear-gradient(to right, #d4af37 20%, #f9f295 45%, #d4af37 75%);
+    background: linear-gradient(to right, #9f7411 20%, #d4af37 45%, #9f7411 75%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-fill-color: transparent;
+    text-shadow: 0px 0px 1px rgba(0,0,0,0.2);
   }
   
   /* Luxury section styling */
