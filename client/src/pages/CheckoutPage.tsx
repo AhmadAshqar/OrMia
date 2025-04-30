@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +7,7 @@ import { z } from "zod";
 import TopBar from "@/components/layout/TopBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { useCart } from "@/components/cart/CartContext";
+import { CartContext } from "@/components/cart/CartContext";
 import { formatPrice } from "@/lib/utils";
 import { 
   Form,
@@ -65,7 +65,11 @@ type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
 
 const CheckoutPage = () => {
   const { t } = useTranslation();
-  const { items, subtotal, total, clearCart } = useCart();
+  const cartContext = useContext(CartContext);
+  const items = cartContext?.items || [];
+  const subtotal = cartContext?.subtotal || 0;
+  const total = cartContext?.total || 0;
+  const clearCart = cartContext?.clearCart;
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setLocation] = useLocation();
@@ -109,7 +113,7 @@ const CheckoutPage = () => {
     // Simulate processing for demo purposes
     setTimeout(() => {
       // Clear cart and show success
-      clearCart();
+      if (clearCart) clearCart();
       toast({
         title: "ההזמנה נשלחה בהצלחה!",
         description: "פרטי ההזמנה נשלחו לדוא\"ל שלך",

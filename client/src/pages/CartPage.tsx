@@ -1,10 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import TopBar from "@/components/layout/TopBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { useCart } from "@/components/cart/CartContext";
+import { CartContext } from "@/components/cart/CartContext";
 import CartItem from "@/components/cart/CartItem";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,10 @@ import { ShoppingBag, Package } from "lucide-react";
 
 const CartPage = () => {
   const { t } = useTranslation();
-  const { items, subtotal, total } = useCart();
+  const cartContext = useContext(CartContext);
+  const items = cartContext?.items || [];
+  const subtotal = cartContext?.subtotal || 0;
+  const total = cartContext?.total || 0;
 
   useEffect(() => {
     document.title = `${t("your_cart")} | לוקס מויסנייט`;
