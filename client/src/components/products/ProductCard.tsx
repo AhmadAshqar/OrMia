@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
-import { useCart } from "@/components/cart/CartContext";
 import { Eye, Heart, Star, StarHalf } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +13,9 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { t } = useTranslation();
-  const { addItem } = useCart();
 
   const handleAddToCart = () => {
-    addItem(product, 1);
+    // Temporarily disabled 
     toast({
       title: t("add_to_cart"),
       description: `${product.name} ${t("add_to_cart")}`,
