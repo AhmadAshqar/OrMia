@@ -9,6 +9,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag, Search, Menu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import UserMenu from "@/components/user/UserMenu";
 
 interface NavLink {
   title: string;
@@ -43,9 +44,7 @@ export default function Header() {
         <div>
           <span>משלוח חינם בהזמנות מעל ₪1,000</span>
         </div>
-        <div className="flex gap-6">
-          <a href="#" className="hover:text-[hsl(var(--gold))] transition-colors">התחברות</a>
-          <a href="#" className="hover:text-[hsl(var(--gold))] transition-colors">יצירת חשבון</a>
+        <div className="flex gap-6 items-center">
           <a href="/faq" className="hover:text-[hsl(var(--gold))] transition-colors">עזרה</a>
         </div>
       </div>
@@ -92,6 +91,8 @@ export default function Header() {
                   </Badge>
                 )}
               </Link>
+              
+              <UserMenu />
               
               <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                 <SheetTrigger asChild>
