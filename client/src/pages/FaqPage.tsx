@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import TopBar from "@/components/layout/TopBar";
+
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { 
@@ -144,7 +144,6 @@ const FaqPage = () => {
 
   return (
     <>
-      <TopBar />
       <Header />
       
       <div className="bg-gray-50 py-6">

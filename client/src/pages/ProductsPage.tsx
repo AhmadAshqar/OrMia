@@ -44,7 +44,6 @@ const ProductsPage = () => {
 
   return (
     <>
-
       <Header />
       
       <div className="bg-gray-50 py-6">

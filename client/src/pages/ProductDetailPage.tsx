@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Product } from "@shared/schema";
-import TopBar from "@/components/layout/TopBar";
+
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { CartContext } from "@/components/cart/CartContext";
