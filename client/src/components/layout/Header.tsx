@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
-import { useCart } from "@/components/cart/CartContext";
+import { CartContext } from "@/components/cart/CartContext";
+import { useContext } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
   Dialog, 
@@ -23,7 +24,8 @@ import { Search, ShoppingBag, Menu, X, User } from "lucide-react";
 
 const Header = () => {
   const { t } = useTranslation();
-  const { items } = useCart();
+  const cartContext = useContext(CartContext);
+  const items = cartContext?.items || [];
   const [location] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -36,7 +38,10 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const totalItems = items.reduce((total, item) => total + item.quantity, 0);
+  // Safely calculate total items
+  const totalItems = items.length > 0 
+    ? items.reduce((total, item) => total + (item.quantity || 0), 0)
+    : 0;
 
   const navLinks = [
     { name: t("home"), path: "/" },
@@ -50,8 +55,10 @@ const Header = () => {
   return (
     <header
       className={cn(
-        "absolute top-0 left-0 right-0 z-50 w-full transition-all duration-300",
-        isScrolled ? "bg-black/50 backdrop-blur-sm" : "bg-transparent"
+        "absolute top-0 left-0 right-0 z-50 w-full transition-all duration-500",
+        isScrolled 
+          ? "bg-gradient-to-b from-black/70 to-black/0 backdrop-blur-sm py-2" 
+          : "bg-gradient-to-b from-black/40 to-transparent py-4"
       )}
     >
       <div className="container mx-auto px-4 py-4">

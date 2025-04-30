@@ -12,7 +12,8 @@ const HeroSection = () => {
           alt={t("hero_description")} 
           className="w-full h-full object-cover opacity-85"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
+        {/* Gradient overlay that fades to transparent at the top for header */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
         
         {/* Luxury overlay patterns */}
         <div className="absolute inset-0 opacity-10" style={{ 

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { formatPrice } from "@/lib/utils";
-import { useCart } from "./CartContext";
+import { CartContext } from "./CartContext";
+import { useContext } from "react";
 import { Product } from "@shared/schema";
 import { MinusIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,9 @@ interface CartItemProps {
 
 const CartItem = ({ product, quantity }: CartItemProps) => {
   const { t } = useTranslation();
-  const { updateItemQuantity, removeItem } = useCart();
+  const cartContext = useContext(CartContext);
+  const updateItemQuantity = cartContext?.updateItemQuantity;
+  const removeItem = cartContext?.removeItem;
   const price = product.salePrice || product.price;
   const totalPrice = price * quantity;
 
@@ -44,8 +47,8 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
           variant="outline"
           size="icon"
           className="h-8 w-8 rounded-full"
-          onClick={() => updateItemQuantity(product.id, Math.max(1, quantity - 1))}
-          disabled={quantity <= 1}
+          onClick={() => updateItemQuantity?.(product.id, Math.max(1, quantity - 1))}
+          disabled={quantity <= 1 || !updateItemQuantity}
         >
           <MinusIcon className="h-3 w-3" />
         </Button>
@@ -56,7 +59,8 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
           variant="outline"
           size="icon"
           className="h-8 w-8 rounded-full"
-          onClick={() => updateItemQuantity(product.id, quantity + 1)}
+          onClick={() => updateItemQuantity?.(product.id, quantity + 1)}
+          disabled={!updateItemQuantity}
         >
           <PlusIcon className="h-3 w-3" />
         </Button>
@@ -69,7 +73,8 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => removeItem(product.id)}
+        onClick={() => removeItem?.(product.id)}
+        disabled={!removeItem}
         title={t("remove")}
       >
         <Trash2Icon className="h-4 w-4" />

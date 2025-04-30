@@ -56,8 +56,10 @@ const HomePage = () => {
       {/* Hero Section */}
       <HeroSection />
       
-      {/* Feature Section */}
-      <FeatureSection />
+      {/* Feature Section - adding top padding to ensure proper spacing after full-screen hero */}
+      <div className="pt-10">
+        <FeatureSection />
+      </div>
       
       {/* Collections Section */}
       <section id="collections" className="py-20">
