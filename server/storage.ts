@@ -4,6 +4,7 @@ import {
   carts, type Cart, type InsertCart,
   cartItems, type CartItem, type InsertCartItem,
   contactMessages, type ContactMessage, type InsertContactMessage,
+  users, type User, type InsertUser,
   admins, type Admin, type InsertAdmin,
   inventory, type Inventory, type InsertInventory
 } from "@shared/schema";
@@ -44,6 +45,15 @@ export interface IStorage {
   // Contact form methods
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
   getContactMessages(): Promise<ContactMessage[]>;
+  
+  // User methods
+  getUsers(): Promise<User[]>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(id: number): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  validateUserLogin(username: string, password: string): Promise<User | undefined>;
+  updateUserLastLogin(id: number): Promise<boolean>;
   
   // Admin methods
   getAdmins(): Promise<Admin[]>;
@@ -710,6 +720,59 @@ export class DatabaseStorage implements IStorage {
   async getContactMessages(): Promise<ContactMessage[]> {
     return db.select().from(contactMessages)
       .orderBy(desc(contactMessages.createdAt));
+  }
+  
+  // User methods
+  async getUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+  
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [result] = await db.select().from(users)
+      .where(eq(users.username, username));
+      
+    return result;
+  }
+  
+  async getUser(id: number): Promise<User | undefined> {
+    const [result] = await db.select().from(users)
+      .where(eq(users.id, id));
+      
+    return result;
+  }
+  
+  async createUser(user: InsertUser): Promise<User> {
+    const [result] = await db.insert(users).values(user).returning();
+    return result;
+  }
+  
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+    const [result] = await db.update(users)
+      .set(user)
+      .where(eq(users.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async validateUserLogin(username: string, password: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users)
+      .where(eq(users.username, username));
+      
+    if (!user || user.password !== password) {
+      return undefined;
+    }
+    
+    return user;
+  }
+  
+  async updateUserLastLogin(id: number): Promise<boolean> {
+    const [result] = await db.update(users)
+      .set({ lastLogin: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+      
+    return !!result;
   }
   
   // Admin methods

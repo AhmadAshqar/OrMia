@@ -4,8 +4,11 @@ import { storage } from "./storage";
 import { 
   insertContactMessageSchema, 
   insertCartSchema, 
-  insertCartItemSchema 
+  insertCartItemSchema,
+  insertUserSchema,
+  insertInventorySchema
 } from "@shared/schema";
+import { setupAuth, ensureAuthenticated, ensureAdmin } from "./auth";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {

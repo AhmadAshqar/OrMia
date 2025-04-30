@@ -34,7 +34,7 @@ export const categories = pgTable("categories", {
 // Define Cart Schema
 export const carts = pgTable("carts", {
   id: serial("id").primaryKey(),
-  userId: text("user_id"),
+  userId: integer("user_id").references(() => users.id),
   sessionId: text("session_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -99,6 +99,24 @@ export type CartItem = typeof cartItems.$inferSelect & {
   product?: Product;
 };
 
+// Define Users Schema
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  phone: text("phone"),
+  address: text("address"),
+  city: text("city"),
+  postalCode: text("postal_code"),
+  country: text("country").default("ישראל"),
+  role: text("role").default("customer").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+});
+
 // Define Admin Users Schema
 export const admins = pgTable("admins", {
   id: serial("id").primaryKey(),
@@ -126,6 +144,12 @@ export const inventory = pgTable("inventory", {
 });
 
 // Define Insert Schemas for new tables
+export const insertUserSchema = createInsertSchema(users).omit({ 
+  id: true,
+  createdAt: true,
+  lastLogin: true 
+});
+
 export const insertAdminSchema = createInsertSchema(admins).omit({ 
   id: true,
   createdAt: true,
@@ -139,6 +163,9 @@ export const insertInventorySchema = createInsertSchema(inventory).omit({
 
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
 
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type Admin = typeof admins.$inferSelect;
