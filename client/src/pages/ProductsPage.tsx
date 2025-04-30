@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
-import TopBar from "@/components/layout/TopBar";
+
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ProductGrid from "@/components/products/ProductGrid";
@@ -44,7 +44,7 @@ const ProductsPage = () => {
 
   return (
     <>
-      <TopBar />
+
       <Header />
       
       <div className="bg-gray-50 py-6">
