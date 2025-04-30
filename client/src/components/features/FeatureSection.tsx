@@ -39,33 +39,50 @@ const FeatureSection = () => {
 
   const features = [
     {
-      icon: <GemIcon className="h-10 w-10" />,
+      icon: <GemIcon className="h-12 w-12" />,
       title: t("feature_quality_title"),
       description: t("feature_quality_desc")
     },
     {
-      icon: <TruckIcon className="h-10 w-10" />,
+      icon: <TruckIcon className="h-12 w-12" />,
       title: t("feature_shipping_title"),
       description: t("feature_shipping_desc")
     },
     {
-      icon: <AwardIcon className="h-10 w-10" />,
+      icon: <AwardIcon className="h-12 w-12" />,
       title: t("feature_warranty_title"),
       description: t("feature_warranty_desc")
     }
   ];
 
   return (
-    <section ref={sectionRef} className="py-16 bg-secondary">
+    <section ref={sectionRef} className="py-20 bg-gradient-to-b from-secondary to-white relative">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+      
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map((feature, index) => (
-            <div key={index} className="slide-in flex flex-col items-center text-center p-6">
-              <div className="w-16 h-16 mb-4 text-primary flex items-center justify-center">
-                {feature.icon}
+            <div 
+              key={index} 
+              className="slide-in flex flex-col items-center text-center p-8 relative group"
+            >
+              {/* Background decorations */}
+              <div className="absolute -inset-0.5 bg-gradient-to-tr from-primary/5 to-primary/0 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              
+              <div className="relative">
+                {/* Icon with gold gradients and shadow effects */}
+                <div className="w-20 h-20 mb-6 text-primary flex items-center justify-center relative">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/10 to-primary/5"></div>
+                  <div className="relative">
+                    {feature.icon}
+                  </div>
+                </div>
+                
+                <h3 className="text-2xl font-serif mb-4 text-gold-gradient">{feature.title}</h3>
+                <p className="text-foreground/80 leading-relaxed">{feature.description}</p>
               </div>
-              <h3 className="text-xl font-serif mb-2">{feature.title}</h3>
-              <p className="text-foreground/80">{feature.description}</p>
             </div>
           ))}
         </div>
