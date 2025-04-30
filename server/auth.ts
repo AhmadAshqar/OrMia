@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -109,7 +109,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: { message: string }) => {
       if (err) return next(err);
       if (!user) return res.status(401).json({ error: "שם משתמש או סיסמה שגויים" });
       
@@ -141,7 +141,7 @@ export function setupAuth(app: Express) {
 }
 
 // Middleware to check if user is authenticated
-export function ensureAuthenticated(req: Express.Request, res: Express.Response, next: Express.NextFunction) {
+export function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next();
   }
@@ -149,7 +149,7 @@ export function ensureAuthenticated(req: Express.Request, res: Express.Response,
 }
 
 // Middleware to check if user is an admin
-export function ensureAdmin(req: Express.Request, res: Express.Response, next: Express.NextFunction) {
+export function ensureAdmin(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated() && req.user.role === "admin") {
     return next();
   }

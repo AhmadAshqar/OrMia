@@ -12,7 +12,100 @@ import { setupAuth, ensureAuthenticated, ensureAdmin } from "./auth";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
+  // Set up authentication routes and middleware
+  setupAuth(app);
+  
+  // Admin routes for inventory management
+  app.get("/api/admin/inventory", ensureAdmin, async (req, res) => {
+    try {
+      const inventory = await storage.getInventory();
+      res.json(inventory);
+    } catch (err) {
+      console.error("Error fetching inventory:", err);
+      res.status(500).json({ message: "שגיאה בטעינת המלאי" });
+    }
+  });
+  
+  app.get("/api/admin/inventory/:productId", ensureAdmin, async (req, res) => {
+    try {
+      const productId = parseInt(req.params.productId);
+      if (isNaN(productId)) {
+        return res.status(400).json({ message: "מזהה מוצר לא תקין" });
+      }
+      
+      const inventoryItem = await storage.getInventoryByProductId(productId);
+      if (!inventoryItem) {
+        return res.status(404).json({ message: "פריט מלאי לא נמצא" });
+      }
+      
+      res.json(inventoryItem);
+    } catch (err) {
+      console.error("Error fetching inventory item:", err);
+      res.status(500).json({ message: "שגיאה בטעינת פריט המלאי" });
+    }
+  });
+  
+  app.post("/api/admin/inventory", ensureAdmin, async (req, res) => {
+    try {
+      const inventoryData = insertInventorySchema.parse(req.body);
+      const inventory = await storage.createInventory(inventoryData);
+      res.status(201).json(inventory);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "נתוני מלאי לא תקינים", errors: err.errors });
+      }
+      console.error("Error creating inventory item:", err);
+      res.status(500).json({ message: "שגיאה ביצירת פריט מלאי" });
+    }
+  });
+  
+  app.patch("/api/admin/inventory/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה מלאי לא תקין" });
+      }
+      
+      const inventory = await storage.updateInventory(id, req.body);
+      if (!inventory) {
+        return res.status(404).json({ message: "פריט מלאי לא נמצא" });
+      }
+      
+      // Update product stock status
+      await storage.updateProductStock(inventory.productId, inventory.quantity);
+      
+      res.json(inventory);
+    } catch (err) {
+      console.error("Error updating inventory:", err);
+      res.status(500).json({ message: "שגיאה בעדכון פריט מלאי" });
+    }
+  });
+  
+  app.patch("/api/admin/inventory/product/:productId/stock", ensureAdmin, async (req, res) => {
+    try {
+      const productId = parseInt(req.params.productId);
+      if (isNaN(productId)) {
+        return res.status(400).json({ message: "מזהה מוצר לא תקין" });
+      }
+      
+      const { quantity } = req.body;
+      if (typeof quantity !== 'number' || quantity < 0) {
+        return res.status(400).json({ message: "כמות לא תקינה" });
+      }
+      
+      const success = await storage.updateProductStock(productId, quantity);
+      if (!success) {
+        return res.status(404).json({ message: "מוצר לא נמצא" });
+      }
+      
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Error updating stock:", err);
+      res.status(500).json({ message: "שגיאה בעדכון המלאי" });
+    }
+  });
+  
+  // All public routes below
   // prefix all routes with /api
 
   // Products routes
