@@ -77,7 +77,6 @@ const ProductDetailPage = () => {
   if (isLoading) {
     return (
       <>
-        <TopBar />
         <Header />
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -100,7 +99,6 @@ const ProductDetailPage = () => {
   if (!product) {
     return (
       <>
-        <TopBar />
         <Header />
         <div className="container mx-auto px-4 py-12 text-center">
           <h1 className="text-2xl font-medium mb-4">המוצר לא נמצא</h1>
@@ -116,7 +114,6 @@ const ProductDetailPage = () => {
   
   return (
     <>
-      <TopBar />
       <Header />
       
       <div className="container mx-auto px-4 py-12">

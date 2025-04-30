@@ -4,7 +4,7 @@ import { Link, useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import TopBar from "@/components/layout/TopBar";
+
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { CartContext } from "@/components/cart/CartContext";
@@ -126,7 +126,6 @@ const CheckoutPage = () => {
 
   return (
     <>
-      <TopBar />
       <Header />
       
       <div className="bg-gray-50 py-6">
