@@ -128,12 +128,12 @@ const ProductDetailPage = () => {
               />
             </div>
             
-            {product.images && product.images.length > 0 && (
+            {product.images && (
               <div className="grid grid-cols-4 gap-2">
-                {product.images.map((image, index) => (
+                {product.images.split(',').map((image, index) => (
                   <div key={index} className="bg-gray-50 cursor-pointer">
                     <img 
-                      src={image} 
+                      src={image.trim()} 
                       alt={`${product.name} - תמונה ${index + 1}`} 
                       className="w-full h-24 object-cover"
                     />

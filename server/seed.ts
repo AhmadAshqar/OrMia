@@ -168,7 +168,6 @@ async function seed() {
         firstName: "Site",
         lastName: "Admin",
         role: "admin",
-        createdAt: new Date(),
         lastLogin: null
       }
     ];
