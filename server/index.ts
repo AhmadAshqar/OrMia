@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import "./db"; // Import database to ensure connection is established
 
 const app = express();
 app.use(express.json());
