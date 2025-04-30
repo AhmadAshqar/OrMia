@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +6,7 @@ import { Product } from "@shared/schema";
 import TopBar from "@/components/layout/TopBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { useCart } from "@/components/cart/CartContext";
+import { CartContext } from "@/components/cart/CartContext";
 import { toast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,8 @@ import FeaturedProducts from "@/components/products/FeaturedProducts";
 const ProductDetailPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
-  const { addItem } = useCart();
+  const cartContext = useContext(CartContext);
+  const addItem = cartContext?.addItem;
   const [quantity, setQuantity] = useState(1);
   
   const { data: product, isLoading } = useQuery<Product>({
@@ -47,8 +48,9 @@ const ProductDetailPage = () => {
   };
   
   const handleAddToCart = () => {
-    if (product) {
-      addItem(product, quantity);
+    if (product && addItem) {
+      // We already check that addItem exists, so we can safely call it
+      addItem?.(product, quantity);
       toast({
         title: t("add_to_cart"),
         description: `${product.name} ${t("add_to_cart")}`,
@@ -203,7 +205,7 @@ const ProductDetailPage = () => {
                 <Button 
                   onClick={handleAddToCart} 
                   className="flex-1 bg-black hover:bg-primary text-white"
-                  disabled={!product.inStock}
+                  disabled={!product.inStock || !addItem}
                 >
                   <ShoppingBag className="mr-2 h-4 w-4" />
                   {t("add_to_cart")}
