@@ -9,7 +9,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag, Search, Menu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import UserMenu from "@/components/user/UserMenu";
+import LoginButton from "@/components/user/LoginButton";
 
 interface NavLink {
   title: string;
@@ -92,7 +92,7 @@ export default function Header() {
                 )}
               </Link>
               
-              <UserMenu />
+              <LoginButton />
               
               <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                 <SheetTrigger asChild>
