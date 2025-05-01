@@ -25,18 +25,15 @@ export default function UserMenu() {
   // Not logged in - show sign in button
   if (!user && !isLoading) {
     return (
-      <div className="flex items-center">
-        <Link href="/auth">
-          <Button 
-            variant="ghost" 
-            className="text-[hsl(var(--gold))] hover:bg-gold-50 hover:text-[hsl(var(--gold-dark))] gap-1"
-            type="button"
-          >
-            <UserCircle className="h-5 w-5 ml-1" />
-            <span className="hidden md:inline">התחברות</span>
-          </Button>
-        </Link>
-      </div>
+      <Link href="/auth" className="inline-flex">
+        <Button 
+          variant="outline" 
+          className="text-[hsl(var(--gold))] hover:bg-gold-50 hover:text-[hsl(var(--gold-dark))] gap-1"
+        >
+          <UserCircle className="h-5 w-5 ml-1" />
+          <span className="md:inline">התחברות</span>
+        </Button>
+      </Link>
     );
   }
 
