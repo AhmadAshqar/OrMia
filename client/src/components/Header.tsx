@@ -92,7 +92,12 @@ export default function Header() {
                 )}
               </Link>
               
-              <LoginButton />
+              <a 
+                href="/auth" 
+                className="px-4 py-2 bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white font-medium rounded-md"
+              >
+                התחברות
+              </a>
               
               <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                 <SheetTrigger asChild>

@@ -120,9 +120,9 @@ const Header = () => {
             {/* Profile Dialog for Login/Register */}
             <Dialog>
               <DialogTrigger asChild>
-                <button className="text-white hover:text-primary transition-colors relative">
+                <a href="/auth?directAuth=true" className="text-white hover:text-primary transition-colors relative">
                   <User className="h-5 w-5" />
-                </button>
+                </a>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -146,12 +146,14 @@ const Header = () => {
                       className="text-right" 
                     />
                   </div>
-                  <Button className="bg-primary text-black hover:bg-primary/90">
-                    {t("login")}
-                  </Button>
+                  <a href="/auth?mode=login">
+                    <Button className="bg-primary text-black hover:bg-primary/90 w-full">
+                      {t("login")}
+                    </Button>
+                  </a>
                   <div className="text-center">
                     <span className="text-sm text-gray-500">עדיין אין לך חשבון? </span>
-                    <button className="text-sm text-primary hover:underline">הירשם עכשיו</button>
+                    <a href="/auth?mode=register" className="text-sm text-primary hover:underline">הירשם עכשיו</a>
                   </div>
                 </div>
               </DialogContent>

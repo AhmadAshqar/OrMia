@@ -49,6 +49,25 @@ function Router() {
 }
 
 function App() {
+  // Use URLSearchParams to check for a direct auth request in case routing isn't working
+  const searchParams = new URLSearchParams(window.location.search);
+  const directAuth = searchParams.get('directAuth') === 'true';
+  
+  if (directAuth) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <CartProvider>
+            <TooltipProvider>
+              <Toaster />
+              <AuthPage />
+            </TooltipProvider>
+          </CartProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+  }
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
