@@ -25,14 +25,18 @@ export default function UserMenu() {
   // Not logged in - show sign in button
   if (!user && !isLoading) {
     return (
-      <Button 
-        variant="ghost" 
-        className="text-gold-700 hover:bg-gold-50 hover:text-gold-800 gap-1"
-        onClick={() => navigate("/auth")}
-      >
-        <UserCircle className="h-5 w-5 ml-1" />
-        <span className="hidden md:inline">התחברות</span>
-      </Button>
+      <div className="flex items-center">
+        <Link href="/auth">
+          <Button 
+            variant="ghost" 
+            className="text-[hsl(var(--gold))] hover:bg-gold-50 hover:text-[hsl(var(--gold-dark))] gap-1"
+            type="button"
+          >
+            <UserCircle className="h-5 w-5 ml-1" />
+            <span className="hidden md:inline">התחברות</span>
+          </Button>
+        </Link>
+      </div>
     );
   }
 
