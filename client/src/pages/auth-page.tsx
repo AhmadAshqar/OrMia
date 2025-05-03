@@ -89,7 +89,7 @@ export default function AuthPage() {
 
       {/* Form section */}
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-md space-y-6 rtl bg-white p-8 rounded-lg shadow-lg border border-gold-200">
+        <div className="w-full max-w-md space-y-6 rtl bg-white p-8 rounded-lg shadow-xl border border-gold-200 shadow-amber-100/50">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-playfair font-bold text-gold-800 mb-2">התחבר לחשבונך</h2>
             <p className="text-gray-600">או צור חשבון חדש כדי להתחיל</p>
@@ -133,7 +133,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white"
+                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white shadow-md shadow-amber-200/30"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? (
@@ -188,7 +188,7 @@ export default function AuthPage() {
                       <FormItem className="text-right">
                         <FormLabel>שם משתמש</FormLabel>
                         <FormControl>
-                          <Input placeholder="צור שם משתמש ייחודי" {...field} />
+                          <Input className="form-input-gold" placeholder="צור שם משתמש ייחודי" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -201,7 +201,7 @@ export default function AuthPage() {
                       <FormItem className="text-right">
                         <FormLabel>דוא"ל</FormLabel>
                         <FormControl>
-                          <Input placeholder="הזן את כתובת הדוא״ל שלך" {...field} />
+                          <Input className="form-input-gold" placeholder="הזן את כתובת הדוא״ל שלך" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -214,7 +214,7 @@ export default function AuthPage() {
                       <FormItem className="text-right">
                         <FormLabel>סיסמה</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="צור סיסמה חזקה" {...field} />
+                          <Input className="form-input-gold" type="password" placeholder="צור סיסמה חזקה" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -227,7 +227,7 @@ export default function AuthPage() {
                       <FormItem className="text-right">
                         <FormLabel>אימות סיסמה</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="הזן שוב את הסיסמה" {...field} />
+                          <Input className="form-input-gold" type="password" placeholder="הזן שוב את הסיסמה" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -235,7 +235,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white"
+                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white shadow-md shadow-amber-200/30"
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? (
