@@ -75,30 +75,41 @@ export default function AuthPage() {
       {/* Hero section */}
       <div className="w-full md:w-1/2 bg-gradient-to-br from-gold-100 to-gold-300 p-10 flex items-center justify-center">
         <div className="max-w-lg">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-gold-800">
+          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-gold-800 text-shadow-sm">
             ברוכים הבאים לעולם המויסנייט
           </h1>
-          <p className="text-lg text-right text-gold-700 mb-6">
+          <p className="text-lg text-right text-gold-700 mb-8">
             הכנס לחשבונך כדי לצפות בהזמנות שלך, לשמור מוצרים ברשימת המשאלות וליהנות מחווית קניה מותאמת אישית.
           </p>
           <div className="flex justify-end">
-            <div className="w-20 h-1 bg-gold-500 rounded-full"></div>
+            <div className="w-24 h-1 bg-gold-500 rounded-full shadow-sm"></div>
           </div>
         </div>
       </div>
 
       {/* Form section */}
-      <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-md space-y-6 rtl">
+      <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-white">
+        <div className="w-full max-w-md space-y-6 rtl bg-white shadow-xl rounded-xl p-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-playfair font-bold text-gold-800 mb-2">התחבר לחשבונך</h2>
+            <h2 className="text-3xl font-playfair font-bold text-gold-800 mb-3">התחבר לחשבונך</h2>
             <p className="text-gray-600">או צור חשבון חדש כדי להתחיל</p>
+            <div className="mt-4 mx-auto w-16 h-1 bg-gold-500 rounded-full"></div>
           </div>
 
-          <Tabs defaultValue={defaultTab} className="w-full space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">התחברות</TabsTrigger>
-              <TabsTrigger value="register">הרשמה</TabsTrigger>
+          <Tabs defaultValue={defaultTab} className="w-full space-y-8">
+            <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
+              <TabsTrigger 
+                value="login" 
+                className="data-[state=active]:bg-white data-[state=active]:text-gold-800 data-[state=active]:shadow-md transition-all rounded-md py-3 text-base"
+              >
+                התחברות
+              </TabsTrigger>
+              <TabsTrigger 
+                value="register" 
+                className="data-[state=active]:bg-white data-[state=active]:text-gold-800 data-[state=active]:shadow-md transition-all rounded-md py-3 text-base"
+              >
+                הרשמה
+              </TabsTrigger>
             </TabsList>
 
             {/* Login Form */}
@@ -112,7 +123,11 @@ export default function AuthPage() {
                       <FormItem className="text-right">
                         <FormLabel>שם משתמש</FormLabel>
                         <FormControl>
-                          <Input placeholder="הזן את שם המשתמש שלך" {...field} />
+                          <Input 
+                            placeholder="הזן את שם המשתמש שלך" 
+                            className="border-gray-300 focus:border-gold-500 rounded-md p-3" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -125,7 +140,12 @@ export default function AuthPage() {
                       <FormItem className="text-right">
                         <FormLabel>סיסמה</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="הזן את הסיסמה שלך" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="הזן את הסיסמה שלך" 
+                            className="border-gray-300 focus:border-gold-500 rounded-md p-3" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -133,16 +153,16 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white"
+                    className="w-full mt-6 bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white text-lg py-6 font-semibold shadow-md rounded-md transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? (
-                      <div className="flex items-center">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        מתחבר...
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        <span>מתחבר...</span>
                       </div>
                     ) : (
-                      "התחבר"
+                      "התחבר לחשבון"
                     )}
                   </Button>
                 </form>
@@ -235,18 +255,22 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white"
+                    className="w-full mt-6 bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white text-lg py-6 font-semibold shadow-md rounded-md transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? (
-                      <div className="flex items-center">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        יוצר חשבון...
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        <span>יוצר חשבון...</span>
                       </div>
                     ) : (
-                      "הרשם"
+                      "צור חשבון חדש"
                     )}
                   </Button>
+                  
+                  <div className="text-center mt-4 text-sm text-gray-600">
+                    בהרשמה אתה מסכים ל<a href="/terms" className="text-gold-600 hover:underline">תנאי השימוש</a> ול<a href="/privacy" className="text-gold-600 hover:underline">מדיניות הפרטיות</a> שלנו
+                  </div>
                 </form>
               </Form>
             </TabsContent>
