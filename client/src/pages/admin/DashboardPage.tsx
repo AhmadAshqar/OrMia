@@ -2,21 +2,14 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ShoppingBag, 
-  Users, 
-  Package, 
-  TrendingUp, 
-  AlertTriangle,
-  Calendar
-} from "lucide-react";
-import { Product, Inventory } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { Inventory, Product } from "@shared/schema";
+import { BarChart3, Package, ShoppingBag, AlertTriangle, TrendingUp, Calendar } from "lucide-react";
 
 export default function DashboardPage() {
   const { toast } = useToast();
-  const [lowStockItems, setLowStockItems] = useState<(Inventory & { product?: Product })[]>([]);
-  
+  const [lowStockItems, setLowStockItems] = useState<(Inventory & {product?: Product})[]>([]);
+
   // Fetch products
   const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -25,22 +18,14 @@ export default function DashboardPage() {
   // Fetch inventory
   const { data: inventory, isLoading: inventoryLoading } = useQuery<Inventory[]>({
     queryKey: ["/api/admin/inventory"],
-    onSuccess: () => {},
-    onError: (error: Error) => {
-      toast({
-        title: "שגיאה בטעינת נתוני מלאי",
-        description: "לא ניתן היה לטעון את נתוני המלאי. נסה שוב מאוחר יותר.",
-        variant: "destructive",
-      });
-    }
   });
 
   useEffect(() => {
     if (inventory && products) {
       // Find items with low stock
       const lowStock = inventory
-        .filter(item => item.quantity <= item.minimumStockLevel)
-        .map(item => {
+        .filter((item: Inventory) => item.quantity <= (item.minimumStockLevel || 5))
+        .map((item: Inventory) => {
           const product = products.find(p => p.id === item.productId);
           return { ...item, product };
         });
@@ -55,7 +40,8 @@ export default function DashboardPage() {
   const stats = [
     {
       title: "מוצרים במלאי",
-      value: inventory?.reduce((total, item) => total + item.quantity, 0) || 0,
+      value: inventory ? inventory.reduce((total: number, item: Inventory) => 
+        total + item.quantity, 0) : 0,
       icon: <Package className="h-8 w-8 text-blue-500" />,
       color: "bg-blue-100 dark:bg-blue-900/20",
     },
@@ -73,7 +59,8 @@ export default function DashboardPage() {
     },
     {
       title: "מוצרים בדרך",
-      value: inventory?.reduce((total, item) => total + (item.onOrder || 0), 0) || 0,
+      value: inventory ? inventory.reduce((total: number, item: Inventory) => 
+        total + (item.onOrder || 0), 0) : 0,
       icon: <TrendingUp className="h-8 w-8 text-green-500" />,
       color: "bg-green-100 dark:bg-green-900/20",
     }
@@ -165,11 +152,11 @@ export default function DashboardPage() {
               <div className="flex justify-center p-4">
                 <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
               </div>
-            ) : inventory?.some(item => item.onOrder > 0) ? (
+            ) : inventory && inventory.some((item: Inventory) => (item.onOrder || 0) > 0) ? (
               <div className="space-y-4">
                 {inventory
-                  .filter(item => item.onOrder > 0)
-                  .map((item) => {
+                  .filter((item: Inventory) => (item.onOrder || 0) > 0)
+                  .map((item: Inventory) => {
                     const product = products?.find(p => p.id === item.productId);
                     const expectedDate = item.expectedDelivery 
                       ? new Date(item.expectedDelivery).toLocaleDateString('he-IL')
