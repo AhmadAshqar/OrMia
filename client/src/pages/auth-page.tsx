@@ -101,13 +101,13 @@ export default function AuthPage() {
             <TabsList className="mb-6">
               <TabsTrigger
                 value="login"
-                className="px-4 py-2 font-alef"
+                className="px-6 py-3 font-alef"
               >
                 התחברות
               </TabsTrigger>
               <TabsTrigger
                 value="register"
-                className="px-4 py-2 font-alef"
+                className="px-6 py-3 font-alef"
               >
                 הרשמה
               </TabsTrigger>
