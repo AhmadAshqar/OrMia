@@ -72,34 +72,42 @@ export default function AuthPage() {
 
   return (
     <div 
-      className="min-h-screen flex flex-col md:flex-row-reverse bg-black" 
+      className="min-h-screen flex flex-col md:flex-row-reverse bg-black overflow-hidden relative" 
       style={{
-        backgroundImage: `linear-gradient(to right, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.9), rgba(234, 179, 8, 0.15))`,
+        backgroundImage: `linear-gradient(120deg, #000428, #004e92, #2a0845)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundBlendMode: 'normal',
         backgroundAttachment: 'fixed'
       }}
     >
+      {/* Decorative floating elements */}
+      <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 opacity-20 blur-3xl"></div>
+      <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-gradient-to-r from-blue-500 to-teal-500 opacity-20 blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-gradient-to-r from-gold-400 to-amber-300 opacity-15 blur-3xl"></div>
       {/* Hero section */}
-      <div className="w-full md:w-1/2 bg-black p-10 flex items-center justify-center backdrop-blur-sm">
-        <div className="max-w-lg">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-gold-600" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+      <div className="w-full md:w-1/2 p-10 flex items-center justify-center backdrop-blur-sm bg-gradient-to-br from-purple-900/80 to-black/80 relative overflow-hidden">
+        {/* Diamond sparkle effect */}
+        <div className="absolute top-20 right-10 w-20 h-20 rotate-45 bg-white opacity-5 animate-pulse"></div>
+        <div className="absolute bottom-40 left-20 w-12 h-12 rotate-45 bg-white opacity-5 animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-40 left-10 w-8 h-8 rotate-45 bg-gradient-to-br from-white to-gold-300 opacity-10 animate-pulse" style={{animationDelay: '2s'}}></div>
+        
+        <div className="max-w-lg relative z-10">
+          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-gold-600" style={{ textShadow: '0 2px 10px rgba(234, 179, 8, 0.5)' }}>
             ברוכים הבאים לעולם המויסנייט
           </h1>
           <p className="text-lg text-right text-gold-300 mb-8 leading-relaxed">
             הכנס לחשבונך כדי לצפות בהזמנות שלך, לשמור מוצרים ברשימת המשאלות וליהנות מחווית קניה מותאמת אישית עם התכשיטים היפים ביותר.
           </p>
           <div className="flex justify-end">
-            <div className="w-28 h-1 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full shadow-md" style={{ boxShadow: '0 0 10px rgba(234, 179, 8, 0.5)' }}></div>
+            <div className="w-28 h-1 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full shadow-md" style={{ boxShadow: '0 0 20px rgba(234, 179, 8, 0.7)' }}></div>
           </div>
         </div>
       </div>
 
       {/* Form section */}
-      <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-black">
-        <div className="w-full max-w-md space-y-6 rtl bg-white shadow-2xl rounded-xl p-8 border border-gold-500" style={{ boxShadow: '0 0 15px rgba(234, 179, 8, 0.6), 0 0 30px rgba(0, 0, 0, 0.8)' }}>
+      <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-gradient-to-br from-blue-900/30 to-indigo-900/30 backdrop-blur-sm relative z-10">
+        <div className="w-full max-w-md space-y-6 rtl bg-white/95 backdrop-blur-sm shadow-2xl rounded-xl p-8 border border-gold-500" style={{ boxShadow: '0 0 20px rgba(234, 179, 8, 0.6), 0 10px 40px -10px rgba(0, 0, 0, 0.5)' }}>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-playfair font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-600 to-gold-400 mb-3">התחבר לחשבונך</h2>
             <p className="text-gray-700">או צור חשבון חדש כדי להתחיל</p>
@@ -107,16 +115,16 @@ export default function AuthPage() {
           </div>
 
           <Tabs defaultValue={defaultTab} className="w-full space-y-8">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg border border-gray-300">
+            <TabsList className="grid w-full grid-cols-2 bg-gradient-to-br from-purple-100 to-indigo-50 p-1 rounded-lg border border-gray-300 shadow-inner overflow-hidden">
               <TabsTrigger 
                 value="login" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold text-gray-700 transition-all rounded-md py-3 text-base font-semibold"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold data-[state=active]:shadow-md data-[state=active]:font-bold text-gray-700 transition-all duration-300 rounded-md py-3 text-base font-semibold z-10"
               >
                 התחברות
               </TabsTrigger>
               <TabsTrigger 
                 value="register" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold text-gray-700 transition-all rounded-md py-3 text-base font-semibold"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold data-[state=active]:shadow-md data-[state=active]:font-bold text-gray-700 transition-all duration-300 rounded-md py-3 text-base font-semibold z-10"
               >
                 הרשמה
               </TabsTrigger>
