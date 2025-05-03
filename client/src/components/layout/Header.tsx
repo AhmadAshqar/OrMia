@@ -118,12 +118,12 @@ const Header = () => {
             </Link>
             
             {/* User profile icon - Direct link to auth page */}
-            <Link
+            <a
               href="/auth"
-              className="text-white hover:text-primary transition-colors relative"
+              className="text-white hover:text-primary transition-colors relative cursor-pointer"
             >
               <User className="h-5 w-5" />
-            </Link>
+            </a>
 
             <Sheet>
               <SheetTrigger asChild>
