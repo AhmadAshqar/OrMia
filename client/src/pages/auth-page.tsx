@@ -66,8 +66,15 @@ export default function AuthPage() {
   const defaultTab = mode === "register" ? "register" : "login";
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row-reverse bg-black">
-      <div className="w-full md:w-1/2 p-10 flex items-center justify-center">
+    <div className="min-h-screen flex flex-col md:flex-row-reverse bg-black overflow-hidden relative">
+      {/* Gold particle animations */}
+      <div className="absolute w-6 h-6 rounded-full bg-amber-400/10 animate-float-slow top-1/4 left-1/4"></div>
+      <div className="absolute w-8 h-8 rounded-full bg-amber-400/5 animate-float-medium top-3/4 left-1/3"></div>
+      <div className="absolute w-5 h-5 rounded-full bg-amber-400/15 animate-float-fast top-1/2 right-1/4"></div>
+      <div className="absolute w-4 h-4 rounded-full bg-amber-400/10 animate-pulse-slow bottom-1/4 right-1/3"></div>
+      <div className="absolute w-10 h-10 rounded-full bg-amber-400/5 animate-pulse-medium top-1/3 right-1/2"></div>
+      
+      <div className="w-full md:w-1/2 p-10 flex items-center justify-center relative z-10">
         <div className="max-w-lg">
           <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6 text-right text-gold-gradient">
             ברוכים הבאים לעולם המויסנייט

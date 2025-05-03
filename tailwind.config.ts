@@ -88,6 +88,11 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "float-slow": "float-slow 20s ease-in-out infinite",
+        "float-medium": "float-medium 15s ease-in-out infinite",
+        "float-fast": "float-fast 12s ease-in-out infinite",
+        "pulse-slow": "pulse-slow 10s ease-in-out infinite",
+        "pulse-medium": "pulse-medium 8s ease-in-out infinite",
       },
     },
   },
