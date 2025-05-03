@@ -75,31 +75,31 @@ export default function AuthPage() {
       {/* Hero section */}
       <div className="w-full md:w-1/2 p-10 flex items-center justify-center">
         <div className="max-w-lg">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6 text-right text-gold-gradient">
             ברוכים הבאים לעולם המויסנייט
           </h1>
-          <p className="text-lg text-right text-amber-300 mb-6">
+          <p className="text-lg text-right text-amber-300 mb-8 font-alef leading-relaxed">
             הכנס לחשבונך כדי לצפות בהזמנות שלך, לשמור מוצרים ברשימת המשאלות וליהנות מחווית קניה מותאמת אישית.
           </p>
           <div className="flex justify-end">
-            <div className="w-20 h-1 bg-[hsl(var(--gold))] rounded-full"></div>
+            <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-[hsl(var(--gold))] to-transparent rounded-full"></div>
           </div>
         </div>
       </div>
 
       {/* Form section */}
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-md space-y-6 rtl bg-[hsl(var(--gold))] text-black p-8 rounded-lg shadow-2xl border-2 border-yellow-500 shadow-yellow-500/40">
+        <div className="w-full max-w-md space-y-6 rtl gold-gradient-bg text-black p-8 rounded-lg luxury-card">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-playfair font-bold mb-2 text-black">התחבר לחשבונך</h2>
-            <p className="text-amber-900">או צור חשבון חדש כדי להתחיל</p>
-            <div className="h-1 w-16 mx-auto mt-4 bg-black"></div>
+            <h2 className="text-3xl font-serif font-bold mb-3 text-black">התחבר לחשבונך</h2>
+            <p className="text-amber-900 font-alef">או צור חשבון חדש כדי להתחיל</p>
+            <div className="h-0.5 w-24 mx-auto mt-4 bg-gradient-to-r from-transparent via-black to-transparent"></div>
           </div>
 
           <Tabs defaultValue={defaultTab} className="w-full space-y-6 tabs-gold">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">התחברות</TabsTrigger>
-              <TabsTrigger value="register">הרשמה</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 p-1 bg-black/10 rounded-lg">
+              <TabsTrigger value="login" className="rounded-md py-2 font-alef">התחברות</TabsTrigger>
+              <TabsTrigger value="register" className="rounded-md py-2 font-alef">הרשמה</TabsTrigger>
             </TabsList>
 
             {/* Login Form */}
@@ -134,7 +134,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-black hover:bg-gray-800 text-[hsl(var(--gold))] shadow-lg shadow-black/40"
+                    className="w-full btn-luxury shadow-lg shadow-black/40 py-6 text-lg"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? (
@@ -236,7 +236,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-black hover:bg-gray-800 text-[hsl(var(--gold))] shadow-lg shadow-black/40"
+                    className="w-full btn-luxury shadow-lg shadow-black/40 py-6 text-lg"
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? (

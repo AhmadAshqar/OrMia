@@ -221,7 +221,7 @@
 @layer components {
   /* Gold-themed input styles */
   .form-input-gold {
-    @apply border-2 border-black bg-white/90 focus:border-amber-900 focus:ring focus:ring-black/30 focus:bg-white transition-all duration-300;
+    @apply border-0 border-b-2 border-black bg-transparent focus:border-[hsl(var(--gold))] focus:ring-0 focus:bg-black/5 transition-all duration-300 text-black placeholder:text-amber-800/60;
   }
 
   /* Form validation styling */
@@ -231,15 +231,50 @@
   
   /* Form label luxury styling */
   .form-label-gold {
-    @apply text-black font-medium relative;
+    @apply text-black font-alef font-bold text-sm uppercase tracking-wider;
   }
   
   /* Tabs styling for auth page */
   .tabs-gold [data-state=active] {
-    @apply bg-black text-[hsl(var(--gold))] font-semibold;
+    @apply bg-black text-[hsl(var(--gold))] font-semibold shadow-lg transform -translate-y-0.5 transition-all duration-300;
   }
   
   .tabs-gold [data-state=inactive] {
-    @apply bg-amber-800 text-black;
+    @apply bg-black/20 text-black border border-black/30 hover:bg-black/30 transition-all duration-300;
+  }
+  
+  /* Luxury button style */
+  .btn-luxury {
+    @apply bg-black text-[hsl(var(--gold))] font-alef font-bold tracking-wider uppercase relative overflow-hidden;
+    background: linear-gradient(to right, #000 0%, #121212 100%);
+  }
+  
+  .btn-luxury:before {
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    content: '';
+    background: linear-gradient(to right, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.2));
+  }
+  
+  .btn-luxury:hover:before {
+    @apply opacity-100;
+  }
+  
+  /* Luxury card glow */
+  .luxury-card {
+    @apply relative;
+  }
+  
+  .luxury-card:after {
+    content: '';
+    @apply absolute -inset-1 rounded-lg blur-sm bg-gradient-to-r from-[hsl(var(--gold))] via-yellow-400 to-[hsl(var(--gold))] opacity-50 -z-10 transition-all duration-500;
+  }
+  
+  .luxury-card:hover:after {
+    @apply blur-md opacity-70;
+  }
+  
+  /* Gold gradient background */
+  .gold-gradient-bg {
+    background: linear-gradient(135deg, #d4af37 0%, #f2d06b 50%, #d4af37 100%);
   }
 }
