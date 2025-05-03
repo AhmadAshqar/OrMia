@@ -756,13 +756,16 @@ export class DatabaseStorage implements IStorage {
   }
   
   async validateUserLogin(username: string, password: string): Promise<User | undefined> {
+    // This method is no longer used with passport - authentication happens in auth.ts
+    // Keeping for backward compatibility
     const [user] = await db.select().from(users)
       .where(eq(users.username, username));
       
-    if (!user || user.password !== password) {
+    if (!user) {
       return undefined;
     }
     
+    // Note: actual password comparison is done in auth.ts with the comparePasswords function
     return user;
   }
   
