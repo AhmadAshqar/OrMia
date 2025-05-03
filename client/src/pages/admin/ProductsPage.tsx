@@ -177,7 +177,6 @@ export default function ProductsPage() {
       mainImage: "",
       images: "[]",
       categoryId: 0,
-      sku: "",
       inStock: true,
       isNew: false,
       isFeatured: false,
@@ -200,7 +199,6 @@ export default function ProductsPage() {
         mainImage: product.mainImage,
         images: product.images || "[]",
         categoryId: product.categoryId,
-        sku: product.sku,
         inStock: product.inStock,
         isNew: product.isNew,
         isFeatured: product.isFeatured,
@@ -264,15 +262,6 @@ export default function ProductsPage() {
       });
       return;
     }
-
-    if (!formState.sku) {
-      toast({
-        title: "הזן מק\"ט",
-        description: "יש להזין מק\"ט ייחודי עבור המוצר",
-        variant: "destructive",
-      });
-      return;
-    }
     
     if (!formState.mainImage) {
       toast({
@@ -298,7 +287,6 @@ export default function ProductsPage() {
       description: formState.description || "",
       price: Number(formState.price || 0),
       mainImage: formState.mainImage || "",
-      sku: formState.sku || "",
       categoryId: Number(formState.categoryId || 0),
       // Optional fields with defaults
       salePrice: formState.salePrice ? Number(formState.salePrice) : null,
@@ -325,12 +313,10 @@ export default function ProductsPage() {
   const filteredProducts = products?.filter(product => {
     const productName = product.name.toLowerCase();
     const productDesc = product.description.toLowerCase();
-    const productSku = product.sku.toLowerCase();
     const searchLower = searchTerm.toLowerCase();
     
     return productName.includes(searchLower) || 
-           productDesc.includes(searchLower) || 
-           productSku.includes(searchLower);
+           productDesc.includes(searchLower);
   });
 
   // Format price in ILS
@@ -360,7 +346,7 @@ export default function ProductsPage() {
           <div className="flex items-center border rounded-lg px-3 py-2 max-w-md">
             <Search className="h-5 w-5 text-muted-foreground ml-2" />
             <Input 
-              placeholder="חפש לפי שם, תיאור או מק״ט"
+              placeholder="חפש לפי שם או תיאור"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -384,7 +370,6 @@ export default function ProductsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>שם מוצר</TableHead>
-                    <TableHead>מק"ט</TableHead>
                     <TableHead>מחיר</TableHead>
                     <TableHead>מחיר מבצע</TableHead>
                     <TableHead>קטגוריה</TableHead>
@@ -398,7 +383,6 @@ export default function ProductsPage() {
                     filteredProducts.map((product) => (
                       <TableRow key={product.id}>
                         <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>{product.sku}</TableCell>
                         <TableCell>{formatPrice(product.price)}</TableCell>
                         <TableCell>{formatPrice(product.salePrice)}</TableCell>
                         <TableCell>{getCategoryName(product.categoryId)}</TableCell>
@@ -446,7 +430,7 @@ export default function ProductsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
                         {searchTerm ? 'לא נמצאו תוצאות לחיפוש' : 'לא נמצאו מוצרים'}
                       </TableCell>
                     </TableRow>
@@ -521,37 +505,23 @@ export default function ProductsPage() {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="sku">מק"ט מוצר</Label>
-                      <Input
-                        id="sku"
-                        name="sku"
-                        value={formState.sku || ''}
-                        onChange={handleInputChange}
-                        disabled={!!editingProduct}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="categoryId">קטגוריה</Label>
-                      <select
-                        id="categoryId"
-                        name="categoryId"
-                        value={formState.categoryId || ''}
-                        onChange={handleInputChange}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                        required
-                      >
-                        <option value="">בחר קטגוריה</option>
-                        {categories?.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="categoryId">קטגוריה</Label>
+                    <select
+                      id="categoryId"
+                      name="categoryId"
+                      value={formState.categoryId || ''}
+                      onChange={handleInputChange}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      required
+                    >
+                      <option value="">בחר קטגוריה</option>
+                      {categories?.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </TabsContent>
