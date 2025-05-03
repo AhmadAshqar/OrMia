@@ -89,13 +89,13 @@ export default function AuthPage() {
 
       {/* Form section */}
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-md space-y-6 rtl">
+        <div className="w-full max-w-md space-y-6 rtl bg-white p-8 rounded-lg shadow-lg border border-gold-200">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-playfair font-bold text-gold-800 mb-2">התחבר לחשבונך</h2>
             <p className="text-gray-600">או צור חשבון חדש כדי להתחיל</p>
           </div>
 
-          <Tabs defaultValue={defaultTab} className="w-full space-y-6">
+          <Tabs defaultValue={defaultTab} className="w-full space-y-6 tabs-gold">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">התחברות</TabsTrigger>
               <TabsTrigger value="register">הרשמה</TabsTrigger>
@@ -112,7 +112,7 @@ export default function AuthPage() {
                       <FormItem className="text-right">
                         <FormLabel>שם משתמש</FormLabel>
                         <FormControl>
-                          <Input placeholder="הזן את שם המשתמש שלך" {...field} />
+                          <Input className="form-input-gold" placeholder="הזן את שם המשתמש שלך" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -125,7 +125,7 @@ export default function AuthPage() {
                       <FormItem className="text-right">
                         <FormLabel>סיסמה</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="הזן את הסיסמה שלך" {...field} />
+                          <Input className="form-input-gold" type="password" placeholder="הזן את הסיסמה שלך" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -161,7 +161,7 @@ export default function AuthPage() {
                         <FormItem className="text-right">
                           <FormLabel>שם פרטי</FormLabel>
                           <FormControl>
-                            <Input placeholder="שם פרטי" {...field} value={field.value || ""} />
+                            <Input className="form-input-gold" placeholder="שם פרטי" {...field} value={field.value || ""} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -174,7 +174,7 @@ export default function AuthPage() {
                         <FormItem className="text-right">
                           <FormLabel>שם משפחה</FormLabel>
                           <FormControl>
-                            <Input placeholder="שם משפחה" {...field} value={field.value || ""} />
+                            <Input className="form-input-gold" placeholder="שם משפחה" {...field} value={field.value || ""} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

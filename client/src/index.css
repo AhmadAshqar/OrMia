@@ -187,3 +187,16 @@
     background: hsl(var(--primary) / 0.8);
   }
 }
+
+/* Custom form styling for auth page */
+@layer components {
+  /* Gold-themed input styles */
+  .form-input-gold {
+    @apply border-2 border-amber-300 focus:border-amber-500 focus:ring focus:ring-amber-300/30;
+  }
+
+  /* Tab styling for auth page */
+  .tabs-gold [data-state="active"] {
+    @apply bg-amber-500 text-white;
+  }
+}
