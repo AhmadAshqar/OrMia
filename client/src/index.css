@@ -177,20 +177,4 @@
     background: linear-gradient(135deg, #e6c661 0%, #f2d787 45%, #e6c661 100%);
     @apply border border-yellow-400/30;
   }
-  
-  .corner-accent {
-    opacity: 0.5;
-    animation: corner-pulse 3s ease-in-out infinite alternate;
-  }
-  
-  @keyframes corner-pulse {
-    0% {
-      opacity: 0.3;
-      transform: scale(0.95);
-    }
-    100% {
-      opacity: 0.7;
-      transform: scale(1.05);
-    }
-  }
 }
