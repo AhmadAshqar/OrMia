@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { 
   BarChart3,
-  Package,
   ShoppingBag,
   MessageSquare,
   Settings,
@@ -40,11 +39,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       title: "מוצרים",
       href: "/admin/products",
       icon: <ShoppingBag className="ml-2 h-5 w-5" />,
-    },
-    {
-      title: "מלאי",
-      href: "/admin/inventory",
-      icon: <Package className="ml-2 h-5 w-5" />,
     },
     {
       title: "משתמשים",

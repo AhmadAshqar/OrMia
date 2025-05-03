@@ -22,7 +22,6 @@ import { useLocation } from "wouter";
 
 // Admin pages - lazy loaded
 const DashboardPage = lazy(() => import("@/pages/admin/DashboardPage"));
-const InventoryPage = lazy(() => import("@/pages/admin/InventoryPage"));
 const ProductsAdminPage = lazy(() => import("@/pages/admin/ProductsPage"));
 
 function Router() {
@@ -57,7 +56,6 @@ function Router() {
         
         {/* Admin Routes */}
         <AdminRoute path="/admin" component={() => <DashboardPage />} />
-        <AdminRoute path="/admin/inventory" component={() => <InventoryPage />} />
         <AdminRoute path="/admin/products" component={() => <ProductsAdminPage />} />
         
         <Route component={NotFound} />
