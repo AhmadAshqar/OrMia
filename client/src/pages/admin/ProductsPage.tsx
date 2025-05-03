@@ -59,6 +59,8 @@ export default function ProductsPage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState("basic");
   const [formState, setFormState] = useState<Partial<InsertProduct>>({
@@ -135,6 +137,36 @@ export default function ProductsPage() {
       });
     }
   });
+  
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/products/${id}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "שגיאה במחיקת מוצר");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products/featured"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/inventory"] });
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+      toast({
+        title: "מוצר נמחק בהצלחה",
+        description: "המוצר הוסר מהמערכת בהצלחה",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "שגיאה במחיקת מוצר",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   const resetForm = () => {
     setFormState({
@@ -178,6 +210,16 @@ export default function ProductsPage() {
       resetForm();
     }
     setDialogOpen(true);
+  };
+  
+  const handleOpenDeleteDialog = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteProduct = () => {
+    if (!productToDelete) return;
+    deleteProductMutation.mutate(productToDelete.id);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -349,13 +391,26 @@ export default function ProductsPage() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => handleOpenDialog(product)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleOpenDialog(product)}>
+                                <Edit className="ml-2 h-4 w-4" />
+                                ערוך
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleOpenDeleteDialog(product)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="ml-2 h-4 w-4" />
+                                מחק
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))
@@ -593,6 +648,39 @@ export default function ProductsPage() {
           </form>
         </DialogContent>
       </Dialog>
+      
+      {/* Delete Product Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
+            <AlertDialogDescription>
+              פעולה זו תמחק את המוצר "{productToDelete?.name}" מהמערכת לצמיתות.
+              {productToDelete?.isFeatured && (
+                <p className="text-amber-600 mt-2">
+                  שים לב: מוצר זה מופיע בדף הראשי.
+                </p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteProduct}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {deleteProductMutation.isPending ? (
+                <>
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  מוחק...
+                </>
+              ) : (
+                'מחק מוצר'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }
