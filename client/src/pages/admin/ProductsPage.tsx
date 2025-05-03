@@ -597,17 +597,20 @@ export default function ProductsPage() {
                               <div className="flex gap-2">
                                 <Input 
                                   value={formState.mainImage || ''}
-                                  onChange={handleInputChange}
-                                  name="mainImage"
+                                  onChange={(e) => {
+                                    setFormState({
+                                      ...formState,
+                                      mainImage: e.target.value
+                                    });
+                                  }}
                                   placeholder="https://example.com/image.jpg"
                                   className="flex-1"
                                 />
-                                <Button 
-                                  type="button" 
-                                  onClick={() => document.querySelector<HTMLDialogElement>('[role="dialog"]')?.close()}
-                                >
-                                  אישור
-                                </Button>
+                                <DialogClose asChild>
+                                  <Button type="button">
+                                    אישור
+                                  </Button>
+                                </DialogClose>
                               </div>
                             </div>
                             
@@ -622,23 +625,23 @@ export default function ProductsPage() {
                                   "https://images.unsplash.com/photo-1602425721711-5e891095d0e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
                                   "https://images.unsplash.com/photo-1518726289780-1596cdcc3d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
                                 ].map((src, i) => (
-                                  <div 
-                                    key={i}
-                                    className="border rounded-md p-2 cursor-pointer hover:border-primary transition-colors"
-                                    onClick={() => {
-                                      setFormState({
-                                        ...formState,
-                                        mainImage: src
-                                      });
-                                      document.querySelector<HTMLDialogElement>('[role="dialog"]')?.close();
-                                    }}
-                                  >
-                                    <img 
-                                      src={src} 
-                                      alt={`תמונה לדוגמה ${i+1}`} 
-                                      className="w-full h-32 object-contain"
-                                    />
-                                  </div>
+                                  <DialogClose key={i} asChild>
+                                    <div 
+                                      className="border rounded-md p-2 cursor-pointer hover:border-primary transition-colors"
+                                      onClick={() => {
+                                        setFormState({
+                                          ...formState,
+                                          mainImage: src
+                                        });
+                                      }}
+                                    >
+                                      <img 
+                                        src={src} 
+                                        alt={`תמונה לדוגמה ${i+1}`} 
+                                        className="w-full h-32 object-contain"
+                                      />
+                                    </div>
+                                  </DialogClose>
                                 ))}
                               </div>
                             </div>
