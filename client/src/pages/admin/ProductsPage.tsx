@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { 
   Dialog, 
+  DialogClose,
   DialogContent, 
   DialogDescription, 
   DialogFooter, 
@@ -274,11 +275,36 @@ export default function ProductsPage() {
       });
       return;
     }
+    
+    if (!formState.mainImage) {
+      toast({
+        title: "הוסף תמונה",
+        description: "יש להוסיף תמונה עבור המוצר",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formState.name || !formState.description) {
+      toast({
+        title: "מידע חסר",
+        description: "יש להזין שם ותיאור עבור המוצר",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const productData = {
       ...formState,
       price: formState.price || 0,
-      salePrice: formState.salePrice === 0 ? null : formState.salePrice,
+      salePrice: formState.salePrice || null,
+      images: formState.images || "[]",
+      longDescription: formState.longDescription || "",
+      rating: formState.rating || 5,
+      reviewCount: formState.reviewCount || 0,
+      inStock: formState.inStock !== undefined ? formState.inStock : true,
+      isNew: formState.isNew !== undefined ? formState.isNew : false,
+      isFeatured: formState.isFeatured !== undefined ? formState.isFeatured : false,
     } as InsertProduct;
 
     if (editingProduct) {
