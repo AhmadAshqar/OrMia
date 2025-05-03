@@ -89,7 +89,7 @@ export default function AuthPage() {
 
       {/* Form section */}
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-md space-y-6 rtl bg-white p-8 rounded-lg shadow-2xl border border-gold-200 shadow-amber-100/60">
+        <div className="w-full max-w-md space-y-6 rtl bg-[#fffaf5] p-8 rounded-lg shadow-2xl border border-amber-300/40 shadow-amber-100/60">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-playfair font-bold text-gold-800 mb-2">התחבר לחשבונך</h2>
             <p className="text-gray-600">או צור חשבון חדש כדי להתחיל</p>
