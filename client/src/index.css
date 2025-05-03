@@ -100,8 +100,9 @@
   }
 
   .tabs-gold [data-state="active"] {
-    color: #000;
+    color: #9f7411;
     font-weight: 700;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.1);
     border-bottom: 2px solid #9f7411;
     transform: scale(1.02);
   }
@@ -125,8 +126,9 @@
   }
 
   .tabs-gold [role="tab"]:hover:not([data-state="active"]) {
-    color: #000;
+    color: #9f7411;
     opacity: 1;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.05);
   }
 }
 
