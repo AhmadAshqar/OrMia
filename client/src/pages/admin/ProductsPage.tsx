@@ -294,17 +294,23 @@ export default function ProductsPage() {
       return;
     }
 
+    // Convert values to proper types
     const productData = {
-      ...formState,
-      price: formState.price || 0,
-      salePrice: formState.salePrice || null,
-      images: formState.images || "[]",
+      name: formState.name || "",
+      description: formState.description || "",
+      price: Number(formState.price || 0),
+      mainImage: formState.mainImage || "",
+      sku: formState.sku || "",
+      categoryId: Number(formState.categoryId || 0),
+      // Optional fields with defaults
+      salePrice: formState.salePrice ? Number(formState.salePrice) : null,
       longDescription: formState.longDescription || "",
-      rating: formState.rating || 5,
-      reviewCount: formState.reviewCount || 0,
-      inStock: formState.inStock !== undefined ? formState.inStock : true,
-      isNew: formState.isNew !== undefined ? formState.isNew : false,
-      isFeatured: formState.isFeatured !== undefined ? formState.isFeatured : false,
+      images: formState.images || "[]",
+      rating: Number(formState.rating || 5),
+      reviewCount: Number(formState.reviewCount || 0),
+      inStock: Boolean(formState.inStock),
+      isNew: Boolean(formState.isNew),
+      isFeatured: Boolean(formState.isFeatured)
     } as InsertProduct;
 
     if (editingProduct) {

@@ -110,11 +110,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes for products management
   app.post("/api/products", ensureAdmin, async (req, res) => {
     try {
+      console.log("Creating product with data:", req.body);
       const productData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(productData);
       res.status(201).json(product);
     } catch (err) {
       if (err instanceof z.ZodError) {
+        console.log("Validation error:", err.errors);
         return res.status(400).json({ message: "נתוני מוצר לא תקינים", errors: err.errors });
       }
       console.error("Error creating product:", err);
