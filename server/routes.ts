@@ -17,6 +17,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes and middleware
   setupAuth(app);
   
+  // Admin routes for user management
+  app.get("/api/admin/users", ensureAdmin, async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      res.status(500).json({ message: "שגיאה בטעינת משתמשים" });
+    }
+  });
+  
+  app.post("/api/admin/users", ensureAdmin, async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "שם משתמש כבר קיים במערכת" });
+      }
+      
+      const user = await storage.createUser(userData);
+      res.status(201).json(user);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "נתוני משתמש לא תקינים", errors: err.errors });
+      }
+      console.error("Error creating user:", err);
+      res.status(500).json({ message: "שגיאה ביצירת משתמש" });
+    }
+  });
+  
+  app.get("/api/admin/users/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה משתמש לא תקין" });
+      }
+      
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      res.json(user);
+    } catch (err) {
+      console.error("Error fetching user:", err);
+      res.status(500).json({ message: "שגיאה בטעינת משתמש" });
+    }
+  });
+  
+  app.patch("/api/admin/users/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה משתמש לא תקין" });
+      }
+      
+      // Check if the user exists
+      const existingUser = await storage.getUser(id);
+      if (!existingUser) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      // Update the user
+      const user = await storage.updateUser(id, req.body);
+      if (!user) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      res.json(user);
+    } catch (err) {
+      console.error("Error updating user:", err);
+      res.status(500).json({ message: "שגיאה בעדכון משתמש" });
+    }
+  });
+  
+  app.delete("/api/admin/users/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה משתמש לא תקין" });
+      }
+      
+      // Add extra validation to prevent deleting the last admin user
+      const users = await storage.getUsers();
+      const admins = users.filter(user => user.isAdmin);
+      
+      const userToDelete = users.find(user => user.id === id);
+      if (!userToDelete) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      // Don't allow deleting the last admin
+      if (userToDelete.isAdmin && admins.length <= 1) {
+        return res.status(400).json({ 
+          message: "לא ניתן למחוק את מנהל המערכת האחרון" 
+        });
+      }
+      
+      // Delete the user
+      const success = await storage.deleteUser(id);
+      if (!success) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      res.status(204).end();
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      res.status(500).json({ message: "שגיאה במחיקת משתמש" });
+    }
+  });
+  
   // Admin routes for inventory management
   app.get("/api/admin/inventory", ensureAdmin, async (req, res) => {
     try {
