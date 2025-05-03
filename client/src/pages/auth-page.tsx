@@ -89,10 +89,11 @@ export default function AuthPage() {
 
       {/* Form section */}
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-md space-y-6 rtl bg-[hsl(var(--gold))] text-black p-8 rounded-lg shadow-2xl border-2 border-amber-300 shadow-amber-100/60">
+        <div className="w-full max-w-md space-y-6 rtl bg-gradient-to-b from-[hsl(var(--gold))] to-amber-100 text-black p-8 rounded-lg shadow-2xl border-2 border-amber-300 shadow-amber-100/60">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-playfair font-bold text-gold-800 mb-2">התחבר לחשבונך</h2>
+            <h2 className="text-3xl font-playfair font-bold mb-2 bg-gradient-to-r from-amber-700 via-yellow-500 to-amber-700 bg-clip-text text-transparent">התחבר לחשבונך</h2>
             <p className="text-gray-600">או צור חשבון חדש כדי להתחיל</p>
+            <div className="h-1 w-16 mx-auto mt-4 bg-gradient-to-r from-amber-300 via-amber-500 to-amber-300"></div>
           </div>
 
           <Tabs defaultValue={defaultTab} className="w-full space-y-6 tabs-gold">
@@ -133,7 +134,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white shadow-lg shadow-amber-300/40"
+                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-black shadow-lg shadow-amber-300/40"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? (
@@ -235,7 +236,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white shadow-lg shadow-amber-300/40"
+                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-black shadow-lg shadow-amber-300/40"
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? (
