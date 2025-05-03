@@ -74,31 +74,32 @@ export default function AuthPage() {
     <div 
       className="min-h-screen flex flex-col md:flex-row-reverse bg-black" 
       style={{
-        backgroundImage: `url('/images/jewelry-background.jpg')`,
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url('/images/jewelry-background.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundBlendMode: 'overlay'
+        backgroundBlendMode: 'overlay',
+        backgroundAttachment: 'fixed'
       }}
     >
       {/* Hero section */}
-      <div className="w-full md:w-1/2 bg-gradient-to-br from-black to-gray-900 p-10 flex items-center justify-center">
+      <div className="w-full md:w-1/2 bg-gradient-to-b from-black via-gray-900/80 to-black p-10 flex items-center justify-center backdrop-blur-sm">
         <div className="max-w-lg">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-gold-400 text-shadow">
+          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-gold-600" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
             ברוכים הבאים לעולם המויסנייט
           </h1>
-          <p className="text-lg text-right text-gold-300 mb-8">
-            הכנס לחשבונך כדי לצפות בהזמנות שלך, לשמור מוצרים ברשימת המשאלות וליהנות מחווית קניה מותאמת אישית.
+          <p className="text-lg text-right text-gold-300 mb-8 leading-relaxed">
+            הכנס לחשבונך כדי לצפות בהזמנות שלך, לשמור מוצרים ברשימת המשאלות וליהנות מחווית קניה מותאמת אישית עם התכשיטים היפים ביותר.
           </p>
           <div className="flex justify-end">
-            <div className="w-28 h-1 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full shadow-md"></div>
+            <div className="w-28 h-1 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full shadow-md" style={{ boxShadow: '0 0 10px rgba(234, 179, 8, 0.5)' }}></div>
           </div>
         </div>
       </div>
 
       {/* Form section */}
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
-        <div className="w-full max-w-md space-y-6 rtl bg-black bg-opacity-80 shadow-2xl rounded-xl p-8 border border-gold-500">
+        <div className="w-full max-w-md space-y-6 rtl bg-black bg-opacity-80 shadow-2xl rounded-xl p-8 border border-gold-500" style={{ boxShadow: '0 0 15px rgba(234, 179, 8, 0.3), 0 0 30px rgba(0, 0, 0, 0.8)' }}>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-playfair font-bold text-gold-400 mb-3">התחבר לחשבונך</h2>
             <p className="text-gold-300">או צור חשבון חדש כדי להתחיל</p>
@@ -162,7 +163,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full mt-6 bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white text-lg py-6 font-semibold shadow-md rounded-md transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+                    className="w-full mt-6 bg-gradient-to-r from-gold-600 to-gold-400 hover:from-gold-500 hover:to-gold-300 text-black text-lg py-6 font-semibold shadow-md rounded-md transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border border-gold-300"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? (
@@ -292,7 +293,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full mt-6 bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white text-lg py-6 font-semibold shadow-md rounded-md transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+                    className="w-full mt-6 bg-gradient-to-r from-gold-600 to-gold-400 hover:from-gold-500 hover:to-gold-300 text-black text-lg py-6 font-semibold shadow-md rounded-md transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border border-gold-300"
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? (
@@ -305,8 +306,8 @@ export default function AuthPage() {
                     )}
                   </Button>
                   
-                  <div className="text-center mt-4 text-sm text-gray-600">
-                    בהרשמה אתה מסכים ל<a href="/terms" className="text-gold-600 hover:underline">תנאי השימוש</a> ול<a href="/privacy" className="text-gold-600 hover:underline">מדיניות הפרטיות</a> שלנו
+                  <div className="text-center mt-4 text-sm text-gold-400">
+                    בהרשמה אתה מסכים ל<a href="/terms" className="text-gold-300 hover:text-gold-100 hover:underline transition-colors">תנאי השימוש</a> ול<a href="/privacy" className="text-gold-300 hover:text-gold-100 hover:underline transition-colors">מדיניות הפרטיות</a> שלנו
                   </div>
                 </form>
               </Form>
