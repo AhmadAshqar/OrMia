@@ -97,7 +97,7 @@ export default function AuthPage() {
           </div>
 
           <Tabs defaultValue={defaultTab} className="w-full space-y-6 tabs-gold">
-            <TabsList className="grid w-full grid-cols-2 p-1 bg-black/10 rounded-lg">
+            <TabsList className="grid w-full grid-cols-2 p-1 bg-black/5 rounded-lg border border-amber-600/20">
               <TabsTrigger value="login" className="rounded-md py-2 font-alef">התחברות</TabsTrigger>
               <TabsTrigger value="register" className="rounded-md py-2 font-alef">הרשמה</TabsTrigger>
             </TabsList>

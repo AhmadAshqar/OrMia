@@ -16,30 +16,27 @@
   --card-foreground: 20 14.3% 4.1%;
   --border: 20 5.9% 90%;
   --input: 20 5.9% 90%;
-  --primary: 40 80% 55%; /* Richer gold color */
-  --primary-foreground: 0 0% 0%; /* Black text on gold */
-  --secondary: 20 30% 96%; /* Warmer off-white */
+  --primary: 40 80% 55%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 20 30% 96%;
   --secondary-foreground: 24 9.8% 10%;
-  --accent: 40 80% 55%; /* Gold accent */
+  --accent: 40 80% 55%;
   --accent-foreground: 24 9.8% 10%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 40 80% 55%; /* Gold ring */
-  --radius: 0.3rem; /* More subtle radius for elegant look */
-  
-  /* Chart colors */
+  --ring: 40 80% 55%;
+  --radius: 0.5rem;
+
   --chart-1: 43 77% 52%;
   --chart-2: 40 60% 44%;
   --chart-3: 37 50% 36%;
   --chart-4: 0 0% 20%;
   --chart-5: 0 0% 60%;
-  
-  /* Sidebar colors */
+
   --sidebar-background: 0 0% 0%;
   --sidebar-foreground: 0 0% 100%;
   --sidebar-primary: 43 77% 52%;
-  
-  /* Custom colors */
+
   --gold: 43 77% 52%;
   --gold-dark: 43 65% 42%;
   --sidebar-primary-foreground: 0 0% 0%;
@@ -60,7 +57,7 @@
   --card-foreground: 0 0% 98%;
   --border: 0 0% 14%;
   --input: 0 0% 14%;
-  --primary: 43 77% 52%; /* Gold */
+  --primary: 43 77% 52%;
   --primary-foreground: 0 0% 0%;
   --secondary: 0 0% 14%;
   --secondary-foreground: 0 0% 98%;
@@ -82,29 +79,32 @@
     letter-spacing: 0.01em;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Playfair Display', 'Heebo', serif;
     letter-spacing: 0.02em;
   }
-  
-  /* Luxury gold gradient text */
+
   .text-gold-gradient {
     background: linear-gradient(to right, #9f7411 20%, #d4af37 45%, #9f7411 75%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-fill-color: transparent;
-    text-shadow: 0px 0px 1px rgba(0,0,0,0.2);
+    text-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2);
   }
-  
-  /* Luxury section styling */
+
   .luxury-section {
     position: relative;
     background: linear-gradient(to bottom, #000 0%, #131313 100%);
     color: #fff;
     overflow: hidden;
   }
-  
+
   .luxury-section:before {
     content: '';
     position: absolute;
@@ -115,10 +115,14 @@
     background: linear-gradient(to right, transparent 0%, #d4af37 50%, transparent 100%);
   }
 
-  /* Custom animations */
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes slideInUp {
@@ -126,13 +130,13 @@
       transform: translateY(20px);
       opacity: 0;
     }
+
     to {
       transform: translateY(0);
       opacity: 1;
     }
   }
 
-  /* Custom classes */
   .animate-fade-in {
     animation: fadeIn 0.8s ease-in-out;
   }
@@ -148,7 +152,6 @@
     transform: translateY(0);
   }
 
-  /* Luxury Tabs Styling */
   .tabs-gold [data-state="active"] {
     background: linear-gradient(135deg, #d4af37 0%, #f9d77f 50%, #d4af37 100%);
     color: #fff;
@@ -156,24 +159,23 @@
     box-shadow: 0 2px 4px rgba(212, 175, 55, 0.3);
     border-color: #d4af37;
   }
-  
+
   .tabs-gold [role="tablist"] {
     border: 1px solid rgba(212, 175, 55, 0.3);
     background-color: #faf7f2;
   }
-  
+
   .tabs-gold [role="tab"] {
     color: #6c5a30;
     font-weight: 500;
     transition: all 0.2s ease;
   }
-  
+
   .tabs-gold [role="tab"]:hover:not([data-state="active"]) {
     background-color: rgba(212, 175, 55, 0.1);
     color: #8a7236;
   }
 
-  /* Gold hover effect */
   .gold-hover {
     position: relative;
     transition: all 0.3s ease;
@@ -197,7 +199,6 @@
     height: 100%;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -217,63 +218,56 @@
   }
 }
 
-/* Custom form styling for auth page */
 @layer components {
-  /* Gold-themed input styles */
   .form-input-gold {
-    @apply border border-amber-800/20 bg-white/90 rounded-md focus:border-[hsl(var(--gold))] focus:ring-1 focus:ring-amber-500/30 focus:bg-white transition-all duration-300 text-black placeholder:text-amber-700/40 px-4 py-3 shadow-sm;
+    @apply border border-amber-800/30 bg-white text-black rounded-md focus:border-[hsl(var(--gold))] focus:ring-1 focus:ring-amber-500/30 transition-all duration-300 placeholder:text-amber-700/40 px-4 py-3 shadow-inner focus:shadow-md;
   }
 
-  /* Form validation styling */
   .form-error {
     @apply text-red-900 text-sm mt-1;
   }
-  
-  /* Form label luxury styling */
+
   .form-label-gold {
     @apply text-black/90 font-alef font-bold text-sm tracking-wider mb-1 block;
   }
-  
-  /* Tabs styling for auth page */
+
   .tabs-gold [data-state=active] {
-    @apply bg-black text-[hsl(var(--gold))] font-semibold shadow-lg transform -translate-y-0.5 transition-all duration-300;
+    @apply bg-black text-[hsl(var(--gold))] font-semibold shadow-md transform -translate-y-0.5 transition-all duration-300;
+    background: linear-gradient(to bottom, #111 0%, #000 100%);
   }
-  
+
   .tabs-gold [data-state=inactive] {
-    @apply bg-black/20 text-black border border-black/30 hover:bg-black/30 transition-all duration-300;
+    @apply bg-transparent text-amber-900 hover:bg-black/5 transition-all duration-300;
   }
-  
-  /* Luxury button style */
+
   .btn-luxury {
     @apply bg-black text-[hsl(var(--gold))] font-alef font-bold tracking-wider uppercase relative overflow-hidden;
     background: linear-gradient(to right, #000 0%, #121212 100%);
   }
-  
+
   .btn-luxury:before {
     @apply absolute inset-0 opacity-0 transition-opacity duration-300;
     content: '';
     background: linear-gradient(to right, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.2));
   }
-  
+
   .btn-luxury:hover:before {
     @apply opacity-100;
   }
-  
-  /* Luxury card glow */
+
   .luxury-card {
     @apply relative;
   }
-  
+
   .luxury-card:after {
     content: '';
     @apply absolute -inset-1 rounded-lg blur-sm bg-gradient-to-r from-[hsl(var(--gold))] via-yellow-400 to-[hsl(var(--gold))] opacity-50 -z-10 transition-all duration-500;
   }
-  
+
   .luxury-card:hover:after {
     @apply blur-md opacity-70;
   }
-  
-  /* Gold gradient background */
+
   .gold-gradient-bg {
     background: linear-gradient(135deg, #e5cc6d 0%, #f2d787 50%, #e5cc6d 100%);
     @apply rounded-lg shadow-xl border border-yellow-200/30 p-8;
