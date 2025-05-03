@@ -93,7 +93,7 @@ export default function AuthPage() {
         <div className="absolute top-40 left-10 w-8 h-8 rotate-45 bg-gradient-to-br from-gold-300 to-gold-600 opacity-15 animate-pulse" style={{animationDelay: '2s'}}></div>
         
         <div className="max-w-lg relative z-10">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-gold-600" style={{ textShadow: '0 2px 10px rgba(234, 179, 8, 0.5)' }}>
+          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-gold-600" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
             ברוכים הבאים לעולם המויסנייט
           </h1>
           <p className="text-lg text-right text-gold-300 mb-8 leading-relaxed">
@@ -109,7 +109,7 @@ export default function AuthPage() {
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-black relative z-10">
         <div className="w-full max-w-md space-y-6 rtl bg-white shadow-2xl rounded-xl p-8 border-2 border-gold-500" style={{ boxShadow: '0 0 25px rgba(234, 179, 8, 0.5), 0 10px 40px -10px rgba(0, 0, 0, 0.8)' }}>
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-playfair font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-600 to-gold-400 mb-3">התחבר לחשבונך</h2>
+            <h2 className="text-3xl font-playfair font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-600 to-gold-400 mb-3" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>התחבר לחשבונך</h2>
             <p className="text-gray-700">או צור חשבון חדש כדי להתחיל</p>
             <div className="mt-4 mx-auto w-16 h-1 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full shadow-md"></div>
           </div>
