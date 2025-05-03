@@ -83,8 +83,25 @@ export default function AuthPage() {
       </div>
 
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-md rtl gold-gradient-bg luxury-card p-8">
-          <div className="text-center mb-8">
+        <div className="w-full max-w-md rtl gold-gradient-bg luxury-card p-8 relative">
+          {/* Gold corner accents */}
+          <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
+            <div className="absolute -top-1 -right-1 w-8 h-8 border-t-2 border-r-2 border-yellow-700 rounded-tr-md corner-accent"></div>
+          </div>
+          <div className="absolute top-0 left-0 w-16 h-16 overflow-hidden">
+            <div className="absolute -top-1 -left-1 w-8 h-8 border-t-2 border-l-2 border-yellow-700 rounded-tl-md corner-accent" style={{animationDelay: '1s'}}></div>
+          </div>
+          <div className="absolute bottom-0 right-0 w-16 h-16 overflow-hidden">
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-2 border-r-2 border-yellow-700 rounded-br-md corner-accent" style={{animationDelay: '1.5s'}}></div>
+          </div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 overflow-hidden">
+            <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-2 border-l-2 border-yellow-700 rounded-bl-md corner-accent" style={{animationDelay: '0.5s'}}></div>
+          </div>
+          
+          <div className="text-center mb-8 relative">
+            <div className="absolute -top-4 right-1/2 transform translate-x-1/2 w-12 h-4">
+              <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-amber-900 to-transparent"></div>
+            </div>
             <h2 className="text-3xl font-serif font-bold mb-3 text-black">
               התחבר לחשבונך
             </h2>
@@ -156,20 +173,28 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  <Button
-                    type="submit"
-                    className="w-full btn-luxury shadow-lg shadow-black/40 py-6 text-lg"
-                    disabled={loginMutation.isPending}
-                  >
-                    {loginMutation.isPending ? (
-                      <div className="flex items-center">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        מתחבר...
-                      </div>
-                    ) : (
-                      "התחבר"
-                    )}
-                  </Button>
+                  <div className="pt-4 relative">
+                    <div className="absolute -top-2 right-0 w-full">
+                      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-amber-900/20 to-transparent"></div>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full btn-luxury shadow-lg shadow-black/40 py-6 text-lg relative"
+                      disabled={loginMutation.isPending}
+                    >
+                      {loginMutation.isPending ? (
+                        <div className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          מתחבר...
+                        </div>
+                      ) : (
+                        <>
+                          <span className="relative z-10">התחבר</span>
+                          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-600/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </TabsContent>
@@ -296,20 +321,28 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  <Button
-                    type="submit"
-                    className="w-full btn-luxury shadow-lg shadow-black/40 py-6 text-lg"
-                    disabled={registerMutation.isPending}
-                  >
-                    {registerMutation.isPending ? (
-                      <div className="flex items-center">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        יוצר חשבון...
-                      </div>
-                    ) : (
-                      "הרשם"
-                    )}
-                  </Button>
+                  <div className="pt-4 relative">
+                    <div className="absolute -top-2 right-0 w-full">
+                      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-amber-900/20 to-transparent"></div>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full btn-luxury shadow-lg shadow-black/40 py-6 text-lg relative"
+                      disabled={registerMutation.isPending}
+                    >
+                      {registerMutation.isPending ? (
+                        <div className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          יוצר חשבון...
+                        </div>
+                      ) : (
+                        <>
+                          <span className="relative z-10">הרשם</span>
+                          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-600/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </TabsContent>
