@@ -44,7 +44,7 @@ export const products = pgTable("products", {
   mainImage: text("main_image").notNull(),
   images: text("images").default('[]'),
   categoryId: integer("category_id").notNull(),
-  sku: text("sku"),
+  sku: text("sku").notNull().unique(),
   inStock: boolean("in_stock").default(true).notNull(),
   isNew: boolean("is_new").default(false).notNull(),
   isFeatured: boolean("is_featured").default(false).notNull(),
@@ -114,15 +114,10 @@ export const insertAdminSchema = createInsertSchema(admins).omit({
   lastLogin: true 
 });
 
-// Create product insert schema with optional SKU
-export const insertProductSchema = createInsertSchema(products)
-  .omit({ 
-    id: true,
-    createdAt: true 
-  })
-  .extend({
-    sku: z.string().optional()
-  });
+export const insertProductSchema = createInsertSchema(products).omit({ 
+  id: true,
+  createdAt: true 
+});
 
 export const insertCategorySchema = createInsertSchema(categories).omit({ 
   id: true 
