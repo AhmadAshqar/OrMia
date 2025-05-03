@@ -46,28 +46,6 @@
   --sidebar-ring: 43 77% 52%;
 }
 
-.dark {
-  --background: 0 0% 7%;
-  --foreground: 0 0% 98%;
-  --muted: 0 0% 14%;
-  --muted-foreground: 0 0% 65%;
-  --popover: 0 0% 7%;
-  --popover-foreground: 0 0% 98%;
-  --card: 0 0% 7%;
-  --card-foreground: 0 0% 98%;
-  --border: 0 0% 14%;
-  --input: 0 0% 14%;
-  --primary: 43 77% 52%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 0% 14%;
-  --secondary-foreground: 0 0% 98%;
-  --accent: 43 77% 52%;
-  --accent-foreground: 0 0% 0%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --ring: 43 77% 52%;
-}
-
 @layer base {
   * {
     @apply border-border;
@@ -99,42 +77,14 @@
   }
 
   .luxury-section {
-    position: relative;
-    background: linear-gradient(to bottom, #000 0%, #131313 100%);
-    color: #fff;
-    overflow: hidden;
+    @apply relative text-white overflow-hidden;
+    background: linear-gradient(to bottom, #000, #131313);
   }
 
   .luxury-section:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
+    @apply absolute top-0 left-0 right-0 h-px;
     background: linear-gradient(to right, transparent 0%, #d4af37 50%, transparent 100%);
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes slideInUp {
-    from {
-      transform: translateY(20px);
-      opacity: 0;
-    }
-
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
+    content: '';
   }
 
   .animate-fade-in {
@@ -142,85 +92,53 @@
   }
 
   .slide-in {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    @apply opacity-0 translate-y-5 transition-opacity transition-transform duration-700;
   }
 
   .slide-in-visible {
-    opacity: 1;
-    transform: translateY(0);
+    @apply opacity-100 translate-y-0;
   }
 
   .tabs-gold [data-state="active"] {
     background: linear-gradient(135deg, #d4af37 0%, #f9d77f 50%, #d4af37 100%);
-    color: #fff;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-    box-shadow: 0 2px 4px rgba(212, 175, 55, 0.3);
-    border-color: #d4af37;
+    color: #000;
+    font-weight: 700;
+    box-shadow: 0 0 0 2px #fff inset;
+    border-radius: 9999px;
+    transform: scale(1.02);
+  }
+
+  .tabs-gold [data-state="inactive"] {
+    background: #fefefe;
+    color: #111;
+    font-weight: 600;
+    border-radius: 9999px;
+    opacity: 0.95;
+    transition: all 0.2s ease-in-out;
   }
 
   .tabs-gold [role="tablist"] {
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    background-color: #faf7f2;
+    @apply flex bg-[#f3e3b2] rounded-full p-1 gap-2 shadow-inner;
   }
 
   .tabs-gold [role="tab"] {
-    color: #6c5a30;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    padding: 0.65rem 1.5rem;
+    font-weight: 600;
+    font-family: 'Assistant', sans-serif;
+    transition: all 0.2s ease-in-out;
   }
 
   .tabs-gold [role="tab"]:hover:not([data-state="active"]) {
-    background-color: rgba(212, 175, 55, 0.1);
-    color: #8a7236;
-  }
-
-  .gold-hover {
-    position: relative;
-    transition: all 0.3s ease;
-    z-index: 1;
-    overflow: hidden;
-  }
-
-  .gold-hover:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 0;
-    background: linear-gradient(to top, hsl(var(--primary)) 0%, transparent 100%);
-    z-index: -1;
-    transition: height 0.3s ease;
-  }
-
-  .gold-hover:hover:after {
-    height: 100%;
-  }
-
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--secondary));
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary));
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.8);
+    background-color: rgba(212, 175, 55, 0.15);
+    color: #333;
   }
 }
 
 @layer components {
   .form-input-gold {
-    @apply border border-amber-800/30 bg-white text-black rounded-md focus:border-[hsl(var(--gold))] focus:ring-1 focus:ring-amber-500/30 transition-all duration-300 placeholder:text-amber-700/40 px-4 py-3 shadow-inner focus:shadow-md;
+    @apply w-full bg-white/90 text-black border-0 border-b-2 border-amber-800/30 rounded-t-md px-4 py-3 transition-all duration-300 
+    focus:outline-none focus:border-amber-700 focus:ring-0 focus:bg-white placeholder:text-amber-800/40;
+    box-shadow: 0 3px 6px -2px rgba(0,0,0,0.05);
   }
 
   .form-error {
@@ -228,21 +146,11 @@
   }
 
   .form-label-gold {
-    @apply text-black/90 font-alef font-bold text-sm tracking-wider mb-1 block;
-  }
-
-  .tabs-gold [data-state=active] {
-    @apply bg-black text-[hsl(var(--gold))] font-semibold shadow-md transform -translate-y-0.5 transition-all duration-300;
-    background: linear-gradient(to bottom, #111 0%, #000 100%);
-  }
-
-  .tabs-gold [data-state=inactive] {
-    @apply bg-transparent text-amber-900 hover:bg-black/5 transition-all duration-300;
+    @apply text-amber-950 font-alef font-semibold text-sm tracking-wider mb-2 block;
   }
 
   .btn-luxury {
-    @apply bg-black text-[hsl(var(--gold))] font-alef font-bold tracking-wider uppercase relative overflow-hidden;
-    background: linear-gradient(to right, #000 0%, #121212 100%);
+    @apply bg-black text-[hsl(var(--gold))] font-alef font-bold tracking-wider uppercase relative overflow-hidden shadow-md py-4;
   }
 
   .btn-luxury:before {
@@ -256,20 +164,12 @@
   }
 
   .luxury-card {
-    @apply relative;
-  }
-
-  .luxury-card:after {
-    content: '';
-    @apply absolute -inset-1 rounded-lg blur-sm bg-gradient-to-r from-[hsl(var(--gold))] via-yellow-400 to-[hsl(var(--gold))] opacity-50 -z-10 transition-all duration-500;
-  }
-
-  .luxury-card:hover:after {
-    @apply blur-md opacity-70;
+    @apply relative rounded-xl overflow-hidden shadow-xl space-y-6;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 5px 10px -5px rgba(0,0,0,0.05);
   }
 
   .gold-gradient-bg {
-    background: linear-gradient(135deg, #e5cc6d 0%, #f2d787 50%, #e5cc6d 100%);
-    @apply rounded-lg shadow-xl border border-yellow-200/30 p-8;
+    background: linear-gradient(135deg, #e6c661 0%, #f2d787 45%, #e6c661 100%);
+    @apply border border-yellow-400/30;
   }
 }
