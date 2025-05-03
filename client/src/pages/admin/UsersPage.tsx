@@ -230,16 +230,18 @@ export default function UsersPage() {
   const isPending = createUserMutation.isPending || updateUserMutation.isPending;
 
   // Filter users based on search term
-  const filteredUsers = users?.filter(user => {
+  const filteredUsers = users ? users.filter(user => {
     const username = user.username.toLowerCase();
     const email = user.email?.toLowerCase() || "";
-    const fullName = user.fullName?.toLowerCase() || "";
+    const firstName = user.firstName?.toLowerCase() || "";
+    const lastName = user.lastName?.toLowerCase() || "";
     const searchLower = searchTerm.toLowerCase();
     
     return username.includes(searchLower) || 
            email.includes(searchLower) || 
-           fullName.includes(searchLower);
-  });
+           firstName.includes(searchLower) ||
+           lastName.includes(searchLower);
+  }) : [];
 
   // Format date
   const formatDate = (date: Date | string | null) => {
@@ -299,15 +301,15 @@ export default function UsersPage() {
                     filteredUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.username}</TableCell>
-                        <TableCell>{user.fullName || '-'}</TableCell>
+                        <TableCell>{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.firstName || user.lastName || '-')}</TableCell>
                         <TableCell>{user.email || '-'}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.isAdmin 
+                            user.role === 'admin' 
                               ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300' 
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300'
                           }`}>
-                            {user.isAdmin ? 'מנהל' : 'משתמש רגיל'}
+                            {user.role === 'admin' ? 'מנהל' : 'משתמש רגיל'}
                           </span>
                         </TableCell>
                         <TableCell>{formatDate(user.createdAt)}</TableCell>
@@ -391,20 +393,32 @@ export default function UsersPage() {
                   type="email"
                   value={formState.email || ''}
                   onChange={handleInputChange}
-                  placeholder="הזן דוא\"ל"
+                  placeholder="הזן דואר אלקטרוני"
                   required
                 />
               </div>
               
-              <div className="grid gap-2">
-                <Label htmlFor="fullName">שם מלא</Label>
-                <Input
-                  id="fullName"
-                  name="fullName"
-                  value={formState.fullName || ''}
-                  onChange={handleInputChange}
-                  placeholder="הזן שם מלא (אופציונלי)"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="firstName">שם פרטי</Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={formState.firstName || ''}
+                    onChange={handleInputChange}
+                    placeholder="הזן שם פרטי"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="lastName">שם משפחה</Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={formState.lastName || ''}
+                    onChange={handleInputChange}
+                    placeholder="הזן שם משפחה"
+                  />
+                </div>
               </div>
               
               {!editingUser && (
@@ -422,16 +436,18 @@ export default function UsersPage() {
                 </div>
               )}
 
-              <div className="flex items-center gap-2 mt-2">
-                <input
-                  id="isAdmin"
-                  name="isAdmin"
-                  type="checkbox"
-                  checked={formState.isAdmin || false}
-                  onChange={(e) => handleInputChange(e as any)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <Label htmlFor="isAdmin" className="mt-0">הרשאות מנהל</Label>
+              <div className="grid gap-2">
+                <Label htmlFor="role">הרשאות</Label>
+                <select
+                  id="role"
+                  name="role"
+                  value={formState.role || 'customer'}
+                  onChange={handleInputChange}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="customer">משתמש רגיל</option>
+                  <option value="admin">מנהל</option>
+                </select>
               </div>
             </div>
 
@@ -475,10 +491,14 @@ export default function UsersPage() {
                     <span className="font-medium">דוא"ל:</span>
                     <span>{userToDelete.email}</span>
                   </div>
-                  {userToDelete.fullName && (
+                  {(userToDelete.firstName || userToDelete.lastName) && (
                     <div className="flex justify-between">
                       <span className="font-medium">שם מלא:</span>
-                      <span>{userToDelete.fullName}</span>
+                      <span>
+                        {userToDelete.firstName && userToDelete.lastName 
+                          ? `${userToDelete.firstName} ${userToDelete.lastName}`
+                          : (userToDelete.firstName || userToDelete.lastName)}
+                      </span>
                     </div>
                   )}
                 </div>
