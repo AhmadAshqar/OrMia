@@ -25,7 +25,8 @@ export default function DashboardPage() {
   // Fetch inventory
   const { data: inventory, isLoading: inventoryLoading } = useQuery<Inventory[]>({
     queryKey: ["/api/admin/inventory"],
-    onError: (error) => {
+    onSuccess: () => {},
+    onError: (error: Error) => {
       toast({
         title: "שגיאה בטעינת נתוני מלאי",
         description: "לא ניתן היה לטעון את נתוני המלאי. נסה שוב מאוחר יותר.",

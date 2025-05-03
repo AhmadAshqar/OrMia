@@ -6,7 +6,9 @@ import {
   insertCartSchema, 
   insertCartItemSchema,
   insertUserSchema,
-  insertInventorySchema
+  insertInventorySchema,
+  insertProductSchema,
+  insertCategorySchema
 } from "@shared/schema";
 import { setupAuth, ensureAuthenticated, ensureAdmin } from "./auth";
 import { z } from "zod";
@@ -102,6 +104,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Error updating stock:", err);
       res.status(500).json({ message: "שגיאה בעדכון המלאי" });
+    }
+  });
+  
+  // Admin routes for products management
+  app.post("/api/products", ensureAdmin, async (req, res) => {
+    try {
+      const productData = insertProductSchema.parse(req.body);
+      const product = await storage.createProduct(productData);
+      res.status(201).json(product);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "נתוני מוצר לא תקינים", errors: err.errors });
+      }
+      console.error("Error creating product:", err);
+      res.status(500).json({ message: "שגיאה ביצירת מוצר" });
+    }
+  });
+  
+  app.patch("/api/products/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה מוצר לא תקין" });
+      }
+      
+      const product = await storage.updateProduct(id, req.body);
+      if (!product) {
+        return res.status(404).json({ message: "מוצר לא נמצא" });
+      }
+      
+      res.json(product);
+    } catch (err) {
+      console.error("Error updating product:", err);
+      res.status(500).json({ message: "שגיאה בעדכון מוצר" });
+    }
+  });
+  
+  app.delete("/api/products/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה מוצר לא תקין" });
+      }
+      
+      const success = await storage.deleteProduct(id);
+      if (!success) {
+        return res.status(404).json({ message: "מוצר לא נמצא" });
+      }
+      
+      res.status(204).end();
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      res.status(500).json({ message: "שגיאה במחיקת מוצר" });
+    }
+  });
+  
+  // Admin routes for categories management
+  app.post("/api/categories", ensureAdmin, async (req, res) => {
+    try {
+      const categoryData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(categoryData);
+      res.status(201).json(category);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "נתוני קטגוריה לא תקינים", errors: err.errors });
+      }
+      console.error("Error creating category:", err);
+      res.status(500).json({ message: "שגיאה ביצירת קטגוריה" });
+    }
+  });
+  
+  app.patch("/api/categories/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה קטגוריה לא תקין" });
+      }
+      
+      const category = await storage.updateCategory(id, req.body);
+      if (!category) {
+        return res.status(404).json({ message: "קטגוריה לא נמצאה" });
+      }
+      
+      res.json(category);
+    } catch (err) {
+      console.error("Error updating category:", err);
+      res.status(500).json({ message: "שגיאה בעדכון קטגוריה" });
+    }
+  });
+  
+  app.delete("/api/categories/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה קטגוריה לא תקין" });
+      }
+      
+      const success = await storage.deleteCategory(id);
+      if (!success) {
+        return res.status(404).json({ message: "קטגוריה לא נמצאה" });
+      }
+      
+      res.status(204).end();
+    } catch (err) {
+      console.error("Error deleting category:", err);
+      res.status(500).json({ message: "שגיאה במחיקת קטגוריה" });
     }
   });
   
@@ -255,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update quantity instead of creating new item
         const updatedItem = await storage.updateCartItem(
           existingItem.id, 
-          existingItem.quantity + itemData.quantity
+          existingItem.quantity + (itemData.quantity || 1)
         );
         return res.json(updatedItem);
       }

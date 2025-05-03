@@ -14,10 +14,16 @@ import ContactPage from "@/pages/ContactPage";
 import FaqPage from "@/pages/FaqPage";
 import AuthPage from "@/pages/auth-page";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { AdminRoute } from "@/lib/admin-route";
 import { CartProvider } from "@/components/cart/CartContext";
 import { AuthProvider } from "@/hooks/use-auth";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
+
+// Admin pages - lazy loaded
+const DashboardPage = lazy(() => import("@/pages/admin/DashboardPage"));
+const InventoryPage = lazy(() => import("@/pages/admin/InventoryPage"));
+const ProductsAdminPage = lazy(() => import("@/pages/admin/ProductsPage"));
 
 function Router() {
   const [location] = useLocation();
@@ -32,19 +38,31 @@ function Router() {
   }, [location]);
 
   return (
-    <Switch>
-      <Route path="/" component={HomePage} />
-      <Route path="/products" component={ProductsPage} />
-      <Route path="/products/:category" component={ProductsPage} />
-      <Route path="/product/:id" component={ProductDetailPage} />
-      <Route path="/cart" component={CartPage} />
-      <ProtectedRoute path="/checkout" component={CheckoutPage} />
-      <Route path="/about" component={AboutPage} />
-      <Route path="/contact" component={ContactPage} />
-      <Route path="/faq" component={FaqPage} />
-      <Route path="/auth" component={AuthPage} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+      </div>
+    }>
+      <Switch>
+        <Route path="/" component={HomePage} />
+        <Route path="/products" component={ProductsPage} />
+        <Route path="/products/:category" component={ProductsPage} />
+        <Route path="/product/:id" component={ProductDetailPage} />
+        <Route path="/cart" component={CartPage} />
+        <ProtectedRoute path="/checkout" component={CheckoutPage} />
+        <Route path="/about" component={AboutPage} />
+        <Route path="/contact" component={ContactPage} />
+        <Route path="/faq" component={FaqPage} />
+        <Route path="/auth" component={AuthPage} />
+        
+        {/* Admin Routes */}
+        <AdminRoute path="/admin" component={() => <DashboardPage />} />
+        <AdminRoute path="/admin/inventory" component={() => <InventoryPage />} />
+        <AdminRoute path="/admin/products" component={() => <ProductsAdminPage />} />
+        
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
