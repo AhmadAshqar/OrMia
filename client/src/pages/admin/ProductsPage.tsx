@@ -567,18 +567,84 @@ export default function ProductsPage() {
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="mainImage">תמונה ראשית (URL)</Label>
-                    <div className="flex">
+                    <div className="flex gap-2">
                       <Input
                         id="mainImage"
                         name="mainImage"
                         value={formState.mainImage || ''}
                         onChange={handleInputChange}
                         required
+                        className="flex-1"
                       />
-                      <Button type="button" variant="outline" className="mr-2">
-                        <ImagePlus className="h-4 w-4 ml-2" />
-                        בחר תמונה
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button type="button" variant="outline">
+                            <ImagePlus className="h-4 w-4 ml-2" />
+                            בחר תמונה
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>בחירת תמונה</DialogTitle>
+                            <DialogDescription>
+                              בחר תמונה מהגלריה או הזן URL של תמונה
+                            </DialogDescription>
+                          </DialogHeader>
+                          
+                          <div className="grid gap-4">
+                            <div className="grid gap-2">
+                              <Label>הזן URL של תמונה</Label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  value={formState.mainImage || ''}
+                                  onChange={handleInputChange}
+                                  name="mainImage"
+                                  placeholder="https://example.com/image.jpg"
+                                  className="flex-1"
+                                />
+                                <Button 
+                                  type="button" 
+                                  onClick={() => document.querySelector<HTMLDialogElement>('[role="dialog"]')?.close()}
+                                >
+                                  אישור
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="border-t pt-4">
+                              <Label className="mb-4 block">תמונות לדוגמה</Label>
+                              <div className="grid grid-cols-3 gap-4">
+                                {[
+                                  "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1602752250015-52285b9d25c8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1611085583191-a3b181a88401?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1588444650733-d2874faa2b3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1602425721711-5e891095d0e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1518726289780-1596cdcc3d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                ].map((src, i) => (
+                                  <div 
+                                    key={i}
+                                    className="border rounded-md p-2 cursor-pointer hover:border-primary transition-colors"
+                                    onClick={() => {
+                                      setFormState({
+                                        ...formState,
+                                        mainImage: src
+                                      });
+                                      document.querySelector<HTMLDialogElement>('[role="dialog"]')?.close();
+                                    }}
+                                  >
+                                    <img 
+                                      src={src} 
+                                      alt={`תמונה לדוגמה ${i+1}`} 
+                                      className="w-full h-32 object-contain"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                   
