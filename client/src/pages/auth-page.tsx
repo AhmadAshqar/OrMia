@@ -51,6 +51,11 @@ export default function AuthPage() {
     return <Redirect to="/" />;
   }
 
+  // Get the mode from URL (login or register)
+  const searchParams = new URLSearchParams(window.location.search);
+  const mode = searchParams.get('mode');
+  const defaultTab = mode === 'register' ? 'register' : 'login';
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row-reverse">
       {/* Hero section */}
@@ -76,7 +81,7 @@ export default function AuthPage() {
             <p className="text-gray-600">או צור חשבון חדש כדי להתחיל</p>
           </div>
 
-          <Tabs defaultValue="login" className="w-full space-y-6">
+          <Tabs defaultValue={defaultTab} className="w-full space-y-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">התחברות</TabsTrigger>
               <TabsTrigger value="register">הרשמה</TabsTrigger>
