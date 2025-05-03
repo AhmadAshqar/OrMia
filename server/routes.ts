@@ -103,7 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add extra validation to prevent deleting the last admin user
       const users = await storage.getUsers();
-      const admins = users.filter(user => user.isAdmin);
+      const admins = users.filter(user => user.role === "admin");
       
       const userToDelete = users.find(user => user.id === id);
       if (!userToDelete) {
@@ -111,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Don't allow deleting the last admin
-      if (userToDelete.isAdmin && admins.length <= 1) {
+      if (userToDelete.role === "admin" && admins.length <= 1) {
         return res.status(400).json({ 
           message: "לא ניתן למחוק את מנהל המערכת האחרון" 
         });

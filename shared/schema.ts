@@ -16,8 +16,6 @@ export const users = pgTable("users", {
   postalCode: text("postal_code"),
   country: text("country").default("ישראל"),
   role: text("role").default("customer").notNull(),
-  isAdmin: boolean("is_admin").default(false).notNull(),
-  fullName: text("full_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
 });

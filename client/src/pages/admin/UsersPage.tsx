@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
+import { z } from "zod";
 
 import {
   Card,
@@ -61,14 +62,7 @@ export default function UsersPage() {
 
   // Fetch users
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
-    queryKey: ["/api/admin/users"],
-    onError: (error: Error) => {
-      toast({
-        title: "שגיאה בטעינת משתמשים",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    queryKey: ["/api/admin/users"]
   });
 
   // Create user mutation
@@ -155,8 +149,9 @@ export default function UsersPage() {
     setFormState({
       username: "",
       email: "",
-      fullName: "",
-      isAdmin: false,
+      firstName: "",
+      lastName: "",
+      role: "customer",
     });
     setEditingUser(null);
   };
@@ -167,8 +162,9 @@ export default function UsersPage() {
       setFormState({
         username: user.username,
         email: user.email,
-        fullName: user.fullName || "",
-        isAdmin: user.isAdmin || false,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        role: user.role || "customer",
       });
     } else {
       resetForm();

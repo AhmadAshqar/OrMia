@@ -778,6 +778,19 @@ export class DatabaseStorage implements IStorage {
     return !!result;
   }
   
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const results = await db.delete(users)
+        .where(eq(users.id, id))
+        .returning();
+        
+      return results.length > 0;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
+  }
+  
   // Admin methods
   async getAdmins(): Promise<Admin[]> {
     return db.select().from(admins);
