@@ -20,13 +20,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Search, ShoppingBag, Menu, X, User } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const Header = () => {
   const { t } = useTranslation();
+  const { user, logoutMutation } = useAuth();
   const cartContext = useContext(CartContext);
   const items = cartContext?.items || [];
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
 
   // Change header background on scroll
@@ -117,13 +119,63 @@ const Header = () => {
               )}
             </Link>
             
-            {/* User profile icon - Direct link to auth page */}
-            <a
-              href="/auth"
-              className="text-white hover:text-primary transition-colors relative cursor-pointer"
-            >
-              <User className="h-5 w-5" />
-            </a>
+            {/* User profile icon - Shows dropdown when logged in, otherwise links to auth */}
+            {user ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="text-white hover:text-primary transition-colors relative cursor-pointer">
+                    <User className="h-5 w-5" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 rtl">
+                  <div className="flex flex-col space-y-1 p-2">
+                    <div className="text-sm font-medium">
+                      {user.firstName || user.username || "שלום"}
+                    </div>
+                    <div className="text-xs text-gray-500 mb-2">
+                      {user.email}
+                    </div>
+                    <a href="/profile" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
+                      הפרופיל שלי
+                    </a>
+                    <a href="/orders" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
+                      ההזמנות שלי
+                    </a>
+                    <a href="/wishlist" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
+                      המועדפים שלי
+                    </a>
+                    {user.role === "admin" && (
+                      <a href="/admin" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
+                        ניהול האתר
+                      </a>
+                    )}
+                    <hr className="my-1" />
+                    <button 
+                      onClick={async () => {
+                        try {
+                          await logoutMutation.mutateAsync();
+                          navigate("/");
+                        } catch (error) {
+                          console.error("Logout failed:", error);
+                        }
+                      }}
+                      disabled={logoutMutation.isPending}
+                      className="flex items-center p-2 text-red-500 hover:bg-red-50 rounded-md cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4 ml-2" />
+                      {logoutMutation.isPending ? "מתנתק..." : "התנתק"}
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <a
+                href="/auth"
+                className="text-white hover:text-primary transition-colors relative cursor-pointer"
+              >
+                <User className="h-5 w-5" />
+              </a>
+            )}
 
             <Sheet>
               <SheetTrigger asChild>
