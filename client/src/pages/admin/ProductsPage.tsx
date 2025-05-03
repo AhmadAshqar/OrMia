@@ -20,8 +20,7 @@ import {
   DialogFooter, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger,
-  DialogClose
+  DialogTrigger 
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -258,33 +257,28 @@ export default function ProductsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
-    const requiredFields = [
-      { name: 'name', title: 'שם המוצר', desc: 'יש להזין שם עבור המוצר' },
-      { name: 'description', title: 'תיאור קצר', desc: 'יש להזין תיאור קצר עבור המוצר' },
-      { name: 'price', title: 'מחיר', desc: 'יש להזין מחיר עבור המוצר' },
-      { name: 'mainImage', title: 'תמונה ראשית', desc: 'יש לבחור תמונה ראשית עבור המוצר' },
-      { name: 'categoryId', title: 'קטגוריה', desc: 'יש לבחור קטגוריה עבור המוצר' },
-      { name: 'sku', title: 'מק"ט', desc: 'יש להזין מק"ט ייחודי עבור המוצר' },
-    ];
-    
-    for (const field of requiredFields) {
-      // Type assertion to resolve TypeScript error
-      const value = formState[field.name as keyof typeof formState];
-      if (!value) {
-        toast({
-          title: field.title,
-          description: field.desc,
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!formState.categoryId) {
+      toast({
+        title: "בחר קטגוריה",
+        description: "יש לבחור קטגוריה עבור המוצר",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formState.sku) {
+      toast({
+        title: "הזן מק\"ט",
+        description: "יש להזין מק\"ט ייחודי עבור המוצר",
+        variant: "destructive",
+      });
+      return;
     }
 
     const productData = {
       ...formState,
-      price: Number(formState.price) || 0,
-      salePrice: formState.salePrice ? Number(formState.salePrice) : null,
+      price: formState.price || 0,
+      salePrice: formState.salePrice === 0 ? null : formState.salePrice,
     } as InsertProduct;
 
     if (editingProduct) {
@@ -582,48 +576,78 @@ export default function ProductsPage() {
                         required
                         className="flex-1"
                       />
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={() => {
-                          const imageUrl = prompt("הזן URL של תמונה או בחר מהרשימה הבאה (הקש מספר 1-6):\n\n" +
-                            "1. טבעת מויסנייט יוקרתית\n" +
-                            "2. טבעת אירוסין\n" +
-                            "3. שרשרת מויסנייט\n" +
-                            "4. עגילי מויסנייט\n" +
-                            "5. צמיד מויסנייט\n" +
-                            "6. טבעת מויסנייט מיוחדת");
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button type="button" variant="outline">
+                            <ImagePlus className="h-4 w-4 ml-2" />
+                            בחר תמונה
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>בחירת תמונה</DialogTitle>
+                            <DialogDescription>
+                              בחר תמונה מהגלריה או הזן URL של תמונה
+                            </DialogDescription>
+                          </DialogHeader>
                           
-                          if (imageUrl) {
-                            const imageUrls = [
-                              "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-                              "https://images.unsplash.com/photo-1602752250015-52285b9d25c8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-                              "https://images.unsplash.com/photo-1611085583191-a3b181a88401?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-                              "https://images.unsplash.com/photo-1588444650733-d2874faa2b3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-                              "https://images.unsplash.com/photo-1602425721711-5e891095d0e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-                              "https://images.unsplash.com/photo-1518726289780-1596cdcc3d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
-                            ];
+                          <div className="grid gap-4">
+                            <div className="grid gap-2">
+                              <Label>הזן URL של תמונה</Label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  value={formState.mainImage || ''}
+                                  onChange={(e) => {
+                                    setFormState({
+                                      ...formState,
+                                      mainImage: e.target.value
+                                    });
+                                  }}
+                                  placeholder="https://example.com/image.jpg"
+                                  className="flex-1"
+                                />
+                                <DialogClose asChild>
+                                  <Button type="button">
+                                    אישור
+                                  </Button>
+                                </DialogClose>
+                              </div>
+                            </div>
                             
-                            // Check if user entered a number from 1-6
-                            const selection = parseInt(imageUrl);
-                            if (!isNaN(selection) && selection >= 1 && selection <= 6) {
-                              setFormState({
-                                ...formState,
-                                mainImage: imageUrls[selection - 1]
-                              });
-                            } else {
-                              // User entered a custom URL
-                              setFormState({
-                                ...formState,
-                                mainImage: imageUrl
-                              });
-                            }
-                          }
-                        }}
-                      >
-                        <ImagePlus className="h-4 w-4 ml-2" />
-                        בחר תמונה
-                      </Button>
+                            <div className="border-t pt-4">
+                              <Label className="mb-4 block">תמונות לדוגמה</Label>
+                              <div className="grid grid-cols-3 gap-4">
+                                {[
+                                  "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1602752250015-52285b9d25c8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1611085583191-a3b181a88401?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1588444650733-d2874faa2b3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1602425721711-5e891095d0e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                  "https://images.unsplash.com/photo-1518726289780-1596cdcc3d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                ].map((src, i) => (
+                                  <DialogClose key={i} asChild>
+                                    <div 
+                                      className="border rounded-md p-2 cursor-pointer hover:border-primary transition-colors"
+                                      onClick={() => {
+                                        setFormState({
+                                          ...formState,
+                                          mainImage: src
+                                        });
+                                      }}
+                                    >
+                                      <img 
+                                        src={src} 
+                                        alt={`תמונה לדוגמה ${i+1}`} 
+                                        className="w-full h-32 object-contain"
+                                      />
+                                    </div>
+                                  </DialogClose>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                   
