@@ -112,6 +112,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Creating product with data:", req.body);
       const productData = insertProductSchema.parse(req.body);
+      
+      // Add a default SKU if not provided (to satisfy the NOT NULL constraint)
+      if (!productData.sku) {
+        const timestamp = Date.now();
+        productData.sku = `SKU-${timestamp}`;
+      }
+      
       const product = await storage.createProduct(productData);
       res.status(201).json(product);
     } catch (err) {
@@ -131,7 +138,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "מזהה מוצר לא תקין" });
       }
       
-      const product = await storage.updateProduct(id, req.body);
+      // If SKU is set to null or empty string, generate a new one
+      const updateData = { ...req.body };
+      if (updateData.sku === null || updateData.sku === '') {
+        const timestamp = Date.now();
+        updateData.sku = `SKU-${timestamp}`;
+      }
+      
+      const product = await storage.updateProduct(id, updateData);
       if (!product) {
         return res.status(404).json({ message: "מוצר לא נמצא" });
       }
