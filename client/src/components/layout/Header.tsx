@@ -117,47 +117,13 @@ const Header = () => {
               )}
             </Link>
             
-            {/* Profile Dialog for Login/Register */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <a href="/auth?directAuth=true" className="text-white hover:text-primary transition-colors relative">
-                  <User className="h-5 w-5" />
-                </a>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle className="text-center text-2xl font-serif">התחברות לחשבון</DialogTitle>
-                  <DialogDescription className="text-center">
-                    התחבר לחשבונך או צור חשבון חדש
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Input 
-                      type="email" 
-                      placeholder={t("email")} 
-                      className="text-right" 
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Input 
-                      type="password" 
-                      placeholder="סיסמה" 
-                      className="text-right" 
-                    />
-                  </div>
-                  <a href="/auth?mode=login">
-                    <Button className="bg-primary text-black hover:bg-primary/90 w-full">
-                      {t("login")}
-                    </Button>
-                  </a>
-                  <div className="text-center">
-                    <span className="text-sm text-gray-500">עדיין אין לך חשבון? </span>
-                    <a href="/auth?mode=register" className="text-sm text-primary hover:underline">הירשם עכשיו</a>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            {/* User profile icon - Direct link to auth page */}
+            <Link
+              href="/auth"
+              className="text-white hover:text-primary transition-colors relative"
+            >
+              <User className="h-5 w-5" />
+            </Link>
 
             <Sheet>
               <SheetTrigger asChild>

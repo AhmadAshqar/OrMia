@@ -38,12 +38,26 @@ export default function AuthPage() {
 
   // Handle login submission
   async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    await loginMutation.mutateAsync(values);
+    try {
+      await loginMutation.mutateAsync(values);
+      // If successful, user state will be updated via the mutation's onSuccess
+      // and the component will auto-redirect via the user check above
+    } catch (error) {
+      console.error("Login failed:", error);
+      // Error is already handled by the mutation's onError callback
+    }
   }
 
   // Handle registration submission
   async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-    await registerMutation.mutateAsync(values);
+    try {
+      await registerMutation.mutateAsync(values);
+      // If successful, user state will be updated via the mutation's onSuccess
+      // and the component will auto-redirect via the user check above
+    } catch (error) {
+      console.error("Registration failed:", error);
+      // Error is already handled by the mutation's onError callback
+    }
   }
 
   // Redirect if user is already logged in
