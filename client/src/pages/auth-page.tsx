@@ -107,16 +107,16 @@ export default function AuthPage() {
           </div>
 
           <Tabs defaultValue={defaultTab} className="w-full space-y-8">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-900 p-1 rounded-lg border border-gold-500">
+            <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg border border-gray-300">
               <TabsTrigger 
                 value="login" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold text-gold-400 transition-all rounded-md py-3 text-base font-semibold"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold text-gray-700 transition-all rounded-md py-3 text-base font-semibold"
               >
                 התחברות
               </TabsTrigger>
               <TabsTrigger 
                 value="register" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold text-gold-400 transition-all rounded-md py-3 text-base font-semibold"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold text-gray-700 transition-all rounded-md py-3 text-base font-semibold"
               >
                 הרשמה
               </TabsTrigger>
@@ -226,15 +226,15 @@ export default function AuthPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel className="text-gold-300">שם משתמש</FormLabel>
+                        <FormLabel className="text-gray-700 font-medium">שם משתמש</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="צור שם משתמש ייחודי" 
-                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                            className="bg-white border-gray-300 focus:border-gold-500 rounded-md p-3 text-black placeholder:text-gray-400"
                             {...field} 
                           />
                         </FormControl>
-                        <FormMessage className="text-amber-500" />
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -243,15 +243,15 @@ export default function AuthPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel className="text-gold-300">דוא"ל</FormLabel>
+                        <FormLabel className="text-gray-700 font-medium">דוא"ל</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="הזן את כתובת הדוא״ל שלך" 
-                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                            className="bg-white border-gray-300 focus:border-gold-500 rounded-md p-3 text-black placeholder:text-gray-400"
                             {...field} 
                           />
                         </FormControl>
-                        <FormMessage className="text-amber-500" />
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -260,16 +260,16 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel className="text-gold-300">סיסמה</FormLabel>
+                        <FormLabel className="text-gray-700 font-medium">סיסמה</FormLabel>
                         <FormControl>
                           <Input 
                             type="password" 
                             placeholder="צור סיסמה חזקה" 
-                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                            className="bg-white border-gray-300 focus:border-gold-500 rounded-md p-3 text-black placeholder:text-gray-400"
                             {...field} 
                           />
                         </FormControl>
-                        <FormMessage className="text-amber-500" />
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -278,16 +278,16 @@ export default function AuthPage() {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel className="text-gold-300">אימות סיסמה</FormLabel>
+                        <FormLabel className="text-gray-700 font-medium">אימות סיסמה</FormLabel>
                         <FormControl>
                           <Input 
                             type="password" 
                             placeholder="הזן שוב את הסיסמה" 
-                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                            className="bg-white border-gray-300 focus:border-gold-500 rounded-md p-3 text-black placeholder:text-gray-400"
                             {...field} 
                           />
                         </FormControl>
-                        <FormMessage className="text-amber-500" />
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -306,8 +306,8 @@ export default function AuthPage() {
                     )}
                   </Button>
                   
-                  <div className="text-center mt-4 text-sm text-gold-400">
-                    בהרשמה אתה מסכים ל<a href="/terms" className="text-gold-300 hover:text-gold-100 hover:underline transition-colors">תנאי השימוש</a> ול<a href="/privacy" className="text-gold-300 hover:text-gold-100 hover:underline transition-colors">מדיניות הפרטיות</a> שלנו
+                  <div className="text-center mt-4 text-sm text-gray-600">
+                    בהרשמה אתה מסכים ל<a href="/terms" className="text-gold-600 hover:text-gold-700 hover:underline transition-colors font-medium">תנאי השימוש</a> ול<a href="/privacy" className="text-gold-600 hover:text-gold-700 hover:underline transition-colors font-medium">מדיניות הפרטיות</a> שלנו
                   </div>
                 </form>
               </Form>
