@@ -2,6 +2,37 @@ import { pgTable, text, serial, integer, boolean, real, timestamp, primaryKey, v
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Define Users Schema (defined first to avoid circular references)
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  phone: text("phone"),
+  address: text("address"),
+  city: text("city"),
+  postalCode: text("postal_code"),
+  country: text("country").default("ישראל"),
+  role: text("role").default("customer").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+});
+
+// Define Admin Users Schema
+export const admins = pgTable("admins", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  role: text("role").default("admin").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+});
+
 // Define Product Schema
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
@@ -57,7 +88,32 @@ export const contactMessages = pgTable("contact_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Define Inventory Schema
+export const inventory = pgTable("inventory", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull(),
+  quantity: integer("quantity").notNull().default(0),
+  location: text("location").default("main warehouse"),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  minimumStockLevel: integer("minimum_stock_level").default(5),
+  onOrder: integer("on_order").default(0),
+  expectedDelivery: timestamp("expected_delivery"),
+  updatedBy: integer("updated_by").references(() => admins.id),
+});
+
 // Define Insert Schemas
+export const insertUserSchema = createInsertSchema(users).omit({ 
+  id: true,
+  createdAt: true,
+  lastLogin: true 
+});
+
+export const insertAdminSchema = createInsertSchema(admins).omit({ 
+  id: true,
+  createdAt: true,
+  lastLogin: true 
+});
+
 export const insertProductSchema = createInsertSchema(products).omit({ 
   id: true,
   createdAt: true 
@@ -81,7 +137,18 @@ export const insertContactMessageSchema = createInsertSchema(contactMessages).om
   createdAt: true 
 });
 
+export const insertInventorySchema = createInsertSchema(inventory).omit({ 
+  id: true,
+  lastUpdated: true 
+});
+
 // Define Types
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
+
+export type InsertAdmin = z.infer<typeof insertAdminSchema>;
+export type Admin = typeof admins.$inferSelect;
+
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect & {
   categoryName?: string;
@@ -99,76 +166,8 @@ export type CartItem = typeof cartItems.$inferSelect & {
   product?: Product;
 };
 
-// Define Users Schema
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  phone: text("phone"),
-  address: text("address"),
-  city: text("city"),
-  postalCode: text("postal_code"),
-  country: text("country").default("ישראל"),
-  role: text("role").default("customer").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastLogin: timestamp("last_login"),
-});
-
-// Define Admin Users Schema
-export const admins = pgTable("admins", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  role: text("role").default("admin").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastLogin: timestamp("last_login"),
-});
-
-// Define Inventory Schema
-export const inventory = pgTable("inventory", {
-  id: serial("id").primaryKey(),
-  productId: integer("product_id").notNull(),
-  quantity: integer("quantity").notNull().default(0),
-  location: text("location").default("main warehouse"),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-  minimumStockLevel: integer("minimum_stock_level").default(5),
-  onOrder: integer("on_order").default(0),
-  expectedDelivery: timestamp("expected_delivery"),
-  updatedBy: integer("updated_by").references(() => admins.id),
-});
-
-// Define Insert Schemas for new tables
-export const insertUserSchema = createInsertSchema(users).omit({ 
-  id: true,
-  createdAt: true,
-  lastLogin: true 
-});
-
-export const insertAdminSchema = createInsertSchema(admins).omit({ 
-  id: true,
-  createdAt: true,
-  lastLogin: true 
-});
-
-export const insertInventorySchema = createInsertSchema(inventory).omit({ 
-  id: true,
-  lastUpdated: true 
-});
-
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-
-export type InsertAdmin = z.infer<typeof insertAdminSchema>;
-export type Admin = typeof admins.$inferSelect;
 
 export type InsertInventory = z.infer<typeof insertInventorySchema>; 
 export type Inventory = typeof inventory.$inferSelect & {
