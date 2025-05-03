@@ -221,21 +221,25 @@
 @layer components {
   /* Gold-themed input styles */
   .form-input-gold {
-    @apply border-2 border-amber-300 bg-white/90 focus:border-amber-500 focus:ring focus:ring-amber-300/30 focus:bg-white transition-all duration-300;
+    @apply border-2 border-black bg-white/90 focus:border-amber-900 focus:ring focus:ring-black/30 focus:bg-white transition-all duration-300;
   }
 
   /* Form validation styling */
   .form-error {
-    @apply text-red-500 text-sm mt-1;
+    @apply text-red-900 text-sm mt-1;
   }
   
   /* Form label luxury styling */
   .form-label-gold {
-    @apply text-amber-800 font-medium relative;
-    background: linear-gradient(to right, #8b5a00, #d4a017);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
+    @apply text-black font-medium relative;
+  }
+  
+  /* Tabs styling for auth page */
+  .tabs-gold [data-state=active] {
+    @apply bg-black text-[hsl(var(--gold))] font-semibold;
+  }
+  
+  .tabs-gold [data-state=inactive] {
+    @apply bg-amber-800 text-black;
   }
 }

@@ -71,29 +71,29 @@ export default function AuthPage() {
   const defaultTab = mode === 'register' ? 'register' : 'login';
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row-reverse">
+    <div className="min-h-screen flex flex-col md:flex-row-reverse bg-black">
       {/* Hero section */}
-      <div className="w-full md:w-1/2 bg-gradient-to-br from-gold-100 to-gold-300 p-10 flex items-center justify-center">
+      <div className="w-full md:w-1/2 p-10 flex items-center justify-center">
         <div className="max-w-lg">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-gold-800">
+          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent">
             ברוכים הבאים לעולם המויסנייט
           </h1>
-          <p className="text-lg text-right text-gold-700 mb-6">
+          <p className="text-lg text-right text-amber-300 mb-6">
             הכנס לחשבונך כדי לצפות בהזמנות שלך, לשמור מוצרים ברשימת המשאלות וליהנות מחווית קניה מותאמת אישית.
           </p>
           <div className="flex justify-end">
-            <div className="w-20 h-1 bg-gold-500 rounded-full"></div>
+            <div className="w-20 h-1 bg-[hsl(var(--gold))] rounded-full"></div>
           </div>
         </div>
       </div>
 
       {/* Form section */}
       <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center">
-        <div className="w-full max-w-md space-y-6 rtl bg-gradient-to-b from-[hsl(var(--gold))] to-amber-100 text-black p-8 rounded-lg shadow-2xl border-2 border-amber-300 shadow-amber-100/60">
+        <div className="w-full max-w-md space-y-6 rtl bg-[hsl(var(--gold))] text-black p-8 rounded-lg shadow-2xl border-2 border-yellow-500 shadow-yellow-500/40">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-playfair font-bold mb-2 bg-gradient-to-r from-amber-700 via-yellow-500 to-amber-700 bg-clip-text text-transparent">התחבר לחשבונך</h2>
-            <p className="text-gray-600">או צור חשבון חדש כדי להתחיל</p>
-            <div className="h-1 w-16 mx-auto mt-4 bg-gradient-to-r from-amber-300 via-amber-500 to-amber-300"></div>
+            <h2 className="text-3xl font-playfair font-bold mb-2 text-black">התחבר לחשבונך</h2>
+            <p className="text-amber-900">או צור חשבון חדש כדי להתחיל</p>
+            <div className="h-1 w-16 mx-auto mt-4 bg-black"></div>
           </div>
 
           <Tabs defaultValue={defaultTab} className="w-full space-y-6 tabs-gold">
@@ -134,7 +134,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-black shadow-lg shadow-amber-300/40"
+                    className="w-full bg-black hover:bg-gray-800 text-[hsl(var(--gold))] shadow-lg shadow-black/40"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? (
@@ -236,7 +236,7 @@ export default function AuthPage() {
                   />
                   <Button 
                     type="submit" 
-                    className="w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-black shadow-lg shadow-amber-300/40"
+                    className="w-full bg-black hover:bg-gray-800 text-[hsl(var(--gold))] shadow-lg shadow-black/40"
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? (
