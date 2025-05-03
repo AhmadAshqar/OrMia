@@ -140,12 +140,14 @@
 @layer components {
   .form-input-gold {
     @apply w-full bg-white/90 text-black border-0 border-b-2 border-amber-800/30 rounded-t-md px-4 py-3 transition-all duration-300 
-    focus:outline-none focus:border-amber-700 focus:ring-0 focus:bg-white placeholder:text-amber-800/40;
+    focus:outline-none focus:border-amber-700 focus:ring-0 focus:bg-white placeholder:text-amber-800/40 text-right;
     box-shadow: 0 3px 6px -2px rgba(0,0,0,0.05);
+    direction: rtl;
   }
 
   .form-error {
-    @apply text-red-900 text-sm mt-1;
+    @apply text-red-900 text-sm mt-1 text-right;
+    direction: rtl;
   }
 
   .form-label-gold {
