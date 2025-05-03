@@ -98,16 +98,16 @@ export default function AuthPage() {
             defaultValue={defaultTab}
             className="w-full space-y-6 tabs-gold"
           >
-            <TabsList className="flex w-full justify-center p-1 rounded-full">
+            <TabsList className="mb-6">
               <TabsTrigger
                 value="login"
-                className="rounded-full py-2 font-alef"
+                className="px-4 py-2 font-alef"
               >
                 התחברות
               </TabsTrigger>
               <TabsTrigger
                 value="register"
-                className="rounded-full py-2 font-alef"
+                className="px-4 py-2 font-alef"
               >
                 הרשמה
               </TabsTrigger>

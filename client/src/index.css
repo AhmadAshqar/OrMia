@@ -100,25 +100,21 @@
   }
 
   .tabs-gold [data-state="active"] {
-    background: linear-gradient(135deg, #d4af37 0%, #f9d77f 50%, #d4af37 100%);
     color: #000;
     font-weight: 700;
-    box-shadow: 0 0 0 2px #fff inset;
-    border-radius: 9999px;
+    border-bottom: 2px solid #9f7411;
     transform: scale(1.02);
   }
 
   .tabs-gold [data-state="inactive"] {
-    background: #fefefe;
-    color: #111;
+    color: #9f7411;
     font-weight: 600;
-    border-radius: 9999px;
-    opacity: 0.95;
+    opacity: 0.8;
     transition: all 0.2s ease-in-out;
   }
 
   .tabs-gold [role="tablist"] {
-    @apply flex bg-[#f3e3b2] rounded-full p-1 gap-2 shadow-inner;
+    @apply flex gap-6 w-full justify-center border-b border-amber-900/20;
   }
 
   .tabs-gold [role="tab"] {
@@ -129,8 +125,8 @@
   }
 
   .tabs-gold [role="tab"]:hover:not([data-state="active"]) {
-    background-color: rgba(212, 175, 55, 0.15);
-    color: #333;
+    color: #000;
+    opacity: 1;
   }
 }
 
