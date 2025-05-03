@@ -143,11 +143,9 @@ export default function ProductsPage() {
   const deleteProductMutation = useMutation({
     mutationFn: async (id: number) => {
       const res = await apiRequest("DELETE", `/api/products/${id}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "שגיאה במחיקת מוצר");
-      }
-      return await res.json();
+      // DELETE requests with 204 status don't return any content
+      // Just return a success message for our frontend
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
