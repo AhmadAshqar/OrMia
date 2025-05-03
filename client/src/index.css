@@ -38,6 +38,10 @@
   --sidebar-background: 0 0% 0%;
   --sidebar-foreground: 0 0% 100%;
   --sidebar-primary: 43 77% 52%;
+  
+  /* Custom colors */
+  --gold: 43 77% 52%;
+  --gold-dark: 43 65% 42%;
   --sidebar-primary-foreground: 0 0% 0%;
   --sidebar-accent: 43 77% 52%;
   --sidebar-accent-foreground: 0 0% 0%;
