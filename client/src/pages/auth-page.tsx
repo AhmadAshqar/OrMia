@@ -74,23 +74,23 @@ export default function AuthPage() {
     <div 
       className="min-h-screen flex flex-col md:flex-row-reverse bg-black overflow-hidden relative" 
       style={{
-        backgroundImage: `linear-gradient(120deg, #000428, #004e92, #2a0845)`,
+        backgroundImage: `linear-gradient(to bottom, #000000, #111111)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed'
       }}
     >
-      {/* Decorative floating elements */}
-      <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 opacity-20 blur-3xl"></div>
-      <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-gradient-to-r from-blue-500 to-teal-500 opacity-20 blur-3xl"></div>
-      <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-gradient-to-r from-gold-400 to-amber-300 opacity-15 blur-3xl"></div>
+      {/* Decorative floating gold elements */}
+      <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-gradient-to-br from-gold-600 to-gold-300 opacity-15 blur-3xl"></div>
+      <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 opacity-15 blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-gradient-to-r from-black to-gold-800 opacity-20 blur-3xl"></div>
       {/* Hero section */}
-      <div className="w-full md:w-1/2 p-10 flex items-center justify-center backdrop-blur-sm bg-gradient-to-br from-purple-900/80 to-black/80 relative overflow-hidden">
+      <div className="w-full md:w-1/2 p-10 flex items-center justify-center bg-black relative overflow-hidden">
         {/* Diamond sparkle effect */}
-        <div className="absolute top-20 right-10 w-20 h-20 rotate-45 bg-white opacity-5 animate-pulse"></div>
-        <div className="absolute bottom-40 left-20 w-12 h-12 rotate-45 bg-white opacity-5 animate-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-40 left-10 w-8 h-8 rotate-45 bg-gradient-to-br from-white to-gold-300 opacity-10 animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-20 right-10 w-20 h-20 rotate-45 bg-gold-400 opacity-10 animate-pulse"></div>
+        <div className="absolute bottom-40 left-20 w-12 h-12 rotate-45 bg-gold-500 opacity-10 animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-40 left-10 w-8 h-8 rotate-45 bg-gradient-to-br from-gold-300 to-gold-600 opacity-15 animate-pulse" style={{animationDelay: '2s'}}></div>
         
         <div className="max-w-lg relative z-10">
           <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-gold-600" style={{ textShadow: '0 2px 10px rgba(234, 179, 8, 0.5)' }}>
@@ -106,8 +106,8 @@ export default function AuthPage() {
       </div>
 
       {/* Form section */}
-      <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-gradient-to-br from-blue-900/30 to-indigo-900/30 backdrop-blur-sm relative z-10">
-        <div className="w-full max-w-md space-y-6 rtl bg-white/95 backdrop-blur-sm shadow-2xl rounded-xl p-8 border border-gold-500" style={{ boxShadow: '0 0 20px rgba(234, 179, 8, 0.6), 0 10px 40px -10px rgba(0, 0, 0, 0.5)' }}>
+      <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-black relative z-10">
+        <div className="w-full max-w-md space-y-6 rtl bg-white shadow-2xl rounded-xl p-8 border-2 border-gold-500" style={{ boxShadow: '0 0 25px rgba(234, 179, 8, 0.5), 0 10px 40px -10px rgba(0, 0, 0, 0.8)' }}>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-playfair font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-600 to-gold-400 mb-3">התחבר לחשבונך</h2>
             <p className="text-gray-700">או צור חשבון חדש כדי להתחיל</p>
@@ -115,16 +115,16 @@ export default function AuthPage() {
           </div>
 
           <Tabs defaultValue={defaultTab} className="w-full space-y-8">
-            <TabsList className="grid w-full grid-cols-2 bg-gradient-to-br from-purple-100 to-indigo-50 p-1 rounded-lg border border-gray-300 shadow-inner overflow-hidden">
+            <TabsList className="grid w-full grid-cols-2 bg-gradient-to-br from-black to-gray-900 p-1 rounded-lg border border-gold-500 shadow-inner overflow-hidden">
               <TabsTrigger 
                 value="login" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold data-[state=active]:shadow-md data-[state=active]:font-bold text-gray-700 transition-all duration-300 rounded-md py-3 text-base font-semibold z-10"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold data-[state=active]:shadow-md data-[state=active]:font-bold text-gray-300 transition-all duration-300 rounded-md py-3 text-base font-semibold z-10"
               >
                 התחברות
               </TabsTrigger>
               <TabsTrigger 
                 value="register" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold data-[state=active]:shadow-md data-[state=active]:font-bold text-gray-700 transition-all duration-300 rounded-md py-3 text-base font-semibold z-10"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold data-[state=active]:shadow-md data-[state=active]:font-bold text-gray-300 transition-all duration-300 rounded-md py-3 text-base font-semibold z-10"
               >
                 הרשמה
               </TabsTrigger>
