@@ -221,7 +221,7 @@
 @layer components {
   /* Gold-themed input styles */
   .form-input-gold {
-    @apply border-0 border-b-2 border-black bg-transparent focus:border-[hsl(var(--gold))] focus:ring-0 focus:bg-black/5 transition-all duration-300 text-black placeholder:text-amber-800/60;
+    @apply border-0 border-b-2 border-black/80 bg-white/80 rounded-sm focus:border-[hsl(var(--gold))] focus:ring-0 focus:bg-white transition-all duration-300 text-black placeholder:text-amber-800/60 px-4 py-2;
   }
 
   /* Form validation styling */
@@ -275,6 +275,7 @@
   
   /* Gold gradient background */
   .gold-gradient-bg {
-    background: linear-gradient(135deg, #d4af37 0%, #f2d06b 50%, #d4af37 100%);
+    background: linear-gradient(135deg, #e0c158 0%, #f2d06b 50%, #e0c158 100%);
+    @apply rounded-lg shadow-xl border border-yellow-300/30;
   }
 }
