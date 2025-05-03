@@ -144,6 +144,31 @@
     transform: translateY(0);
   }
 
+  /* Luxury Tabs Styling */
+  .tabs-gold [data-state="active"] {
+    background: linear-gradient(135deg, #d4af37 0%, #f9d77f 50%, #d4af37 100%);
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(212, 175, 55, 0.3);
+    border-color: #d4af37;
+  }
+  
+  .tabs-gold [role="tablist"] {
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    background-color: #faf7f2;
+  }
+  
+  .tabs-gold [role="tab"] {
+    color: #6c5a30;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .tabs-gold [role="tab"]:hover:not([data-state="active"]) {
+    background-color: rgba(212, 175, 55, 0.1);
+    color: #8a7236;
+  }
+
   /* Gold hover effect */
   .gold-hover {
     position: relative;
@@ -195,8 +220,13 @@
     @apply border-2 border-amber-300 focus:border-amber-500 focus:ring focus:ring-amber-300/30;
   }
 
-  /* Tab styling for auth page */
-  .tabs-gold [data-state="active"] {
-    @apply bg-amber-500 text-white;
+  /* Form validation styling */
+  .form-error {
+    @apply text-red-500 text-sm mt-1;
+  }
+  
+  /* Form label luxury styling */
+  .form-label-gold {
+    @apply text-amber-800 font-medium;
   }
 }

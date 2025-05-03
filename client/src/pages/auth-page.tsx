@@ -110,7 +110,7 @@ export default function AuthPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>שם משתמש</FormLabel>
+                        <FormLabel className="form-label-gold">שם משתמש</FormLabel>
                         <FormControl>
                           <Input className="form-input-gold" placeholder="הזן את שם המשתמש שלך" {...field} />
                         </FormControl>
@@ -123,7 +123,7 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>סיסמה</FormLabel>
+                        <FormLabel className="form-label-gold">סיסמה</FormLabel>
                         <FormControl>
                           <Input className="form-input-gold" type="password" placeholder="הזן את הסיסמה שלך" {...field} />
                         </FormControl>
@@ -159,7 +159,7 @@ export default function AuthPage() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem className="text-right">
-                          <FormLabel>שם פרטי</FormLabel>
+                          <FormLabel className="form-label-gold">שם פרטי</FormLabel>
                           <FormControl>
                             <Input className="form-input-gold" placeholder="שם פרטי" {...field} value={field.value || ""} />
                           </FormControl>
@@ -172,7 +172,7 @@ export default function AuthPage() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem className="text-right">
-                          <FormLabel>שם משפחה</FormLabel>
+                          <FormLabel className="form-label-gold">שם משפחה</FormLabel>
                           <FormControl>
                             <Input className="form-input-gold" placeholder="שם משפחה" {...field} value={field.value || ""} />
                           </FormControl>
@@ -186,7 +186,7 @@ export default function AuthPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>שם משתמש</FormLabel>
+                        <FormLabel className="form-label-gold">שם משתמש</FormLabel>
                         <FormControl>
                           <Input className="form-input-gold" placeholder="צור שם משתמש ייחודי" {...field} />
                         </FormControl>
