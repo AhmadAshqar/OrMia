@@ -150,7 +150,7 @@ export default function InventoryPage() {
     } else if (name === 'expectedDelivery') {
       setFormState({
         ...formState,
-        [name]: value || null
+        [name]: value ? new Date(value) : null
       });
     } else {
       setFormState({

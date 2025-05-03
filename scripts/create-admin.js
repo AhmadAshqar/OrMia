@@ -1,8 +1,14 @@
 // Script to create an admin user
 
-const { Pool } = require('@neondatabase/serverless');
-const prompt = require('prompt-sync')({ sigint: true });
-const crypto = require('crypto');
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import promptSync from 'prompt-sync';
+import crypto from 'crypto';
+import ws from 'ws';
+
+// Set websocket for serverless
+neonConfig.webSocketConstructor = ws;
+
+const prompt = promptSync({ sigint: true });
 
 async function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");

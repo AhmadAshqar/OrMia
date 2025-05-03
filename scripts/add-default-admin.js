@@ -1,7 +1,11 @@
 // Script to create a default admin user for testing
 
-const { Pool } = require('@neondatabase/serverless');
-const crypto = require('crypto');
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import crypto from 'crypto';
+import ws from 'ws';
+
+// Set websocket for serverless
+neonConfig.webSocketConstructor = ws;
 
 async function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
