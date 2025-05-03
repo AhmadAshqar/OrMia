@@ -71,42 +71,51 @@ export default function AuthPage() {
   const defaultTab = mode === 'register' ? 'register' : 'login';
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row-reverse">
+    <div 
+      className="min-h-screen flex flex-col md:flex-row-reverse bg-black" 
+      style={{
+        backgroundImage: `url('/images/jewelry-background.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundBlendMode: 'overlay'
+      }}
+    >
       {/* Hero section */}
-      <div className="w-full md:w-1/2 bg-gradient-to-br from-gold-100 to-gold-300 p-10 flex items-center justify-center">
+      <div className="w-full md:w-1/2 bg-gradient-to-br from-black to-gray-900 p-10 flex items-center justify-center">
         <div className="max-w-lg">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-gold-800 text-shadow-sm">
+          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6 text-right text-gold-400 text-shadow">
             ברוכים הבאים לעולם המויסנייט
           </h1>
-          <p className="text-lg text-right text-gold-700 mb-8">
+          <p className="text-lg text-right text-gold-300 mb-8">
             הכנס לחשבונך כדי לצפות בהזמנות שלך, לשמור מוצרים ברשימת המשאלות וליהנות מחווית קניה מותאמת אישית.
           </p>
           <div className="flex justify-end">
-            <div className="w-24 h-1 bg-gold-500 rounded-full shadow-sm"></div>
+            <div className="w-28 h-1 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full shadow-md"></div>
           </div>
         </div>
       </div>
 
       {/* Form section */}
-      <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-white">
-        <div className="w-full max-w-md space-y-6 rtl bg-white shadow-xl rounded-xl p-8">
+      <div className="w-full md:w-1/2 p-6 md:p-10 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
+        <div className="w-full max-w-md space-y-6 rtl bg-black bg-opacity-80 shadow-2xl rounded-xl p-8 border border-gold-500">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-playfair font-bold text-gold-800 mb-3">התחבר לחשבונך</h2>
-            <p className="text-gray-600">או צור חשבון חדש כדי להתחיל</p>
-            <div className="mt-4 mx-auto w-16 h-1 bg-gold-500 rounded-full"></div>
+            <h2 className="text-3xl font-playfair font-bold text-gold-400 mb-3">התחבר לחשבונך</h2>
+            <p className="text-gold-300">או צור חשבון חדש כדי להתחיל</p>
+            <div className="mt-4 mx-auto w-16 h-1 bg-gradient-to-r from-gold-300 to-gold-500 rounded-full"></div>
           </div>
 
           <Tabs defaultValue={defaultTab} className="w-full space-y-8">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
+            <TabsList className="grid w-full grid-cols-2 bg-gray-900 p-1 rounded-lg border border-gold-500">
               <TabsTrigger 
                 value="login" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gold-800 data-[state=active]:shadow-md transition-all rounded-md py-3 text-base"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold text-gold-400 transition-all rounded-md py-3 text-base font-semibold"
               >
                 התחברות
               </TabsTrigger>
               <TabsTrigger 
                 value="register" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gold-800 data-[state=active]:shadow-md transition-all rounded-md py-3 text-base"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-600 data-[state=active]:to-gold-400 data-[state=active]:text-black data-[state=active]:shadow-gold text-gold-400 transition-all rounded-md py-3 text-base font-semibold"
               >
                 הרשמה
               </TabsTrigger>
@@ -121,15 +130,15 @@ export default function AuthPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>שם משתמש</FormLabel>
+                        <FormLabel className="text-gold-300">שם משתמש</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="הזן את שם המשתמש שלך" 
-                            className="border-gray-300 focus:border-gold-500 rounded-md p-3" 
+                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500" 
                             {...field} 
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-amber-500" />
                       </FormItem>
                     )}
                   />
@@ -138,16 +147,16 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>סיסמה</FormLabel>
+                        <FormLabel className="text-gold-300">סיסמה</FormLabel>
                         <FormControl>
                           <Input 
                             type="password" 
                             placeholder="הזן את הסיסמה שלך" 
-                            className="border-gray-300 focus:border-gold-500 rounded-md p-3" 
+                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500" 
                             {...field} 
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-amber-500" />
                       </FormItem>
                     )}
                   />
@@ -179,11 +188,16 @@ export default function AuthPage() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem className="text-right">
-                          <FormLabel>שם פרטי</FormLabel>
+                          <FormLabel className="text-gold-300">שם פרטי</FormLabel>
                           <FormControl>
-                            <Input placeholder="שם פרטי" {...field} value={field.value || ""} />
+                            <Input 
+                              placeholder="שם פרטי" 
+                              className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-amber-500" />
                         </FormItem>
                       )}
                     />
@@ -192,11 +206,16 @@ export default function AuthPage() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem className="text-right">
-                          <FormLabel>שם משפחה</FormLabel>
+                          <FormLabel className="text-gold-300">שם משפחה</FormLabel>
                           <FormControl>
-                            <Input placeholder="שם משפחה" {...field} value={field.value || ""} />
+                            <Input 
+                              placeholder="שם משפחה" 
+                              className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                              {...field} 
+                              value={field.value || ""} 
+                            />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-amber-500" />
                         </FormItem>
                       )}
                     />
@@ -206,11 +225,15 @@ export default function AuthPage() {
                     name="username"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>שם משתמש</FormLabel>
+                        <FormLabel className="text-gold-300">שם משתמש</FormLabel>
                         <FormControl>
-                          <Input placeholder="צור שם משתמש ייחודי" {...field} />
+                          <Input 
+                            placeholder="צור שם משתמש ייחודי" 
+                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                            {...field} 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-amber-500" />
                       </FormItem>
                     )}
                   />
@@ -219,11 +242,15 @@ export default function AuthPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>דוא"ל</FormLabel>
+                        <FormLabel className="text-gold-300">דוא"ל</FormLabel>
                         <FormControl>
-                          <Input placeholder="הזן את כתובת הדוא״ל שלך" {...field} />
+                          <Input 
+                            placeholder="הזן את כתובת הדוא״ל שלך" 
+                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                            {...field} 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-amber-500" />
                       </FormItem>
                     )}
                   />
@@ -232,11 +259,16 @@ export default function AuthPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>סיסמה</FormLabel>
+                        <FormLabel className="text-gold-300">סיסמה</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="צור סיסמה חזקה" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="צור סיסמה חזקה" 
+                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                            {...field} 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-amber-500" />
                       </FormItem>
                     )}
                   />
@@ -245,11 +277,16 @@ export default function AuthPage() {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem className="text-right">
-                        <FormLabel>אימות סיסמה</FormLabel>
+                        <FormLabel className="text-gold-300">אימות סיסמה</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="הזן שוב את הסיסמה" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="הזן שוב את הסיסמה" 
+                            className="bg-gray-900 border-gold-500 focus:border-gold-300 rounded-md p-3 text-gold-200 placeholder:text-gray-500"
+                            {...field} 
+                          />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-amber-500" />
                       </FormItem>
                     )}
                   />
