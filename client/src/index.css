@@ -221,7 +221,7 @@
 @layer components {
   /* Gold-themed input styles */
   .form-input-gold {
-    @apply border-0 border-b-2 border-black/80 bg-white/80 rounded-sm focus:border-[hsl(var(--gold))] focus:ring-0 focus:bg-white transition-all duration-300 text-black placeholder:text-amber-800/60 px-4 py-2;
+    @apply border border-amber-800/20 bg-white/90 rounded-md focus:border-[hsl(var(--gold))] focus:ring-1 focus:ring-amber-500/30 focus:bg-white transition-all duration-300 text-black placeholder:text-amber-700/40 px-4 py-3 shadow-sm;
   }
 
   /* Form validation styling */
@@ -231,7 +231,7 @@
   
   /* Form label luxury styling */
   .form-label-gold {
-    @apply text-black font-alef font-bold text-sm uppercase tracking-wider;
+    @apply text-black/90 font-alef font-bold text-sm tracking-wider mb-1 block;
   }
   
   /* Tabs styling for auth page */
@@ -275,7 +275,7 @@
   
   /* Gold gradient background */
   .gold-gradient-bg {
-    background: linear-gradient(135deg, #e0c158 0%, #f2d06b 50%, #e0c158 100%);
-    @apply rounded-lg shadow-xl border border-yellow-300/30;
+    background: linear-gradient(135deg, #e5cc6d 0%, #f2d787 50%, #e5cc6d 100%);
+    @apply rounded-lg shadow-xl border border-yellow-200/30 p-8;
   }
 }
