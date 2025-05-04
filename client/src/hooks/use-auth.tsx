@@ -29,6 +29,9 @@ export const loginSchema = z.object({
 export const registerSchema = insertUserSchema
   .extend({
     confirmPassword: z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים"),
+    acceptTerms: z.boolean().refine(val => val === true, {
+      message: "יש לאשר את תנאי השימוש ומדיניות הפרטיות כדי להירשם"
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "הסיסמאות אינן תואמות",
@@ -74,8 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation<Omit<User, 'password'>, Error, RegisterData>({
     mutationFn: async (userData: RegisterData) => {
-      // Remove confirmPassword before sending to API
-      const { confirmPassword, ...userDataWithoutConfirm } = userData;
+      // Remove confirmPassword and acceptTerms before sending to API
+      const { confirmPassword, acceptTerms, ...userDataWithoutConfirm } = userData;
       const res = await apiRequest("POST", "/api/register", userDataWithoutConfirm);
       return await res.json();
     },

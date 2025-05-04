@@ -12,8 +12,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Redirect, useLocation } from "wouter";
+import { Redirect, useLocation, Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -51,6 +52,7 @@ export default function AuthPage() {
       firstName: null,
       lastName: null,
       role: "customer",
+      acceptTerms: false,
     },
   });
 
@@ -327,6 +329,31 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
+                      <FormField
+                        control={registerForm.control}
+                        name="acceptTerms"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-x-reverse space-y-0 rounded-md border p-4 mt-4 bg-amber-50">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-amber-700 data-[state=checked]:text-white"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none text-right">
+                              <FormLabel className="text-amber-900">
+                                אני מסכים/ה ל<Link href="/terms" className="text-amber-700 hover:underline">תנאי השימוש</Link>,&nbsp;
+                                <Link href="/privacy" className="text-amber-700 hover:underline">מדיניות הפרטיות</Link>,&nbsp;
+                                <Link href="/shipping-policy" className="text-amber-700 hover:underline">מדיניות המשלוחים</Link> ומאשר/ת כי קראתי את&nbsp;
+                                <Link href="/disclosure" className="text-amber-700 hover:underline">גילוי נאות לצרכן</Link>.
+                              </FormLabel>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                      
                       <Button
                         type="submit"
                         className="w-full btn-luxury shadow-lg shadow-black/40 py-6 text-lg"
