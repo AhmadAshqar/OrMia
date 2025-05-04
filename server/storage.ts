@@ -9,7 +9,8 @@ import {
   inventory, type Inventory, type InsertInventory,
   orders, type Order, type InsertOrder,
   shipping, type Shipping, type InsertShipping,
-  favorites, type Favorite, type InsertFavorite
+  favorites, type Favorite, type InsertFavorite,
+  passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
@@ -103,6 +104,12 @@ export interface IStorage {
   createFavorite(favorite: InsertFavorite): Promise<Favorite>;
   deleteFavorite(id: number): Promise<boolean>;
   deleteUserProductFavorite(userId: number, productId: number): Promise<boolean>;
+  
+  // Password reset methods
+  createPasswordResetToken(userId: number, token: string, expiresAt: Date): Promise<PasswordResetToken>;
+  getPasswordResetTokenByToken(token: string): Promise<PasswordResetToken | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  markPasswordResetTokenAsUsed(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -917,6 +924,13 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [result] = await db.select().from(users)
       .where(eq(users.username, username));
+      
+    return result;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [result] = await db.select().from(users)
+      .where(eq(users.email, email));
       
     return result;
   }

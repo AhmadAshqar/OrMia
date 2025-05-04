@@ -164,6 +164,16 @@ export const favorites = pgTable("favorites", {
   }
 });
 
+// Define Password Reset Tokens Schema
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  usedAt: timestamp("used_at"),
+});
+
 // Define Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ 
   id: true,
@@ -266,6 +276,10 @@ export type Favorite = typeof favorites.$inferSelect & {
   product?: Product;
 };
 
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens);
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   favorites: many(favorites),
@@ -291,3 +305,5 @@ export const favoritesRelations = relations(favorites, ({ one }) => ({
     references: [products.id],
   }),
 }));
+
+
