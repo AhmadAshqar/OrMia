@@ -6,7 +6,9 @@ import {
   contactMessages, type ContactMessage, type InsertContactMessage,
   users, type User, type InsertUser,
   admins, type Admin, type InsertAdmin,
-  inventory, type Inventory, type InsertInventory
+  inventory, type Inventory, type InsertInventory,
+  orders, type Order, type InsertOrder,
+  shipping, type Shipping, type InsertShipping
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
@@ -70,6 +72,28 @@ export interface IStorage {
   createInventory(item: InsertInventory): Promise<Inventory>;
   updateInventory(id: number, item: Partial<InsertInventory>): Promise<Inventory | undefined>;
   updateProductStock(productId: number, quantity: number): Promise<boolean>;
+  
+  // Order methods
+  getOrders(): Promise<Order[]>;
+  getOrder(id: number): Promise<Order | undefined>;
+  getOrderByNumber(orderNumber: string): Promise<Order | undefined>;
+  createOrder(order: InsertOrder): Promise<Order>;
+  updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined>;
+  updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
+  deleteOrder(id: number): Promise<boolean>;
+  
+  // Shipping methods
+  getShippings(): Promise<Shipping[]>;
+  getShipping(id: number): Promise<Shipping | undefined>;
+  getShippingByTrackingNumber(trackingNumber: string): Promise<Shipping | undefined>;
+  getShippingByOrderNumber(orderNumber: string): Promise<Shipping | undefined>;
+  createShipping(shipping: InsertShipping): Promise<Shipping>;
+  updateShipping(id: number, shipping: Partial<InsertShipping>): Promise<Shipping | undefined>;
+  updateShippingStatus(id: number, status: string, locationInfo?: {
+    location: string;
+    notes?: string;
+  }): Promise<Shipping | undefined>;
+  deleteShipping(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -80,15 +104,18 @@ export class MemStorage implements IStorage {
   private contactMessages: Map<number, ContactMessage>;
   private admins: Map<number, Admin>;
   private inventoryItems: Map<number, Inventory>;
+  private orders: Map<number, Order>;
+  private shippings: Map<number, Shipping>;
   
   private productId: number = 1;
   private categoryId: number = 1;
   private cartId: number = 1;
   private cartItemId: number = 1;
   private contactMessageId: number = 1;
-
   private adminId: number = 1;
   private inventoryId: number = 1;
+  private orderId: number = 1;
+  private shippingId: number = 1;
   
   constructor() {
     this.products = new Map();
@@ -98,6 +125,8 @@ export class MemStorage implements IStorage {
     this.contactMessages = new Map();
     this.admins = new Map();
     this.inventoryItems = new Map();
+    this.orders = new Map();
+    this.shippings = new Map();
     
     // Initialize with seed data
     this.initializeData();

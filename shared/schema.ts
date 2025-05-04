@@ -236,3 +236,9 @@ export type Inventory = typeof inventory.$inferSelect & {
   productName?: string;
   productSku?: string;
 };
+
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type Order = typeof orders.$inferSelect;
+
+export type InsertShipping = z.infer<typeof insertShippingSchema>;
+export type Shipping = typeof shipping.$inferSelect;
