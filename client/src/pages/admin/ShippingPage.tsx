@@ -4,7 +4,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { format } from "date-fns";
-import he from "date-fns/locale/he";
+import { he } from "date-fns/locale";
 
 import {
   Card,
@@ -33,12 +33,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 import { 
   Search, 
   FileText, 
@@ -52,12 +46,10 @@ import {
   Eye,
   Printer,
   MapPin,
-  Settings,
-  BarChart3,
   Calendar
 } from "lucide-react";
 
-// Mock shipping data types
+// Shipping data types
 type ShippingStatus = 'pending' | 'processing' | 'in_transit' | 'delivered' | 'failed';
 type ShippingMethod = 'standard' | 'express' | 'priority';
 
@@ -85,22 +77,9 @@ interface ShippingData {
   updatedAt: string;
 }
 
-interface ShippingZone {
-  id: number;
-  name: string;
-  regions: string[];
-  methods: {
-    id: number;
-    name: string;
-    price: number;
-    estimatedDays: string;
-  }[];
-}
-
 export default function ShippingPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<string>("shipments");
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<ShippingData | null>(null);
 
@@ -115,86 +94,6 @@ export default function ShippingPage() {
       return await response.json();
     }
   });
-
-  // Mock shipping zones
-  const mockShippingZones: ShippingZone[] = [
-    {
-      id: 1,
-      name: "מרכז הארץ",
-      regions: ["תל אביב", "רמת גן", "גבעתיים", "חולון", "בת ים", "ראשון לציון", "פתח תקווה"],
-      methods: [
-        {
-          id: 1,
-          name: "משלוח רגיל",
-          price: 25,
-          estimatedDays: "2-3"
-        },
-        {
-          id: 2,
-          name: "משלוח מהיר",
-          price: 40,
-          estimatedDays: "1-2"
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: "צפון הארץ",
-      regions: ["חיפה", "קריות", "עכו", "נהריה", "כרמיאל", "טבריה", "צפת"],
-      methods: [
-        {
-          id: 3,
-          name: "משלוח רגיל",
-          price: 35,
-          estimatedDays: "3-5"
-        },
-        {
-          id: 4,
-          name: "משלוח מהיר",
-          price: 50,
-          estimatedDays: "2-3"
-        }
-      ]
-    },
-    {
-      id: 3,
-      name: "דרום הארץ",
-      regions: ["באר שבע", "אשדוד", "אשקלון", "קרית גת", "דימונה", "אילת"],
-      methods: [
-        {
-          id: 5,
-          name: "משלוח רגיל",
-          price: 35,
-          estimatedDays: "3-5"
-        },
-        {
-          id: 6,
-          name: "משלוח מהיר",
-          price: 50,
-          estimatedDays: "2-3"
-        }
-      ]
-    },
-    {
-      id: 4,
-      name: "ירושלים והסביבה",
-      regions: ["ירושלים", "מודיעין", "בית שמש"],
-      methods: [
-        {
-          id: 7,
-          name: "משלוח רגיל",
-          price: 30,
-          estimatedDays: "2-4"
-        },
-        {
-          id: 8,
-          name: "משלוח מהיר",
-          price: 45,
-          estimatedDays: "1-2"
-        }
-      ]
-    }
-  ];
 
   // Filter shipments based on search term
   const filteredShipments = shipments.filter((shipment: ShippingData) => {
@@ -313,164 +212,256 @@ export default function ShippingPage() {
         <h1 className="text-3xl font-bold tracking-tight">ניהול משלוחים</h1>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="shipments">משלוחים פעילים</TabsTrigger>
-          <TabsTrigger value="zones">אזורי משלוח ותעריפים</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="shipments" className="mt-6">
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center border rounded-lg px-3 py-2 max-w-md">
-                <Search className="h-5 w-5 text-muted-foreground ml-2" />
-                <Input 
-                  placeholder="חפש לפי מספר מעקב, מספר הזמנה או שם לקוח"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-            </CardContent>
-          </Card>
+      <div className="mt-6">
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center border rounded-lg px-3 py-2 max-w-md">
+              <Search className="h-5 w-5 text-muted-foreground ml-2" />
+              <Input 
+                placeholder="חפש לפי מספר מעקב, מספר הזמנה או שם לקוח"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl">משלוחים פעילים</CardTitle>
-              <CardDescription>מעקב אחר משלוחים וניהול סטטוס</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl">משלוחים פעילים</CardTitle>
+            <CardDescription>מעקב אחר משלוחים וניהול סטטוס</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>מספר מעקב</TableHead>
+                    <TableHead>הזמנה</TableHead>
+                    <TableHead>לקוח</TableHead>
+                    <TableHead>סוג משלוח</TableHead>
+                    <TableHead>תאריך יצירה</TableHead>
+                    <TableHead className="text-center">סטטוס</TableHead>
+                    <TableHead>פעולות</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
                     <TableRow>
-                      <TableHead>מספר מעקב</TableHead>
-                      <TableHead>הזמנה</TableHead>
-                      <TableHead>לקוח</TableHead>
-                      <TableHead>סוג משלוח</TableHead>
-                      <TableHead>תאריך יצירה</TableHead>
-                      <TableHead className="text-center">סטטוס</TableHead>
-                      <TableHead>פעולות</TableHead>
+                      <TableCell colSpan={7} className="text-center py-10">
+                        <div className="flex justify-center">
+                          <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                        </div>
+                        <div className="mt-2 text-muted-foreground">טוען נתוני משלוחים...</div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isLoading ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-10">
-                          <div className="flex justify-center">
-                            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                  ) : isError ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-10 text-destructive">
+                        <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+                        <div>שגיאה בטעינת נתוני משלוחים</div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredShipments.length > 0 ? (
+                    filteredShipments.map((shipment: ShippingData) => (
+                      <TableRow key={shipment.id}>
+                        <TableCell className="font-medium">{shipment.trackingNumber}</TableCell>
+                        <TableCell>{shipment.orderNumber}</TableCell>
+                        <TableCell>{shipment.customerName}</TableCell>
+                        <TableCell>{getShippingMethodDisplay(shipment.shippingMethod)}</TableCell>
+                        <TableCell>{formatDate(shipment.createdAt)}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            {getStatusIcon(shipment.status)}
+                            {getStatusBadge(shipment.status)}
                           </div>
-                          <div className="mt-2 text-muted-foreground">טוען נתוני משלוחים...</div>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 px-3"
+                            onClick={() => handleViewShipment(shipment)}
+                          >
+                            <Eye className="h-4 w-4 ml-2" />
+                            פרטים
+                          </Button>
                         </TableCell>
                       </TableRow>
-                    ) : isError ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-10 text-destructive">
-                          <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
-                          <div>שגיאה בטעינת נתוני משלוחים</div>
-                        </TableCell>
-                      </TableRow>
-                    ) : filteredShipments.length > 0 ? (
-                      filteredShipments.map((shipment: ShippingData) => (
-                        <TableRow key={shipment.id}>
-                          <TableCell className="font-medium">{shipment.trackingNumber}</TableCell>
-                          <TableCell>{shipment.orderNumber}</TableCell>
-                          <TableCell>{shipment.customerName}</TableCell>
-                          <TableCell>{getShippingMethodDisplay(shipment.shippingMethod)}</TableCell>
-                          <TableCell>{formatDate(shipment.createdAt)}</TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              {getStatusIcon(shipment.status)}
-                              {getStatusBadge(shipment.status)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 px-3"
-                              onClick={() => handleViewShipment(shipment)}
-                            >
-                              <Eye className="h-4 w-4 ml-2" />
-                              פרטים
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                          {searchTerm ? 'לא נמצאו תוצאות לחיפוש' : 'לא נמצאו משלוחים פעילים'}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                        {searchTerm ? 'לא נמצאו תוצאות לחיפוש' : 'לא נמצאו משלוחים פעילים'}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="zones" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">אזורי משלוח ותעריפים</CardTitle>
-              <CardDescription>הגדרת אזורי משלוח ועלויות משלוח לכל אזור</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6">
-                {mockShippingZones.map((zone) => (
-                  <Card key={zone.id} className="overflow-hidden">
-                    <CardHeader className="bg-muted/30 pb-2">
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg">{zone.name}</CardTitle>
-                        <Button variant="ghost" size="sm">
-                          <Settings className="h-4 w-4 ml-2" />
-                          ערוך
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="font-medium mb-2 text-sm text-muted-foreground">ערים ואזורים</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {zone.regions.map((region, index) => (
-                              <Badge key={index} variant="outline" className="bg-muted/50">
-                                <MapPin className="h-3 w-3 ml-1" />
-                                {region}
-                              </Badge>
-                            ))}
+      {/* View Shipment Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>פרטי משלוח</DialogTitle>
+            <DialogDescription>
+              צפייה ועדכון סטטוס משלוח
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedShipment && (
+            <div className="py-4">
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold">משלוח #{selectedShipment.trackingNumber}</h3>
+                    <div>
+                      {getStatusBadge(selectedShipment.status)}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <p className="text-sm text-muted-foreground">מספר הזמנה</p>
+                      <p>{selectedShipment.orderNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">שם לקוח</p>
+                      <p>{selectedShipment.customerName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">סוג משלוח</p>
+                      <p>{getShippingMethodDisplay(selectedShipment.shippingMethod)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">תאריך משלוח צפוי</p>
+                      <p>{formatDate(selectedShipment.estimatedDelivery)}</p>
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-medium mb-2">כתובת למשלוח</h4>
+                  <div className="p-3 bg-muted rounded-md mb-6">
+                    <p>{selectedShipment.address.address}</p>
+                    <p>{selectedShipment.address.city}, {selectedShipment.address.zipCode}</p>
+                    <p>{selectedShipment.address.country}</p>
+                  </div>
+                  
+                  <h4 className="font-medium mb-2">עדכון סטטוס</h4>
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    <Button 
+                      variant={selectedShipment.status === 'pending' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => handleUpdateStatus(selectedShipment.id, 'pending')}
+                    >
+                      <Clock className="ml-1 h-4 w-4" />
+                      ממתין לעיבוד
+                    </Button>
+                    <Button 
+                      variant={selectedShipment.status === 'processing' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => handleUpdateStatus(selectedShipment.id, 'processing')}
+                    >
+                      <Package className="ml-1 h-4 w-4" />
+                      באריזה
+                    </Button>
+                    <Button 
+                      variant={selectedShipment.status === 'in_transit' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => handleUpdateStatus(selectedShipment.id, 'in_transit')}
+                    >
+                      <Truck className="ml-1 h-4 w-4" />
+                      בדרך
+                    </Button>
+                    <Button 
+                      variant={selectedShipment.status === 'delivered' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => handleUpdateStatus(selectedShipment.id, 'delivered')}
+                    >
+                      <Check className="ml-1 h-4 w-4" />
+                      נמסר
+                    </Button>
+                    <Button 
+                      variant={selectedShipment.status === 'failed' ? 'destructive' : 'outline'} 
+                      size="sm"
+                      onClick={() => handleUpdateStatus(selectedShipment.id, 'failed')}
+                    >
+                      <X className="ml-1 h-4 w-4" />
+                      נכשל
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-4">היסטוריית משלוח</h3>
+                  <div className="space-y-4">
+                    {selectedShipment.history.map((event, index) => (
+                      <div key={index} className="flex">
+                        <div className="ml-4 flex flex-col items-center">
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                            index === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                          }`}>
+                            {getStatusIcon(event.status as ShippingStatus)}
                           </div>
+                          {index < selectedShipment.history.length - 1 && (
+                            <div className="w-0.5 h-full bg-muted mt-2"></div>
+                          )}
                         </div>
-                        <div>
-                          <h4 className="font-medium mb-2 text-sm text-muted-foreground">שיטות משלוח</h4>
-                          <div className="space-y-3">
-                            {zone.methods.map((method) => (
-                              <div key={method.id} className="flex justify-between p-2 border rounded-md bg-card">
-                                <div>
-                                  <div className="font-medium">{method.name}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    <Calendar className="inline-block h-3 w-3 ml-1" />
-                                    זמן משלוח משוער: {method.estimatedDays} ימי עסקים
-                                  </div>
-                                </div>
-                                <div className="font-bold">
-                                  {method.price} ₪
-                                </div>
-                              </div>
-                            ))}
+                        <div className="flex-1 border rounded-md p-3 bg-card">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium">
+                                {getStatusText(event.status as ShippingStatus)}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {event.location}
+                              </p>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDate(event.timestamp)}
+                            </p>
                           </div>
+                          {event.notes && (
+                            <p className="text-sm mt-2 p-2 bg-muted/50 rounded">
+                              {event.notes}
+                            </p>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    ))}
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              
+              <Separator className="my-6" />
+              
+              <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setViewDialogOpen(false)}
+                  className="ml-2"
+                >
+                  סגור
+                </Button>
+                <Button 
+                  variant="default"
+                  onClick={() => window.print()}
+                >
+                  <Printer className="ml-2 h-4 w-4" />
+                  הדפס פרטי משלוח
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </AdminLayout>
+  );
+}
 
       {/* View Shipment Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
