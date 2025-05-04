@@ -174,11 +174,8 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="right" className="flex flex-col min-h-screen">
                 <div className="flex justify-between items-center">
-                  <Link
-                    href="/"
-                    className="text-xl font-serif font-bold text-black"
-                  >
-                    <span className="text-primary">OrMia</span> Jewelry
+                  <Link href="/" className="flex items-center">
+                    <img src="/images/logo.png" alt="OrMia Jewelry" className="h-10" />
                   </Link>
                   <SheetTrigger asChild>
                     <button className="hover:text-primary transition-colors">
