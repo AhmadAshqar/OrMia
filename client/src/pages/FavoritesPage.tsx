@@ -1,29 +1,41 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Favorite, Product } from "@shared/schema";
+import { X, ShoppingCart, Loader2 } from "lucide-react";
 import { Link } from "wouter";
-import { Heart, Loader2, ShoppingCart, Trash } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import MainLayout from "@/components/layout/MainLayout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/components/cart/CartContext";
 import { formatPrice } from "@/lib/utils";
+import { Product } from "@shared/schema";
+
+// Type for favorite with product data
+type Favorite = {
+  id: number;
+  userId: number;
+  productId: number;
+  createdAt: Date;
+  product: Product;
+};
 
 export default function FavoritesPage() {
   const { toast } = useToast();
   const { addToCart } = useCart();
 
-  // Query to get favorites
-  const { data: favorites, isLoading } = useQuery({
+  // Fetch favorites
+  const { data: favorites, isLoading, error } = useQuery({
     queryKey: ["/api/favorites"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/favorites");
-      return await res.json();
+    onError: (error: Error) => {
+      toast({
+        title: "שגיאה בטעינת מוצרים מועדפים",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
-  // Mutation to remove a favorite
+  // Remove from favorites mutation
   const removeFavoriteMutation = useMutation({
     mutationFn: async (productId: number) => {
       await apiRequest("DELETE", `/api/favorites/${productId}`);
@@ -43,12 +55,7 @@ export default function FavoritesPage() {
     },
   });
 
-  // Handler for removing a favorite
-  const handleRemoveFavorite = (productId: number) => {
-    removeFavoriteMutation.mutate(productId);
-  };
-
-  // Handler for adding to cart
+  // Add to cart handler
   const handleAddToCart = (product: Product) => {
     addToCart({
       productId: product.id,
@@ -57,7 +64,7 @@ export default function FavoritesPage() {
       image: product.mainImage,
       quantity: 1,
     });
-    
+
     toast({
       description: "המוצר נוסף לסל הקניות",
     });
@@ -68,8 +75,24 @@ export default function FavoritesPage() {
     return (
       <MainLayout>
         <div className="container mx-auto py-10">
-          <div className="flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto py-10">
+          <div className="text-center min-h-[50vh] flex flex-col items-center justify-center">
+            <h2 className="text-2xl font-bold text-destructive mb-2">
+              שגיאה בטעינת המועדפים
+            </h2>
+            <p className="text-muted-foreground">{error.message}</p>
           </div>
         </div>
       </MainLayout>
@@ -84,83 +107,71 @@ export default function FavoritesPage() {
             המוצרים המועדפים שלי
           </h1>
           <p className="text-muted-foreground mt-2">
-            המוצרים שסימנת כמועדפים יישמרו כאן לנוחיותך
+            שמרת {favorites?.length || 0} מוצרים למועדפים
           </p>
         </div>
 
         {!favorites || favorites.length === 0 ? (
-          <div className="text-center py-20">
-            <Heart className="mx-auto h-16 w-16 text-muted-foreground/50 mb-4" />
-            <h2 className="text-xl font-semibold mb-2">אין לך מוצרים מועדפים</h2>
+          <div className="text-center min-h-[30vh] flex flex-col items-center justify-center">
+            <h2 className="text-xl font-medium mb-4">אין לך מוצרים במועדפים</h2>
             <p className="text-muted-foreground mb-6">
-              סמן מוצרים כמועדפים במהלך הגלישה באתר וצור את רשימת המוצרים האהובים עליך
+              הוסף מוצרים למועדפים על ידי לחיצה על הלב בדף המוצר
             </p>
-            <Button asChild className="bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700">
-              <Link href="/products">המשך לקנות</Link>
-            </Button>
+            <Link href="/products">
+              <Button className="bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700">
+                המשך לקנות
+              </Button>
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {favorites.map((favorite: Favorite & { product: Product }) => (
-              <Card key={favorite.id} className="overflow-hidden border border-amber-200 transition-all group hover:border-amber-400 hover:shadow-md">
-                <div className="relative aspect-square overflow-hidden">
-                  <Link href={`/product/${favorite.product.id}`}>
-                    <img 
-                      src={favorite.product.mainImage} 
-                      alt={favorite.product.name} 
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    />
-                  </Link>
-                  {favorite.product.salePrice && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold">
-                      מבצע
-                    </div>
-                  )}
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute top-2 left-2 h-8 w-8 opacity-80 hover:opacity-100"
-                    onClick={() => handleRemoveFavorite(favorite.product.id)}
+              <Card key={favorite.id} className="overflow-hidden group border border-amber-200">
+                <div className="relative aspect-square">
+                  <img
+                    src={favorite.product.mainImage}
+                    alt={favorite.product.name}
+                    className="object-cover w-full h-full"
+                  />
+                  <button
+                    onClick={() => removeFavoriteMutation.mutate(favorite.product.id)}
+                    className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full hover:bg-red-100 transition-colors"
+                    aria-label="הסר מהמועדפים"
                   >
-                    <Trash className="h-4 w-4" />
-                  </Button>
+                    <X className="h-4 w-4 text-red-500" />
+                  </button>
                 </div>
-                
-                <CardContent className="p-4 text-right">
-                  <Link href={`/product/${favorite.product.id}`}>
-                    <h3 className="font-medium text-lg mb-1 hover:text-primary">
+                <CardContent className="p-4">
+                  <h3 className="font-medium mb-1 text-lg line-clamp-1">
+                    <Link href={`/product/${favorite.product.id}`} className="hover:text-primary transition-colors">
                       {favorite.product.name}
-                    </h3>
-                  </Link>
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex flex-col items-end">
+                    </Link>
+                  </h3>
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="font-bold text-lg">
                       {favorite.product.salePrice ? (
-                        <>
-                          <span className="text-muted-foreground line-through text-sm">
-                            {formatPrice(favorite.product.price)}
-                          </span>
-                          <span className="font-bold text-red-500">
+                        <div className="flex flex-col">
+                          <span className="text-primary">
                             {formatPrice(favorite.product.salePrice)}
                           </span>
-                        </>
+                          <span className="text-muted-foreground text-sm line-through">
+                            {formatPrice(favorite.product.price)}
+                          </span>
+                        </div>
                       ) : (
-                        <span className="font-bold">
-                          {formatPrice(favorite.product.price)}
-                        </span>
+                        <span>{formatPrice(favorite.product.price)}</span>
                       )}
                     </div>
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700"
+                      onClick={() => handleAddToCart(favorite.product)}
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      הוסף לסל
+                    </Button>
                   </div>
                 </CardContent>
-                
-                <CardFooter className="p-4 pt-0 flex justify-center">
-                  <Button
-                    className="w-full bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700"
-                    onClick={() => handleAddToCart(favorite.product)}
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    הוסף לסל
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
           </div>

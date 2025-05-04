@@ -897,7 +897,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile routes
   app.patch("/api/profile", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const allowedFields = ["firstName", "lastName", "email", "phone", "profileImage"];
+      
+      // Filter out non-allowed fields
+      const updateData = Object.fromEntries(
+        Object.entries(req.body).filter(([key]) => allowedFields.includes(key))
+      );
+      
+      // Validate email if present
+      if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
+        return res.status(400).json({ message: "כתובת אימייל לא תקינה" });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      res.json(updatedUser);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      res.status(500).json({ message: "שגיאה בעדכון פרופיל המשתמש" });
+    }
+  });
+  
+  // Alias for frontend compatibility
+  app.patch("/api/user/profile", ensureAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
       const allowedFields = ["firstName", "lastName", "email", "phone", "profileImage"];
@@ -925,6 +954,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.patch("/api/profile/password", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "סיסמה נוכחית וסיסמה חדשה נדרשות" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "הסיסמה החדשה חייבת להכיל לפחות 6 תווים" });
+      }
+      
+      // Verify current password
+      const isValid = await storage.validateUserLogin(req.user.username, currentPassword);
+      if (!isValid) {
+        return res.status(400).json({ message: "סיסמה נוכחית שגויה" });
+      }
+      
+      // Hash the password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update the user's password
+      const user = await storage.updateUser(userId, { password: hashedPassword });
+      if (!user) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      res.json({ success: true, message: "סיסמה עודכנה בהצלחה" });
+    } catch (err) {
+      console.error("Error updating password:", err);
+      res.status(500).json({ message: "שגיאה בעדכון סיסמה" });
+    }
+  });
+  
+  // Alias for frontend compatibility
+  app.patch("/api/user/password", ensureAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
       const { currentPassword, newPassword } = req.body;
