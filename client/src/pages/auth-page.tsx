@@ -43,7 +43,7 @@ export default function AuthPage() {
     
     return () => clearTimeout(timer);
   }, []);
-
+  
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -129,6 +129,14 @@ export default function AuthPage() {
       console.error("Password reset failed:", error);
     }
   }
+  
+  // Add an effect to open the reset dialog and set the token if it exists in URL
+  useEffect(() => {
+    if (resetToken) {
+      resetPasswordForm.setValue("token", resetToken);
+      setIsResetPasswordOpen(true);
+    }
+  }, [resetToken, resetPasswordForm]);
 
   return (
     <>
