@@ -8,7 +8,8 @@ import {
   admins, type Admin, type InsertAdmin,
   inventory, type Inventory, type InsertInventory,
   orders, type Order, type InsertOrder,
-  shipping, type Shipping, type InsertShipping
+  shipping, type Shipping, type InsertShipping,
+  favorites, type Favorite, type InsertFavorite
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
@@ -94,6 +95,14 @@ export interface IStorage {
     notes?: string;
   }): Promise<Shipping | undefined>;
   deleteShipping(id: number): Promise<boolean>;
+  
+  // Favorites methods
+  getFavorites(userId: number): Promise<Favorite[]>;
+  getFavorite(id: number): Promise<Favorite | undefined>;
+  getFavoriteByUserAndProduct(userId: number, productId: number): Promise<Favorite | undefined>;
+  createFavorite(favorite: InsertFavorite): Promise<Favorite>;
+  deleteFavorite(id: number): Promise<boolean>;
+  deleteUserProductFavorite(userId: number, productId: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -1239,6 +1248,96 @@ export class DatabaseStorage implements IStorage {
   async deleteShipping(id: number): Promise<boolean> {
     const [result] = await db.delete(shipping)
       .where(eq(shipping.id, id))
+      .returning();
+      
+    return !!result;
+  }
+  
+  // Favorites methods
+  async getFavorites(userId: number): Promise<Favorite[]> {
+    const results = await db.select({
+      favorite: favorites,
+      product: products
+    })
+    .from(favorites)
+    .leftJoin(products, eq(favorites.productId, products.id))
+    .where(eq(favorites.userId, userId));
+    
+    return results.map(({ favorite, product }) => ({
+      ...favorite,
+      product
+    }));
+  }
+  
+  async getFavorite(id: number): Promise<Favorite | undefined> {
+    const [result] = await db.select({
+      favorite: favorites,
+      product: products
+    })
+    .from(favorites)
+    .leftJoin(products, eq(favorites.productId, products.id))
+    .where(eq(favorites.id, id));
+    
+    if (!result) return undefined;
+    
+    return {
+      ...result.favorite,
+      product: result.product
+    };
+  }
+  
+  async getFavoriteByUserAndProduct(userId: number, productId: number): Promise<Favorite | undefined> {
+    const [result] = await db.select({
+      favorite: favorites,
+      product: products
+    })
+    .from(favorites)
+    .leftJoin(products, eq(favorites.productId, products.id))
+    .where(and(
+      eq(favorites.userId, userId),
+      eq(favorites.productId, productId)
+    ));
+    
+    if (!result) return undefined;
+    
+    return {
+      ...result.favorite,
+      product: result.product
+    };
+  }
+  
+  async createFavorite(favorite: InsertFavorite): Promise<Favorite> {
+    const timestamp = new Date();
+    
+    const [result] = await db.insert(favorites)
+      .values({
+        ...favorite,
+        createdAt: timestamp
+      })
+      .returning();
+    
+    const product = await this.getProduct(result.productId);
+    
+    return {
+      ...result,
+      product
+    };
+  }
+  
+  async deleteFavorite(id: number): Promise<boolean> {
+    const [result] = await db.delete(favorites)
+      .where(eq(favorites.id, id))
+      .returning();
+      
+    return !!result;
+  }
+  
+  async deleteUserProductFavorite(userId: number, productId: number): Promise<boolean> {
+    const [result] = await db.delete(favorites)
+      .where(and(
+        eq(favorites.userId, userId),
+        eq(favorites.productId, productId)
+      ))
       .returning();
       
     return !!result;
