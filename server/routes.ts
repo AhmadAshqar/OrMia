@@ -1116,7 +1116,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send password reset email
       const emailSent = await sendPasswordResetEmail(email, token);
 
+      // In development environment, we'll simulate success even if SendGrid fails
+      if (!emailSent && process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Password reset flow would continue with token:', token);
+        return res.status(200).json({ 
+          message: "אם קיים חשבון עם כתובת האימייל הזו, נשלח אליך קישור לאיפוס סיסמה",
+          // Only in development, send the token in the response for testing
+          ...(process.env.NODE_ENV === 'development' ? { token } : {})
+        });
+      }
+      
       if (!emailSent) {
+        console.error('Failed to send email via SendGrid');
         return res.status(500).json({ error: "שליחת המייל נכשלה, אנא נסה שוב מאוחר יותר" });
       }
 
