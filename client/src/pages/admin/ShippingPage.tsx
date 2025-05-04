@@ -408,195 +408,26 @@ export default function ShippingPage() {
                             {getStatusIcon(event.status as ShippingStatus)}
                           </div>
                           {index < selectedShipment.history.length - 1 && (
-                            <div className="w-0.5 h-full bg-muted mt-2"></div>
+                            <div className="w-0.5 h-full bg-border flex-grow mt-1"></div>
                           )}
                         </div>
-                        <div className="flex-1 border rounded-md p-3 bg-card">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium">
-                                {getStatusText(event.status as ShippingStatus)}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {event.location}
-                              </p>
+                        <div className="flex-1 pb-6">
+                          <div className="bg-card border rounded-lg p-3">
+                            <div className="flex justify-between mb-1">
+                              <p className="font-medium">{getStatusText(event.status as ShippingStatus)}</p>
+                              <p className="text-xs text-muted-foreground">{formatDate(event.timestamp)}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDate(event.timestamp)}
-                            </p>
+                            <p className="text-sm">{event.location}</p>
+                            {event.notes && (
+                              <p className="text-sm text-muted-foreground mt-1">{event.notes}</p>
+                            )}
                           </div>
-                          {event.notes && (
-                            <p className="text-sm mt-2 p-2 bg-muted/50 rounded">
-                              {event.notes}
-                            </p>
-                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-              
-              <Separator className="my-6" />
-              
-              <div className="flex justify-end">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setViewDialogOpen(false)}
-                  className="ml-2"
-                >
-                  סגור
-                </Button>
-                <Button 
-                  variant="default"
-                  onClick={() => window.print()}
-                >
-                  <Printer className="ml-2 h-4 w-4" />
-                  הדפס פרטי משלוח
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </AdminLayout>
-  );
-}
-
-      {/* View Shipment Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>פרטי משלוח</DialogTitle>
-            <DialogDescription>
-              צפייה ועדכון סטטוס משלוח
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedShipment && (
-            <div className="py-4">
-              <div className="flex flex-col md:flex-row gap-8">
-                <div className="flex-1">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">משלוח #{selectedShipment.trackingNumber}</h3>
-                    <div>
-                      {getStatusBadge(selectedShipment.status)}
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">מספר הזמנה</p>
-                      <p>{selectedShipment.orderNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">שם לקוח</p>
-                      <p>{selectedShipment.customerName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">סוג משלוח</p>
-                      <p>{getShippingMethodDisplay(selectedShipment.shippingMethod)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">תאריך משלוח צפוי</p>
-                      <p>{formatDate(selectedShipment.estimatedDelivery)}</p>
-                    </div>
-                  </div>
-                  
-                  <h4 className="font-medium mb-2">כתובת למשלוח</h4>
-                  <div className="p-3 bg-muted rounded-md mb-6">
-                    <p>{selectedShipment.address.address}</p>
-                    <p>{selectedShipment.address.city}, {selectedShipment.address.zipCode}</p>
-                    <p>{selectedShipment.address.country}</p>
-                  </div>
-                  
-                  <h4 className="font-medium mb-2">עדכון סטטוס</h4>
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    <Button 
-                      variant={selectedShipment.status === 'pending' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => handleUpdateStatus(selectedShipment.id, 'pending')}
-                    >
-                      <Clock className="ml-1 h-4 w-4" />
-                      ממתין לעיבוד
-                    </Button>
-                    <Button 
-                      variant={selectedShipment.status === 'processing' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => handleUpdateStatus(selectedShipment.id, 'processing')}
-                    >
-                      <Package className="ml-1 h-4 w-4" />
-                      באריזה
-                    </Button>
-                    <Button 
-                      variant={selectedShipment.status === 'in_transit' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => handleUpdateStatus(selectedShipment.id, 'in_transit')}
-                    >
-                      <Truck className="ml-1 h-4 w-4" />
-                      בדרך
-                    </Button>
-                    <Button 
-                      variant={selectedShipment.status === 'delivered' ? 'default' : 'outline'} 
-                      size="sm"
-                      onClick={() => handleUpdateStatus(selectedShipment.id, 'delivered')}
-                    >
-                      <Check className="ml-1 h-4 w-4" />
-                      נמסר
-                    </Button>
-                    <Button 
-                      variant={selectedShipment.status === 'failed' ? 'destructive' : 'outline'} 
-                      size="sm"
-                      onClick={() => handleUpdateStatus(selectedShipment.id, 'failed')}
-                    >
-                      <X className="ml-1 h-4 w-4" />
-                      נכשל
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-4">היסטוריית משלוח</h3>
-                  <div className="space-y-4">
-                    {selectedShipment.history.map((event, index) => (
-                      <div key={index} className="flex">
-                        <div className="ml-4 flex flex-col items-center">
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                            index === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                          }`}>
-                            {getStatusIcon(event.status)}
-                          </div>
-                          {index < selectedShipment.history.length - 1 && (
-                            <div className="w-0.5 h-full bg-muted mt-2"></div>
-                          )}
-                        </div>
-                        <div className="flex-1 border rounded-md p-3 bg-card">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium">
-                                {getStatusText(event.status)}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {event.location}
-                              </p>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDate(event.timestamp)}
-                            </p>
-                          </div>
-                          {event.notes && (
-                            <p className="text-sm mt-2 p-2 bg-muted/50 rounded">
-                              {event.notes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              <Separator className="my-6" />
               
               <div className="flex justify-end">
                 <Button 

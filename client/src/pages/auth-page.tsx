@@ -1,4 +1,4 @@
-import { useAuth, loginSchema, registerSchema } from "@/hooks/use-auth";
+import { useAuth, loginSchema, registerSchema, forgotPasswordSchema } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,6 +14,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Redirect, useLocation, Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -21,9 +30,10 @@ import Footer from "@/components/layout/Footer";
 import { useState, useEffect } from "react";
 
 export default function AuthPage() {
-  const { user, isLoading, loginMutation, registerMutation } = useAuth();
+  const { user, isLoading, loginMutation, registerMutation, forgotPasswordMutation } = useAuth();
   const [_, navigate] = useLocation();
   const [isFormReady, setIsFormReady] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   useEffect(() => {
     // Delay form initialization to improve initial page load
@@ -69,6 +79,23 @@ export default function AuthPage() {
       await registerMutation.mutateAsync(values);
     } catch (error) {
       console.error("Registration failed:", error);
+    }
+  }
+  
+  const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordSchema>>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+  
+  async function onForgotPasswordSubmit(values: z.infer<typeof forgotPasswordSchema>) {
+    try {
+      await forgotPasswordMutation.mutateAsync(values);
+      setIsForgotPasswordOpen(false);
+      forgotPasswordForm.reset();
+    } catch (error) {
+      console.error("Password reset request failed:", error);
     }
   }
 
@@ -197,6 +224,80 @@ export default function AuthPage() {
                           "התחבר"
                         )}
                       </Button>
+                      
+                      <div className="mt-4 text-center">
+                        <Dialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="link"
+                              className="text-amber-700 hover:text-amber-900 hover:underline"
+                            >
+                              שכחת את הסיסמה?
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="rtl gold-gradient-bg luxury-card">
+                            <DialogHeader>
+                              <DialogTitle className="text-2xl font-serif font-bold text-center text-black">
+                                איפוס סיסמה
+                              </DialogTitle>
+                              <DialogDescription className="text-center text-amber-900 mt-2">
+                                אנא הזן את כתובת הדוא״ל שלך ואנו נשלח לך קישור לאיפוס הסיסמה
+                              </DialogDescription>
+                            </DialogHeader>
+                            <Form {...forgotPasswordForm}>
+                              <form
+                                onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)}
+                                className="space-y-4 mt-4"
+                              >
+                                <FormField
+                                  control={forgotPasswordForm.control}
+                                  name="email"
+                                  render={({ field }) => (
+                                    <FormItem className="text-right">
+                                      <FormLabel className="form-label-gold">
+                                        דוא"ל
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          className="form-input-gold"
+                                          placeholder="הזן את כתובת הדוא״ל שלך"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <div className="flex justify-between space-x-4 space-x-reverse">
+                                  <DialogClose asChild>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      className="flex-1 border-amber-700 text-amber-900 hover:bg-amber-100"
+                                    >
+                                      ביטול
+                                    </Button>
+                                  </DialogClose>
+                                  <Button
+                                    type="submit"
+                                    className="flex-1 btn-luxury"
+                                    disabled={forgotPasswordMutation.isPending}
+                                  >
+                                    {forgotPasswordMutation.isPending ? (
+                                      <div className="flex items-center">
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        שולח...
+                                      </div>
+                                    ) : (
+                                      "שלח קישור איפוס"
+                                    )}
+                                  </Button>
+                                </div>
+                              </form>
+                            </Form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </form>
                   </Form>
                 )}

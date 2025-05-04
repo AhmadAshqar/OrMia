@@ -10,6 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+// Schema for forgot password form
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("אנא הזן כתובת דוא״ל תקינה"),
+});
+
+type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
@@ -17,6 +24,7 @@ type AuthContextType = {
   loginMutation: UseMutationResult<Omit<User, 'password'>, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<Omit<User, 'password'>, Error, RegisterData>;
+  forgotPasswordMutation: UseMutationResult<void, Error, ForgotPasswordData>;
 };
 
 // Extended schema for login form
@@ -118,6 +126,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const forgotPasswordMutation = useMutation<void, Error, ForgotPasswordData>({
+    mutationFn: async (data: ForgotPasswordData) => {
+      await apiRequest("POST", "/api/forgot-password", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "בקשה נשלחה בהצלחה",
+        description: "אם הדוא״ל שהזנת קיים במערכת, תקבל הוראות לאיפוס סיסמה",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "הבקשה נכשלה",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <AuthContext.Provider
       value={{
@@ -127,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        forgotPasswordMutation,
       }}
     >
       {children}
