@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, real, timestamp, primaryKey, varchar, unique, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // Define Users Schema (defined first to avoid circular references)
 export const users = pgTable("users", {
@@ -151,6 +152,18 @@ export const shipping = pgTable("shipping", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Define User Favorites Schema
+export const favorites = pgTable("favorites", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  productId: integer("product_id").notNull().references(() => products.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    userProductIndex: unique().on(table.userId, table.productId),
+  }
+});
+
 // Define Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ 
   id: true,
@@ -204,6 +217,11 @@ export const insertShippingSchema = createInsertSchema(shipping).omit({
   updatedAt: true
 });
 
+export const insertFavoriteSchema = createInsertSchema(favorites).omit({
+  id: true,
+  createdAt: true
+});
+
 // Define Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -242,3 +260,34 @@ export type Order = typeof orders.$inferSelect;
 
 export type InsertShipping = z.infer<typeof insertShippingSchema>;
 export type Shipping = typeof shipping.$inferSelect;
+
+export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
+export type Favorite = typeof favorites.$inferSelect & {
+  product?: Product;
+};
+
+// Define relations
+export const usersRelations = relations(users, ({ many }) => ({
+  favorites: many(favorites),
+  orders: many(orders),
+  carts: many(carts),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
+  favorites: many(favorites),
+}));
+
+export const favoritesRelations = relations(favorites, ({ one }) => ({
+  user: one(users, {
+    fields: [favorites.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [favorites.productId],
+    references: [products.id],
+  }),
+}));
