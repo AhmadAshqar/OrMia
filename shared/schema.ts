@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, real, timestamp, primaryKey, varchar, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, real, timestamp, primaryKey, varchar, unique, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -101,6 +101,56 @@ export const inventory = pgTable("inventory", {
   updatedBy: integer("updated_by").references(() => admins.id),
 });
 
+// Define Orders Schema
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  orderNumber: text("order_number").notNull().unique(),
+  status: text("status").default("pending").notNull(),
+  total: integer("total").notNull(),
+  items: json("items").$type<{
+    productId: number;
+    productName: string;
+    quantity: number;
+    price: number;
+  }[]>(),
+  shippingAddress: json("shipping_address").$type<{
+    address: string;
+    city: string;
+    zipCode: string;
+  }>(),
+  customerName: text("customer_name").notNull(),
+  customerEmail: text("customer_email").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Define Shipping Schema
+export const shipping = pgTable("shipping", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").references(() => orders.id),
+  trackingNumber: text("tracking_number").notNull().unique(),
+  orderNumber: text("order_number").notNull(),
+  customerName: text("customer_name").notNull(),
+  shippingMethod: text("shipping_method").default("standard").notNull(),
+  status: text("status").default("pending").notNull(),
+  address: json("address").$type<{
+    address: string;
+    city: string;
+    zipCode: string;
+    country: string;
+  }>(),
+  history: json("history").$type<{
+    status: string;
+    location: string;
+    timestamp: string;
+    notes?: string;
+  }[]>(),
+  estimatedDelivery: timestamp("estimated_delivery"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Define Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ 
   id: true,
@@ -140,6 +190,18 @@ export const insertContactMessageSchema = createInsertSchema(contactMessages).om
 export const insertInventorySchema = createInsertSchema(inventory).omit({ 
   id: true,
   lastUpdated: true 
+});
+
+export const insertOrderSchema = createInsertSchema(orders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertShippingSchema = createInsertSchema(shipping).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
 });
 
 // Define Types
