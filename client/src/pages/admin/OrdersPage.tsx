@@ -77,134 +77,22 @@ export default function OrdersPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // This is a placeholder for real API data
-  // In a real implementation, you would connect to your backend API
-  const mockOrders: Order[] = [
-    {
-      id: 1,
-      orderNumber: "ORD-001-2023",
-      customerName: "דוד כהן",
-      customerEmail: "david@example.com",
-      total: 1299,
-      status: "pending",
-      items: [
-        {
-          productId: 1,
-          productName: "טבעת אירוסין מוסאנייט 1.5 קראט",
-          quantity: 1,
-          price: 1299
-        }
-      ],
-      shippingAddress: {
-        address: "רחוב הרצל 15",
-        city: "תל אביב",
-        zipCode: "6120201"
-      },
-      createdAt: "2023-05-01T10:30:00Z",
-      updatedAt: "2023-05-01T10:30:00Z"
-    },
-    {
-      id: 2,
-      orderNumber: "ORD-002-2023",
-      customerName: "שרה לוי",
-      customerEmail: "sara@example.com",
-      total: 2499,
-      status: "processing",
-      items: [
-        {
-          productId: 2,
-          productName: "עגילי מוסאנייט 1 קראט",
-          quantity: 1,
-          price: 999
-        },
-        {
-          productId: 3,
-          productName: "שרשרת מוסאנייט פנדנט",
-          quantity: 1,
-          price: 1500
-        }
-      ],
-      shippingAddress: {
-        address: "רחוב ביאליק 8",
-        city: "חיפה",
-        zipCode: "3104201"
-      },
-      createdAt: "2023-05-05T14:20:00Z",
-      updatedAt: "2023-05-06T09:15:00Z"
-    },
-    {
-      id: 3,
-      orderNumber: "ORD-003-2023",
-      customerName: "מיכאל אברהם",
-      customerEmail: "michael@example.com",
-      total: 4999,
-      status: "shipped",
-      items: [
-        {
-          productId: 4,
-          productName: "סט תכשיטי מוסאנייט לכלה",
-          quantity: 1,
-          price: 4999
-        }
-      ],
-      shippingAddress: {
-        address: "שדרות בן גוריון 25",
-        city: "ירושלים",
-        zipCode: "9438615"
-      },
-      createdAt: "2023-05-10T11:45:00Z",
-      updatedAt: "2023-05-12T16:30:00Z"
-    },
-    {
-      id: 4,
-      orderNumber: "ORD-004-2023",
-      customerName: "רחל גרין",
-      customerEmail: "rachel@example.com",
-      total: 899,
-      status: "delivered",
-      items: [
-        {
-          productId: 5,
-          productName: "צמיד מוסאנייט עדין",
-          quantity: 1,
-          price: 899
-        }
-      ],
-      shippingAddress: {
-        address: "רחוב הדקל 3",
-        city: "אשדוד",
-        zipCode: "7752003"
-      },
-      createdAt: "2023-05-15T09:10:00Z",
-      updatedAt: "2023-05-18T12:20:00Z"
-    },
-    {
-      id: 5,
-      orderNumber: "ORD-005-2023",
-      customerName: "יעקב שטיין",
-      customerEmail: "yaakov@example.com",
-      total: 1799,
-      status: "cancelled",
-      items: [
-        {
-          productId: 6,
-          productName: "טבעת נישואין מוסאנייט",
-          quantity: 1,
-          price: 1799
-        }
-      ],
-      shippingAddress: {
-        address: "רחוב רוטשילד 22",
-        city: "ראשון לציון",
-        zipCode: "7525214"
-      },
-      createdAt: "2023-05-20T16:40:00Z",
-      updatedAt: "2023-05-21T10:15:00Z"
+  // Fetch orders from API
+  const { data: orders = [], isLoading, isError } = useQuery({
+    queryKey: ['/api/admin/orders'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/orders');
+      if (!response.ok) {
+        throw new Error('Failed to fetch orders');
+      }
+      return await response.json();
     }
-  ];
+  });
 
   // Filter orders based on search term
-  const filteredOrders = mockOrders.filter(order => {
+  const filteredOrders = orders.filter((order: Order) => {
+    if (!searchTerm) return true;
+    
     const searchLower = searchTerm.toLowerCase();
     return (
       order.orderNumber.toLowerCase().includes(searchLower) ||
@@ -262,13 +150,35 @@ export default function OrdersPage() {
     setViewDialogOpen(true);
   };
 
-  // In a real implementation, you would connect to your backend API for these actions
+  // Update order status
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: number, status: string }) => {
+      const response = await apiRequest('PATCH', `/api/admin/orders/${orderId}/status`, { status });
+      if (!response.ok) {
+        throw new Error('Failed to update order status');
+      }
+      return await response.json();
+    },
+    onSuccess: () => {
+      // Refetch the orders data
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/orders'] });
+      setViewDialogOpen(false);
+      toast({
+        title: "סטטוס הזמנה עודכן",
+        description: "סטטוס ההזמנה עודכן בהצלחה",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "שגיאה בעדכון סטטוס",
+        description: `שגיאה: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+  
   const handleUpdateStatus = (orderId: number, newStatus: OrderStatus) => {
-    toast({
-      title: "סטטוס הזמנה עודכן",
-      description: `סטטוס ההזמנה עודכן ל${getStatusText(newStatus)}`,
-    });
-    setViewDialogOpen(false);
+    updateStatusMutation.mutate({ orderId, status: newStatus });
   };
 
   const getStatusText = (status: OrderStatus) => {
@@ -325,7 +235,7 @@ export default function OrdersPage() {
               </TableHeader>
               <TableBody>
                 {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order) => (
+                  filteredOrders.map((order: Order) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-medium">{order.orderNumber}</TableCell>
                       <TableCell>
