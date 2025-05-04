@@ -30,7 +30,7 @@ import Footer from "@/components/layout/Footer";
 import { useState, useEffect } from "react";
 
 export default function AuthPage() {
-  const { user, isLoading, loginMutation, registerMutation, forgotPasswordMutation } = useAuth();
+  const { user, isLoading, loginMutation, registerMutation, forgotPasswordMutation, resetPasswordMutation } = useAuth();
   const [_, navigate] = useLocation();
   const [isFormReady, setIsFormReady] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
@@ -501,6 +501,96 @@ export default function AuthPage() {
         </div>
       </div>
       <Footer />
+
+      {/* Reset Password Dialog */}
+      <Dialog open={isResetPasswordOpen} onOpenChange={setIsResetPasswordOpen}>
+        <DialogContent className="rtl gold-gradient-bg luxury-card">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-serif font-bold text-center text-black">
+              סיסמה חדשה
+            </DialogTitle>
+            <DialogDescription className="text-center text-amber-900 mt-2">
+              אנא הזן את הסיסמה החדשה שלך
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...resetPasswordForm}>
+            <form
+              onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)}
+              className="space-y-4 mt-4"
+            >
+              <input type="hidden" {...resetPasswordForm.register("token")} />
+              
+              <FormField
+                control={resetPasswordForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="text-right">
+                    <FormLabel className="form-label-gold">
+                      סיסמה חדשה
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        className="form-input-gold"
+                        type="password"
+                        placeholder="הזן סיסמה חדשה"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={resetPasswordForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem className="text-right">
+                    <FormLabel className="form-label-gold">
+                      אימות סיסמה
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        className="form-input-gold"
+                        type="password"
+                        placeholder="הזן שוב את הסיסמה החדשה"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-between space-x-4 space-x-reverse">
+                <DialogClose asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 border-amber-700 text-amber-900 hover:bg-amber-100"
+                  >
+                    ביטול
+                  </Button>
+                </DialogClose>
+                <Button
+                  type="submit"
+                  className="flex-1 btn-luxury"
+                  disabled={resetPasswordMutation.isPending}
+                >
+                  {resetPasswordMutation.isPending ? (
+                    <div className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      מעדכן...
+                    </div>
+                  ) : (
+                    "עדכן סיסמה"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
