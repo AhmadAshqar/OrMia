@@ -21,7 +21,7 @@ type Favorite = {
 
 export default function FavoritesPage() {
   const { toast } = useToast();
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
 
   // Fetch favorites
   const { data: favorites, isLoading, error } = useQuery({
@@ -57,13 +57,7 @@ export default function FavoritesPage() {
 
   // Add to cart handler
   const handleAddToCart = (product: Product) => {
-    addToCart({
-      productId: product.id,
-      name: product.name,
-      price: product.salePrice || product.price,
-      image: product.mainImage,
-      quantity: 1,
-    });
+    addItem(product, 1);
 
     toast({
       description: "המוצר נוסף לסל הקניות",
