@@ -8,7 +8,9 @@ import {
   insertUserSchema,
   insertInventorySchema,
   insertProductSchema,
-  insertCategorySchema
+  insertCategorySchema,
+  insertOrderSchema,
+  insertShippingSchema
 } from "@shared/schema";
 import { setupAuth, ensureAuthenticated, ensureAdmin, hashPassword } from "./auth";
 import { z } from "zod";
@@ -588,6 +590,298 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error submitting contact form:", err);
       res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
+  
+  // Orders management routes
+  app.get("/api/admin/orders", ensureAdmin, async (req, res) => {
+    try {
+      const orders = await storage.getOrders();
+      res.json(orders);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      res.status(500).json({ message: "שגיאה בטעינת ההזמנות" });
+    }
+  });
+  
+  app.get("/api/admin/orders/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה הזמנה לא תקין" });
+      }
+      
+      const order = await storage.getOrder(id);
+      if (!order) {
+        return res.status(404).json({ message: "הזמנה לא נמצאה" });
+      }
+      
+      res.json(order);
+    } catch (err) {
+      console.error("Error fetching order:", err);
+      res.status(500).json({ message: "שגיאה בטעינת ההזמנה" });
+    }
+  });
+  
+  app.get("/api/admin/orders/number/:orderNumber", ensureAdmin, async (req, res) => {
+    try {
+      const { orderNumber } = req.params;
+      
+      const order = await storage.getOrderByNumber(orderNumber);
+      if (!order) {
+        return res.status(404).json({ message: "הזמנה לא נמצאה" });
+      }
+      
+      res.json(order);
+    } catch (err) {
+      console.error("Error fetching order by number:", err);
+      res.status(500).json({ message: "שגיאה בטעינת ההזמנה" });
+    }
+  });
+  
+  app.post("/api/admin/orders", ensureAdmin, async (req, res) => {
+    try {
+      const orderData = insertOrderSchema.parse(req.body);
+      const order = await storage.createOrder(orderData);
+      res.status(201).json(order);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "נתוני הזמנה לא תקינים", errors: err.errors });
+      }
+      console.error("Error creating order:", err);
+      res.status(500).json({ message: "שגיאה ביצירת הזמנה" });
+    }
+  });
+  
+  app.patch("/api/admin/orders/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה הזמנה לא תקין" });
+      }
+      
+      const order = await storage.updateOrder(id, req.body);
+      if (!order) {
+        return res.status(404).json({ message: "הזמנה לא נמצאה" });
+      }
+      
+      res.json(order);
+    } catch (err) {
+      console.error("Error updating order:", err);
+      res.status(500).json({ message: "שגיאה בעדכון ההזמנה" });
+    }
+  });
+  
+  app.patch("/api/admin/orders/:id/status", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה הזמנה לא תקין" });
+      }
+      
+      const { status } = req.body;
+      if (!status || typeof status !== 'string') {
+        return res.status(400).json({ message: "סטטוס הזמנה נדרש" });
+      }
+      
+      const order = await storage.updateOrderStatus(id, status);
+      if (!order) {
+        return res.status(404).json({ message: "הזמנה לא נמצאה" });
+      }
+      
+      res.json(order);
+    } catch (err) {
+      console.error("Error updating order status:", err);
+      res.status(500).json({ message: "שגיאה בעדכון סטטוס ההזמנה" });
+    }
+  });
+  
+  app.delete("/api/admin/orders/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה הזמנה לא תקין" });
+      }
+      
+      const success = await storage.deleteOrder(id);
+      if (!success) {
+        return res.status(404).json({ message: "הזמנה לא נמצאה" });
+      }
+      
+      res.status(204).end();
+    } catch (err) {
+      console.error("Error deleting order:", err);
+      res.status(500).json({ message: "שגיאה במחיקת ההזמנה" });
+    }
+  });
+  
+  // Shipping management routes
+  app.get("/api/admin/shipping", ensureAdmin, async (req, res) => {
+    try {
+      const shippings = await storage.getShippings();
+      res.json(shippings);
+    } catch (err) {
+      console.error("Error fetching shipping records:", err);
+      res.status(500).json({ message: "שגיאה בטעינת רשומות המשלוחים" });
+    }
+  });
+  
+  app.get("/api/admin/shipping/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה משלוח לא תקין" });
+      }
+      
+      const shipping = await storage.getShipping(id);
+      if (!shipping) {
+        return res.status(404).json({ message: "משלוח לא נמצא" });
+      }
+      
+      res.json(shipping);
+    } catch (err) {
+      console.error("Error fetching shipping record:", err);
+      res.status(500).json({ message: "שגיאה בטעינת רשומת המשלוח" });
+    }
+  });
+  
+  app.get("/api/admin/shipping/tracking/:trackingNumber", ensureAdmin, async (req, res) => {
+    try {
+      const { trackingNumber } = req.params;
+      
+      const shipping = await storage.getShippingByTrackingNumber(trackingNumber);
+      if (!shipping) {
+        return res.status(404).json({ message: "משלוח לא נמצא" });
+      }
+      
+      res.json(shipping);
+    } catch (err) {
+      console.error("Error fetching shipping by tracking number:", err);
+      res.status(500).json({ message: "שגיאה בטעינת המשלוח" });
+    }
+  });
+  
+  app.get("/api/admin/shipping/order/:orderNumber", ensureAdmin, async (req, res) => {
+    try {
+      const { orderNumber } = req.params;
+      
+      const shipping = await storage.getShippingByOrderNumber(orderNumber);
+      if (!shipping) {
+        return res.status(404).json({ message: "משלוח לא נמצא" });
+      }
+      
+      res.json(shipping);
+    } catch (err) {
+      console.error("Error fetching shipping by order number:", err);
+      res.status(500).json({ message: "שגיאה בטעינת המשלוח" });
+    }
+  });
+  
+  app.post("/api/admin/shipping", ensureAdmin, async (req, res) => {
+    try {
+      const shippingData = insertShippingSchema.parse(req.body);
+      const shipping = await storage.createShipping(shippingData);
+      res.status(201).json(shipping);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: "נתוני משלוח לא תקינים", errors: err.errors });
+      }
+      console.error("Error creating shipping record:", err);
+      res.status(500).json({ message: "שגיאה ביצירת רשומת משלוח" });
+    }
+  });
+  
+  app.patch("/api/admin/shipping/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה משלוח לא תקין" });
+      }
+      
+      const shipping = await storage.updateShipping(id, req.body);
+      if (!shipping) {
+        return res.status(404).json({ message: "משלוח לא נמצא" });
+      }
+      
+      res.json(shipping);
+    } catch (err) {
+      console.error("Error updating shipping record:", err);
+      res.status(500).json({ message: "שגיאה בעדכון רשומת המשלוח" });
+    }
+  });
+  
+  app.patch("/api/admin/shipping/:id/status", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה משלוח לא תקין" });
+      }
+      
+      const { status, location, notes } = req.body;
+      if (!status || typeof status !== 'string') {
+        return res.status(400).json({ message: "סטטוס משלוח נדרש" });
+      }
+      
+      if (!location || typeof location !== 'string') {
+        return res.status(400).json({ message: "מיקום משלוח נדרש" });
+      }
+      
+      const locationInfo = {
+        location,
+        notes: notes || undefined
+      };
+      
+      const shipping = await storage.updateShippingStatus(id, status, locationInfo);
+      if (!shipping) {
+        return res.status(404).json({ message: "משלוח לא נמצא" });
+      }
+      
+      res.json(shipping);
+    } catch (err) {
+      console.error("Error updating shipping status:", err);
+      res.status(500).json({ message: "שגיאה בעדכון סטטוס המשלוח" });
+    }
+  });
+  
+  app.delete("/api/admin/shipping/:id", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה משלוח לא תקין" });
+      }
+      
+      const success = await storage.deleteShipping(id);
+      if (!success) {
+        return res.status(404).json({ message: "משלוח לא נמצא" });
+      }
+      
+      res.status(204).end();
+    } catch (err) {
+      console.error("Error deleting shipping record:", err);
+      res.status(500).json({ message: "שגיאה במחיקת רשומת המשלוח" });
+    }
+  });
+  
+  // Public API to track shipment
+  app.get("/api/tracking/:trackingNumber", async (req, res) => {
+    try {
+      const { trackingNumber } = req.params;
+      
+      const shipping = await storage.getShippingByTrackingNumber(trackingNumber);
+      if (!shipping) {
+        return res.status(404).json({ message: "מספר מעקב לא נמצא" });
+      }
+      
+      // Return a limited view for public API
+      res.json({
+        trackingNumber: shipping.trackingNumber,
+        status: shipping.status,
+        estimatedDelivery: shipping.estimatedDelivery,
+        history: shipping.history
+      });
+    } catch (err) {
+      console.error("Error tracking shipment:", err);
+      res.status(500).json({ message: "שגיאה בטעינת פרטי המשלוח" });
     }
   });
 

@@ -568,6 +568,155 @@ export class MemStorage implements IStorage {
     
     return true;
   }
+  
+  // Order methods
+  async getOrders(): Promise<Order[]> {
+    return Array.from(this.orders.values());
+  }
+  
+  async getOrder(id: number): Promise<Order | undefined> {
+    return this.orders.get(id);
+  }
+  
+  async getOrderByNumber(orderNumber: string): Promise<Order | undefined> {
+    return Array.from(this.orders.values())
+      .find(order => order.orderNumber === orderNumber);
+  }
+  
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const id = this.orderId++;
+    const timestamp = new Date();
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    
+    const newOrder: Order = { 
+      ...order, 
+      id, 
+      orderNumber,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+    
+    this.orders.set(id, newOrder);
+    return newOrder;
+  }
+  
+  async updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined> {
+    const existingOrder = this.orders.get(id);
+    if (!existingOrder) return undefined;
+    
+    const updatedOrder: Order = { 
+      ...existingOrder, 
+      ...order,
+      updatedAt: new Date()
+    };
+    
+    this.orders.set(id, updatedOrder);
+    return updatedOrder;
+  }
+  
+  async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
+    const existingOrder = this.orders.get(id);
+    if (!existingOrder) return undefined;
+    
+    const updatedOrder: Order = { 
+      ...existingOrder, 
+      status,
+      updatedAt: new Date()
+    };
+    
+    this.orders.set(id, updatedOrder);
+    return updatedOrder;
+  }
+  
+  async deleteOrder(id: number): Promise<boolean> {
+    return this.orders.delete(id);
+  }
+  
+  // Shipping methods
+  async getShippings(): Promise<Shipping[]> {
+    return Array.from(this.shippings.values());
+  }
+  
+  async getShipping(id: number): Promise<Shipping | undefined> {
+    return this.shippings.get(id);
+  }
+  
+  async getShippingByTrackingNumber(trackingNumber: string): Promise<Shipping | undefined> {
+    return Array.from(this.shippings.values())
+      .find(shipping => shipping.trackingNumber === trackingNumber);
+  }
+  
+  async getShippingByOrderNumber(orderNumber: string): Promise<Shipping | undefined> {
+    return Array.from(this.shippings.values())
+      .find(shipping => shipping.orderNumber === orderNumber);
+  }
+  
+  async createShipping(shipping: InsertShipping): Promise<Shipping> {
+    const id = this.shippingId++;
+    const timestamp = new Date();
+    const trackingNumber = `TRK-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    
+    const newShipping: Shipping = { 
+      ...shipping, 
+      id, 
+      trackingNumber,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      history: shipping.history || [{
+        status: shipping.status || "pending",
+        location: "מרכז מיון",
+        timestamp: timestamp.toISOString(),
+        notes: "הזמנה נקלטה במערכת"
+      }]
+    };
+    
+    this.shippings.set(id, newShipping);
+    return newShipping;
+  }
+  
+  async updateShipping(id: number, shipping: Partial<InsertShipping>): Promise<Shipping | undefined> {
+    const existingShipping = this.shippings.get(id);
+    if (!existingShipping) return undefined;
+    
+    const updatedShipping: Shipping = { 
+      ...existingShipping, 
+      ...shipping,
+      updatedAt: new Date()
+    };
+    
+    this.shippings.set(id, updatedShipping);
+    return updatedShipping;
+  }
+  
+  async updateShippingStatus(id: number, status: string, locationInfo?: {
+    location: string;
+    notes?: string;
+  }): Promise<Shipping | undefined> {
+    const existingShipping = this.shippings.get(id);
+    if (!existingShipping) return undefined;
+    
+    const timestamp = new Date();
+    const history = [...(existingShipping.history || []), {
+      status,
+      location: locationInfo?.location || "מרכז מיון",
+      timestamp: timestamp.toISOString(),
+      notes: locationInfo?.notes
+    }];
+    
+    const updatedShipping: Shipping = { 
+      ...existingShipping, 
+      status,
+      history,
+      updatedAt: timestamp
+    };
+    
+    this.shippings.set(id, updatedShipping);
+    return updatedShipping;
+  }
+  
+  async deleteShipping(id: number): Promise<boolean> {
+    return this.shippings.delete(id);
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -931,6 +1080,165 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.update(products)
       .set({ inStock: quantity > 0 })
       .where(eq(products.id, productId))
+      .returning();
+      
+    return !!result;
+  }
+  
+  // Order methods
+  async getOrders(): Promise<Order[]> {
+    return db.select().from(orders)
+      .orderBy(desc(orders.createdAt));
+  }
+  
+  async getOrder(id: number): Promise<Order | undefined> {
+    const [result] = await db.select().from(orders)
+      .where(eq(orders.id, id));
+      
+    return result;
+  }
+  
+  async getOrderByNumber(orderNumber: string): Promise<Order | undefined> {
+    const [result] = await db.select().from(orders)
+      .where(eq(orders.orderNumber, orderNumber));
+      
+    return result;
+  }
+  
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const [result] = await db.insert(orders).values({
+      ...order,
+      updatedAt: new Date()
+    }).returning();
+    
+    return result;
+  }
+  
+  async updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined> {
+    const [result] = await db.update(orders)
+      .set({
+        ...order,
+        updatedAt: new Date()
+      })
+      .where(eq(orders.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
+    const [result] = await db.update(orders)
+      .set({
+        status,
+        updatedAt: new Date()
+      })
+      .where(eq(orders.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async deleteOrder(id: number): Promise<boolean> {
+    const [result] = await db.delete(orders)
+      .where(eq(orders.id, id))
+      .returning();
+      
+    return !!result;
+  }
+  
+  // Shipping methods
+  async getShippings(): Promise<Shipping[]> {
+    return db.select().from(shipping)
+      .orderBy(desc(shipping.createdAt));
+  }
+  
+  async getShipping(id: number): Promise<Shipping | undefined> {
+    const [result] = await db.select().from(shipping)
+      .where(eq(shipping.id, id));
+      
+    return result;
+  }
+  
+  async getShippingByTrackingNumber(trackingNumber: string): Promise<Shipping | undefined> {
+    const [result] = await db.select().from(shipping)
+      .where(eq(shipping.trackingNumber, trackingNumber));
+      
+    return result;
+  }
+  
+  async getShippingByOrderNumber(orderNumber: string): Promise<Shipping | undefined> {
+    const [result] = await db.select().from(shipping)
+      .where(eq(shipping.orderNumber, orderNumber));
+      
+    return result;
+  }
+  
+  async createShipping(newShipping: InsertShipping): Promise<Shipping> {
+    const timestamp = new Date();
+    
+    const [result] = await db.insert(shipping).values({
+      ...newShipping,
+      updatedAt: timestamp,
+      history: newShipping.history || [{
+        status: newShipping.status || "pending",
+        location: "מרכז מיון",
+        timestamp: timestamp.toISOString(),
+        notes: "הזמנה נקלטה במערכת"
+      }]
+    }).returning();
+    
+    return result;
+  }
+  
+  async updateShipping(id: number, shippingUpdate: Partial<InsertShipping>): Promise<Shipping | undefined> {
+    const [result] = await db.update(shipping)
+      .set({
+        ...shippingUpdate,
+        updatedAt: new Date()
+      })
+      .where(eq(shipping.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async updateShippingStatus(id: number, status: string, locationInfo?: {
+    location: string;
+    notes?: string;
+  }): Promise<Shipping | undefined> {
+    // First get the current shipping record to get the history
+    const currentShipping = await this.getShipping(id);
+    if (!currentShipping) return undefined;
+    
+    const timestamp = new Date();
+    
+    // Add new history entry
+    const history = [
+      ...(currentShipping.history || []),
+      {
+        status,
+        location: locationInfo?.location || "מרכז מיון",
+        timestamp: timestamp.toISOString(),
+        notes: locationInfo?.notes
+      }
+    ];
+    
+    // Update the shipping record
+    const [result] = await db.update(shipping)
+      .set({
+        status,
+        history,
+        updatedAt: timestamp
+      })
+      .where(eq(shipping.id, id))
+      .returning();
+      
+    return result;
+  }
+  
+  async deleteShipping(id: number): Promise<boolean> {
+    const [result] = await db.delete(shipping)
+      .where(eq(shipping.id, id))
       .returning();
       
     return !!result;
