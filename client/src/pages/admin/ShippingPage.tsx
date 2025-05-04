@@ -4,7 +4,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { format } from "date-fns";
-import { he } from "date-fns/locale";
+import he from "date-fns/locale/he";
 
 import {
   Card,
@@ -104,181 +104,17 @@ export default function ShippingPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<ShippingData | null>(null);
 
-  // This is a placeholder for real API data
-  // In a real implementation, you would connect to your backend API
-  const mockShipments: ShippingData[] = [
-    {
-      id: 1,
-      trackingNumber: "TRACK-001-2023",
-      orderNumber: "ORD-001-2023",
-      customerName: "דוד כהן",
-      shippingMethod: "standard",
-      status: "pending",
-      address: {
-        address: "רחוב הרצל 15",
-        city: "תל אביב",
-        zipCode: "6120201",
-        country: "ישראל"
-      },
-      history: [
-        {
-          status: "pending",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-01T12:30:00Z",
-          notes: "ההזמנה התקבלה ומחכה לאריזה"
-        }
-      ],
-      estimatedDelivery: "2023-05-08T00:00:00Z",
-      createdAt: "2023-05-01T10:30:00Z",
-      updatedAt: "2023-05-01T10:30:00Z"
-    },
-    {
-      id: 2,
-      trackingNumber: "TRACK-002-2023",
-      orderNumber: "ORD-002-2023",
-      customerName: "שרה לוי",
-      shippingMethod: "express",
-      status: "processing",
-      address: {
-        address: "רחוב ביאליק 8",
-        city: "חיפה",
-        zipCode: "3104201",
-        country: "ישראל"
-      },
-      history: [
-        {
-          status: "pending",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-05T14:30:00Z",
-          notes: "ההזמנה התקבלה"
-        },
-        {
-          status: "processing",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-06T09:15:00Z",
-          notes: "הפריטים נארזים כעת"
-        }
-      ],
-      estimatedDelivery: "2023-05-09T00:00:00Z",
-      createdAt: "2023-05-05T14:20:00Z",
-      updatedAt: "2023-05-06T09:15:00Z"
-    },
-    {
-      id: 3,
-      trackingNumber: "TRACK-003-2023",
-      orderNumber: "ORD-003-2023",
-      customerName: "מיכאל אברהם",
-      shippingMethod: "priority",
-      status: "in_transit",
-      address: {
-        address: "שדרות בן גוריון 25",
-        city: "ירושלים",
-        zipCode: "9438615",
-        country: "ישראל"
-      },
-      history: [
-        {
-          status: "pending",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-10T12:00:00Z"
-        },
-        {
-          status: "processing",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-11T09:30:00Z"
-        },
-        {
-          status: "in_transit",
-          location: "בדרך לירושלים",
-          timestamp: "2023-05-12T16:30:00Z",
-          notes: "החבילה בדרך ליעד"
-        }
-      ],
-      estimatedDelivery: "2023-05-13T00:00:00Z",
-      createdAt: "2023-05-10T11:45:00Z",
-      updatedAt: "2023-05-12T16:30:00Z"
-    },
-    {
-      id: 4,
-      trackingNumber: "TRACK-004-2023",
-      orderNumber: "ORD-004-2023",
-      customerName: "רחל גרין",
-      shippingMethod: "standard",
-      status: "delivered",
-      address: {
-        address: "רחוב הדקל 3",
-        city: "אשדוד",
-        zipCode: "7752003",
-        country: "ישראל"
-      },
-      history: [
-        {
-          status: "pending",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-15T10:00:00Z"
-        },
-        {
-          status: "processing",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-16T11:45:00Z"
-        },
-        {
-          status: "in_transit",
-          location: "בדרך לאשדוד",
-          timestamp: "2023-05-17T08:30:00Z"
-        },
-        {
-          status: "delivered",
-          location: "אשדוד",
-          timestamp: "2023-05-18T12:20:00Z",
-          notes: "החבילה נמסרה ללקוח"
-        }
-      ],
-      estimatedDelivery: "2023-05-19T00:00:00Z",
-      createdAt: "2023-05-15T09:10:00Z",
-      updatedAt: "2023-05-18T12:20:00Z"
-    },
-    {
-      id: 5,
-      trackingNumber: "TRACK-005-2023",
-      orderNumber: "ORD-005-2023",
-      customerName: "יעקב שטיין",
-      shippingMethod: "express",
-      status: "failed",
-      address: {
-        address: "רחוב רוטשילד 22",
-        city: "ראשון לציון",
-        zipCode: "7525214",
-        country: "ישראל"
-      },
-      history: [
-        {
-          status: "pending",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-20T17:00:00Z"
-        },
-        {
-          status: "processing",
-          location: "מרכז שילוח",
-          timestamp: "2023-05-21T08:30:00Z"
-        },
-        {
-          status: "in_transit",
-          location: "בדרך לראשון לציון",
-          timestamp: "2023-05-21T13:45:00Z"
-        },
-        {
-          status: "failed",
-          location: "ראשון לציון",
-          timestamp: "2023-05-21T17:20:00Z",
-          notes: "לא ניתן למסור את החבילה - כתובת לא מדויקת"
-        }
-      ],
-      estimatedDelivery: "2023-05-22T00:00:00Z",
-      createdAt: "2023-05-20T16:40:00Z",
-      updatedAt: "2023-05-21T17:20:00Z"
+  // Fetch shipments from API
+  const { data: shipments = [], isLoading, isError } = useQuery({
+    queryKey: ['/api/admin/shipping'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/shipping');
+      if (!response.ok) {
+        throw new Error('Failed to fetch shipping data');
+      }
+      return await response.json();
     }
-  ];
+  });
 
   // Mock shipping zones
   const mockShippingZones: ShippingZone[] = [
@@ -361,7 +197,9 @@ export default function ShippingPage() {
   ];
 
   // Filter shipments based on search term
-  const filteredShipments = mockShipments.filter(shipment => {
+  const filteredShipments = shipments.filter((shipment: ShippingData) => {
+    if (!searchTerm) return true;
+    
     const searchLower = searchTerm.toLowerCase();
     return (
       shipment.trackingNumber.toLowerCase().includes(searchLower) ||
@@ -427,13 +265,35 @@ export default function ShippingPage() {
     setViewDialogOpen(true);
   };
 
-  // In a real implementation, you would connect to your backend API for these actions
+  // Update shipping status API connection
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: ShippingStatus }) => {
+      const response = await apiRequest('PATCH', `/api/admin/shipping/${id}/status`, { status });
+      if (!response.ok) {
+        throw new Error('Failed to update shipping status');
+      }
+      return await response.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch shipping data
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/shipping'] });
+      toast({
+        title: "סטטוס משלוח עודכן",
+        description: "סטטוס המשלוח עודכן בהצלחה",
+      });
+      setViewDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "שגיאה בעדכון סטטוס",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   const handleUpdateStatus = (shipmentId: number, newStatus: ShippingStatus) => {
-    toast({
-      title: "סטטוס משלוח עודכן",
-      description: `סטטוס המשלוח עודכן ל${getStatusText(newStatus)}`,
-    });
-    setViewDialogOpen(false);
+    updateStatusMutation.mutate({ id: shipmentId, status: newStatus });
   };
 
   const getStatusText = (status: ShippingStatus) => {
@@ -494,8 +354,24 @@ export default function ShippingPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredShipments.length > 0 ? (
-                      filteredShipments.map((shipment) => (
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-10">
+                          <div className="flex justify-center">
+                            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                          </div>
+                          <div className="mt-2 text-muted-foreground">טוען נתוני משלוחים...</div>
+                        </TableCell>
+                      </TableRow>
+                    ) : isError ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-10 text-destructive">
+                          <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+                          <div>שגיאה בטעינת נתוני משלוחים</div>
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredShipments.length > 0 ? (
+                      filteredShipments.map((shipment: ShippingData) => (
                         <TableRow key={shipment.id}>
                           <TableCell className="font-medium">{shipment.trackingNumber}</TableCell>
                           <TableCell>{shipment.orderNumber}</TableCell>
