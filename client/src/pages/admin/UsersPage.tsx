@@ -48,7 +48,8 @@ import {
   Mail,
   UserPlus,
   CheckCircle,
-  XCircle
+  XCircle,
+  PlusCircle
 } from "lucide-react";
 
 export default function UsersPage() {
@@ -315,32 +316,32 @@ export default function UsersPage() {
                         <TableCell>{formatDate(user.createdAt)}</TableCell>
                         <TableCell>{formatDate(user.lastLogin)}</TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleOpenDialog(user)}>
-                                <Edit className="ml-2 h-4 w-4" />
-                                ערוך
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => window.location.href = `mailto:${user.email}`}
-                              >
-                                <Mail className="ml-2 h-4 w-4" />
-                                שלח מייל
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleOpenDeleteDialog(user)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="ml-2 h-4 w-4" />
-                                מחק
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="flex gap-2 justify-end">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0" 
+                              onClick={() => handleOpenDialog(user)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0" 
+                              onClick={() => window.location.href = `mailto:${user.email}`}
+                            >
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 text-red-600" 
+                              onClick={() => handleOpenDeleteDialog(user)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
