@@ -14,6 +14,7 @@ import {
   insertFavoriteSchema
 } from "@shared/schema";
 import { setupAuth, ensureAuthenticated, ensureAdmin, hashPassword } from "./auth";
+import { generatePasswordResetToken, sendPasswordResetEmail } from "./email";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
