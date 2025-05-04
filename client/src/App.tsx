@@ -13,6 +13,10 @@ import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import FaqPage from "@/pages/FaqPage";
 import AuthPage from "@/pages/auth-page";
+import TermsPage from "@/pages/legal/TermsPage";
+import PrivacyPage from "@/pages/legal/PrivacyPage";
+import ShippingPage from "@/pages/legal/ShippingPage";
+import DisclosurePage from "@/pages/legal/DisclosurePage";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AdminRoute } from "@/lib/admin-route";
 import { CartProvider } from "@/components/cart/CartContext";
@@ -56,6 +60,12 @@ function Router() {
         <Route path="/contact" component={ContactPage} />
         <Route path="/faq" component={FaqPage} />
         <Route path="/auth" component={AuthPage} />
+        
+        {/* Legal Pages */}
+        <Route path="/terms" component={TermsPage} />
+        <Route path="/privacy" component={PrivacyPage} />
+        <Route path="/shipping-policy" component={ShippingPage} />
+        <Route path="/disclosure" component={DisclosurePage} />
         
         {/* Admin Routes */}
         <AdminRoute path="/admin" component={() => <DashboardPage />} />
