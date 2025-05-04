@@ -62,6 +62,7 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false);
+  const [confirmResetDialogOpen, setConfirmResetDialogOpen] = useState(false);
   const [userToResetPassword, setUserToResetPassword] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState("");
 
@@ -222,7 +223,7 @@ export default function UsersPage() {
     setPasswordResetDialogOpen(true);
   };
   
-  const handleResetPassword = () => {
+  const handleShowPasswordConfirmation = () => {
     if (!userToResetPassword || !newPassword) {
       toast({
         title: "מידע חסר",
@@ -232,10 +233,21 @@ export default function UsersPage() {
       return;
     }
     
+    // Close the password input dialog and open confirmation dialog
+    setPasswordResetDialogOpen(false);
+    setConfirmResetDialogOpen(true);
+  };
+  
+  const handleResetPassword = () => {
+    if (!userToResetPassword || !newPassword) return;
+    
     resetPasswordMutation.mutate({ 
       id: userToResetPassword.id, 
       password: newPassword 
     });
+    
+    // Close the confirmation dialog
+    setConfirmResetDialogOpen(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -480,25 +492,20 @@ export default function UsersPage() {
                 </div>
               </div>
               
-              <div className="grid gap-2">
-                <Label htmlFor="password">
-                  {editingUser ? 'שינוי סיסמה (השאר ריק לשמירת הסיסמה הקיימת)' : 'סיסמה'}
-                </Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formState.password || ''}
-                  onChange={handleInputChange}
-                  placeholder={editingUser ? "הזן סיסמה חדשה" : "הזן סיסמה"}
-                  required={!editingUser}
-                />
-                {editingUser && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    * שים לב: השארת שדה זה ריק תשמור על הסיסמה הקיימת
-                  </p>
-                )}
-              </div>
+              {!editingUser && (
+                <div className="grid gap-2">
+                  <Label htmlFor="password">סיסמה</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formState.password || ''}
+                    onChange={handleInputChange}
+                    placeholder="הזן סיסמה"
+                    required
+                  />
+                </div>
+              )}
 
               <div className="grid gap-2">
                 <Label htmlFor="role">הרשאות</Label>
@@ -652,16 +659,75 @@ export default function UsersPage() {
                 </Button>
                 <Button 
                   variant="default" 
+                  onClick={handleShowPasswordConfirmation} 
+                  disabled={!newPassword}
+                  className="w-full sm:w-auto"
+                >
+                  <Key className="ml-2 h-4 w-4" />
+                  המשך
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Password Reset Confirmation Dialog */}
+      <Dialog open={confirmResetDialogOpen} onOpenChange={setConfirmResetDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>אישור שינוי סיסמה</DialogTitle>
+            <DialogDescription>
+              האם אתה בטוח שברצונך לשנות את הסיסמה של המשתמש?
+            </DialogDescription>
+          </DialogHeader>
+          
+          {userToResetPassword && (
+            <div className="py-4">
+              <div className="bg-muted p-4 rounded-lg mb-4">
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between">
+                    <span className="font-medium">שם משתמש:</span>
+                    <span>{userToResetPassword.username}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">דוא"ל:</span>
+                    <span>{userToResetPassword.email}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-center mb-4 text-amber-600 font-medium">
+                <Lock className="inline-block mr-2 h-5 w-5" />
+                פעולה זו תשנה את הסיסמה של המשתמש באופן מיידי
+              </p>
+              
+              <Separator className="my-4" />
+              
+              <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setConfirmResetDialogOpen(false);
+                    setPasswordResetDialogOpen(true);
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  <XCircle className="ml-2 h-4 w-4" />
+                  חזור אחורה
+                </Button>
+                <Button 
+                  variant="default" 
                   onClick={handleResetPassword} 
-                  disabled={resetPasswordMutation.isPending || !newPassword}
+                  disabled={resetPasswordMutation.isPending}
                   className="w-full sm:w-auto"
                 >
                   {resetPasswordMutation.isPending ? (
                     <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin mx-auto"></div>
                   ) : (
                     <>
-                      <Key className="ml-2 h-4 w-4" />
-                      עדכן סיסמה
+                      <CheckCircle className="ml-2 h-4 w-4" />
+                      אישור ושינוי סיסמה
                     </>
                   )}
                 </Button>
