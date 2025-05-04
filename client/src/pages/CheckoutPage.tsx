@@ -58,7 +58,10 @@ const checkoutFormSchema = z.object({
   cardNumber: z.string().optional(),
   cardName: z.string().optional(),
   cardExpiry: z.string().optional(),
-  cardCvv: z.string().optional()
+  cardCvv: z.string().optional(),
+  acceptTerms: z.boolean().refine(val => val === true, {
+    message: "יש לאשר את תנאי השימוש ומדיניות הפרטיות כדי להמשיך"
+  })
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
@@ -92,7 +95,8 @@ const CheckoutPage = () => {
       cardNumber: "",
       cardName: "",
       cardExpiry: "",
-      cardCvv: ""
+      cardCvv: "",
+      acceptTerms: false
     }
   });
 
@@ -399,6 +403,31 @@ const CheckoutPage = () => {
                           <p>לחץ על "בצע הזמנה" כדי לקבל הנחיות לתשלום באמצעות Bit.</p>
                         </TabsContent>
                       </Tabs>
+                    </CardContent>
+                    <CardContent className="mt-4 border-t pt-4">
+                      <FormField
+                        control={form.control}
+                        name="acceptTerms"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-x-reverse space-y-0 rounded-md border p-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>
+                                אני מסכים/ה ל<Link href="/terms" className="text-primary hover:underline">תנאי השימוש</Link>,&nbsp;
+                                <Link href="/privacy" className="text-primary hover:underline">מדיניות הפרטיות</Link>,&nbsp;
+                                <Link href="/shipping-policy" className="text-primary hover:underline">מדיניות המשלוחים וההחזרות</Link> ומאשר/ת כי קראתי את&nbsp;
+                                <Link href="/disclosure" className="text-primary hover:underline">גילוי נאות לצרכן</Link>.
+                              </FormLabel>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
                     </CardContent>
                     <CardFooter>
                       <Button 
