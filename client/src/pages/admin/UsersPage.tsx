@@ -45,7 +45,6 @@ import {
   MoreHorizontal, 
   Edit, 
   Trash2,
-  Mail,
   UserPlus,
   CheckCircle,
   XCircle,
@@ -322,22 +321,16 @@ export default function UsersPage() {
                               size="sm" 
                               className="h-8 w-8 p-0" 
                               onClick={() => handleOpenDialog(user)}
+                              title="ערוך משתמש"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="h-8 w-8 p-0" 
-                              onClick={() => window.location.href = `mailto:${user.email}`}
-                            >
-                              <Mail className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
                               className="h-8 w-8 p-0 text-red-600" 
                               onClick={() => handleOpenDeleteDialog(user)}
+                              title="מחק משתמש"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
