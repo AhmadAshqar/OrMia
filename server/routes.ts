@@ -10,7 +10,8 @@ import {
   insertProductSchema,
   insertCategorySchema,
   insertOrderSchema,
-  insertShippingSchema
+  insertShippingSchema,
+  insertFavoriteSchema
 } from "@shared/schema";
 import { setupAuth, ensureAuthenticated, ensureAdmin, hashPassword } from "./auth";
 import { z } from "zod";
@@ -882,6 +883,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Error tracking shipment:", err);
       res.status(500).json({ message: "שגיאה בטעינת פרטי המשלוח" });
+    }
+  });
+
+  // User profile routes
+  app.get("/api/profile", ensureAuthenticated, async (req, res) => {
+    try {
+      // req.user is already available from passport
+      res.json(req.user);
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      res.status(500).json({ message: "שגיאה בטעינת פרופיל המשתמש" });
+    }
+  });
+
+  app.patch("/api/profile", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const allowedFields = ["firstName", "lastName", "email", "phone", "profileImage"];
+      
+      // Filter out non-allowed fields
+      const updateData = Object.fromEntries(
+        Object.entries(req.body).filter(([key]) => allowedFields.includes(key))
+      );
+      
+      // Validate email if present
+      if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
+        return res.status(400).json({ message: "כתובת אימייל לא תקינה" });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      res.json(updatedUser);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      res.status(500).json({ message: "שגיאה בעדכון פרופיל המשתמש" });
+    }
+  });
+
+  app.patch("/api/profile/password", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "סיסמה נוכחית וסיסמה חדשה נדרשות" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "הסיסמה החדשה חייבת להכיל לפחות 6 תווים" });
+      }
+      
+      // Verify current password
+      const isValid = await storage.validateUserLogin(req.user.username, currentPassword);
+      if (!isValid) {
+        return res.status(400).json({ message: "סיסמה נוכחית שגויה" });
+      }
+      
+      // Hash the password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update the user's password
+      const user = await storage.updateUser(userId, { password: hashedPassword });
+      if (!user) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      res.json({ success: true, message: "סיסמה עודכנה בהצלחה" });
+    } catch (err) {
+      console.error("Error updating password:", err);
+      res.status(500).json({ message: "שגיאה בעדכון סיסמה" });
+    }
+  });
+
+  // Favorites routes
+  app.get("/api/favorites", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const favorites = await storage.getFavorites(userId);
+      res.json(favorites);
+    } catch (err) {
+      console.error("Error fetching favorites:", err);
+      res.status(500).json({ message: "שגיאה בטעינת מוצרים מועדפים" });
+    }
+  });
+
+  app.post("/api/favorites", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { productId } = req.body;
+      
+      if (!productId || typeof productId !== 'number') {
+        return res.status(400).json({ message: "מזהה מוצר נדרש" });
+      }
+      
+      // Check if product exists
+      const product = await storage.getProduct(productId);
+      if (!product) {
+        return res.status(404).json({ message: "מוצר לא נמצא" });
+      }
+      
+      // Check if already in favorites
+      const existing = await storage.getFavoriteByUserAndProduct(userId, productId);
+      if (existing) {
+        return res.status(409).json({ message: "המוצר כבר במועדפים" });
+      }
+      
+      const favoriteData = insertFavoriteSchema.parse({
+        userId,
+        productId
+      });
+      const favorite = await storage.createFavorite(favoriteData);
+      
+      res.status(201).json(favorite);
+    } catch (err) {
+      console.error("Error adding favorite:", err);
+      res.status(500).json({ message: "שגיאה בהוספת מוצר למועדפים" });
+    }
+  });
+
+  app.delete("/api/favorites/:productId", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const productId = parseInt(req.params.productId);
+      
+      if (isNaN(productId)) {
+        return res.status(400).json({ message: "מזהה מוצר לא תקין" });
+      }
+      
+      const success = await storage.deleteUserProductFavorite(userId, productId);
+      if (!success) {
+        return res.status(404).json({ message: "מוצר לא נמצא במועדפים" });
+      }
+      
+      res.status(204).end();
+    } catch (err) {
+      console.error("Error removing favorite:", err);
+      res.status(500).json({ message: "שגיאה בהסרת מוצר מהמועדפים" });
     }
   });
 

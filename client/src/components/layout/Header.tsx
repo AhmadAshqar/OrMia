@@ -124,19 +124,19 @@ const Header = () => {
                     <div className="text-xs text-gray-500 mb-2">
                       {user.email}
                     </div>
-                    <a href="/profile" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
+                    <Link href="/profile" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
                       הפרופיל שלי
-                    </a>
-                    <a href="/orders" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
+                    </Link>
+                    <Link href="/orders" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
                       ההזמנות שלי
-                    </a>
-                    <a href="/wishlist" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
+                    </Link>
+                    <Link href="/favorites" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
                       המועדפים שלי
-                    </a>
+                    </Link>
                     {user.role === "admin" && (
-                      <a href="/admin" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
+                      <Link href="/admin" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
                         ניהול האתר
-                      </a>
+                      </Link>
                     )}
                     <hr className="my-1" />
                     <button 
@@ -158,12 +158,12 @@ const Header = () => {
                 </PopoverContent>
               </Popover>
             ) : (
-              <a
+              <Link
                 href="/auth"
                 className="text-white hover:text-primary transition-colors relative cursor-pointer"
               >
                 <User className="h-5 w-5" />
-              </a>
+              </Link>
             )}
 
             <Sheet>
