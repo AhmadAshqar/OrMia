@@ -56,7 +56,7 @@ const Header = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-8">
             <Link href="/" className="text-3xl font-serif font-bold text-white">
-              <span className="text-primary">לוקס</span>מויסנייט
+              <span className="text-primary">OrMia</span> Jewelry
             </Link>
 
             <nav className="hidden md:flex gap-8">
@@ -178,7 +178,7 @@ const Header = () => {
                     href="/"
                     className="text-xl font-serif font-bold text-black"
                   >
-                    <span className="text-primary">לוקס</span>מויסנייט
+                    <span className="text-primary">OrMia</span> Jewelry
                   </Link>
                   <SheetTrigger asChild>
                     <button className="hover:text-primary transition-colors">
