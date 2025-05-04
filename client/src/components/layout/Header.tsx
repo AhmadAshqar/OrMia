@@ -55,8 +55,8 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-8">
-            <Link href="/" className="text-3xl font-serif font-bold text-white">
-              <span className="text-primary">OrMia</span> Jewelry
+            <Link href="/" className="flex items-center">
+              <img src="/images/logo.png" alt="OrMia Jewelry" className="h-12" />
             </Link>
 
             <nav className="hidden md:flex gap-8">
