@@ -15,7 +15,18 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email("אנא הזן כתובת דוא״ל תקינה"),
 });
 
+// Schema for reset password form
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "טוקן נדרש"),
+  password: z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים"),
+  confirmPassword: z.string().min(6, "אימות סיסמה נדרש"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "הסיסמאות אינן תואמות",
+  path: ["confirmPassword"],
+});
+
 type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
 
 type AuthContextType = {
   user: User | null;
@@ -25,6 +36,7 @@ type AuthContextType = {
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<Omit<User, 'password'>, Error, RegisterData>;
   forgotPasswordMutation: UseMutationResult<void, Error, ForgotPasswordData>;
+  resetPasswordMutation: UseMutationResult<void, Error, ResetPasswordData>;
 };
 
 // Extended schema for login form
@@ -144,6 +156,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
   });
+  
+  const resetPasswordMutation = useMutation<void, Error, ResetPasswordData>({
+    mutationFn: async (data: ResetPasswordData) => {
+      const { confirmPassword, ...resetData } = data;
+      await apiRequest("POST", "/api/reset-password", resetData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "הסיסמה עודכנה בהצלחה",
+        description: "כעת תוכל להתחבר באמצעות הסיסמה החדשה",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "איפוס הסיסמה נכשל",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   return (
     <AuthContext.Provider
@@ -155,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logoutMutation,
         registerMutation,
         forgotPasswordMutation,
+        resetPasswordMutation,
       }}
     >
       {children}

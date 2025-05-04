@@ -1,4 +1,4 @@
-import { useAuth, loginSchema, registerSchema, forgotPasswordSchema } from "@/hooks/use-auth";
+import { useAuth, loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -105,7 +105,30 @@ export default function AuthPage() {
 
   const searchParams = new URLSearchParams(window.location.search);
   const mode = searchParams.get("mode");
+  const resetToken = searchParams.get("reset");
   const defaultTab = mode === "register" ? "register" : "login";
+  
+  // If we have a reset token, show the reset password form
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(!!resetToken);
+  
+  const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      token: resetToken || "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+  
+  async function onResetPasswordSubmit(values: z.infer<typeof resetPasswordSchema>) {
+    try {
+      await resetPasswordMutation.mutateAsync(values);
+      setIsResetPasswordOpen(false);
+      resetPasswordForm.reset();
+    } catch (error) {
+      console.error("Password reset failed:", error);
+    }
+  }
 
   return (
     <>
