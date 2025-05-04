@@ -24,7 +24,8 @@ const Footer = () => {
 
   const information = [
     { name: t("about_footer"), path: "/about" },
-    { name: t("shipping_returns"), path: "/shipping" },
+    { name: t("shipping_returns"), path: "/shipping-policy" },
+    { name: t("disclosure"), path: "/disclosure" },
     { name: t("faq_footer"), path: "/faq" },
     { name: t("terms"), path: "/terms" },
     { name: t("privacy"), path: "/privacy" },

@@ -92,6 +92,7 @@ const resources = {
       'information': 'מידע',
       'about_footer': 'אודות',
       'shipping_returns': 'משלוח ומדיניות החזרה',
+      'disclosure': 'גילוי נאות לצרכן',
       'faq_footer': 'שאלות נפוצות',
       'terms': 'תנאי שימוש',
       'privacy': 'מדיניות פרטיות',
