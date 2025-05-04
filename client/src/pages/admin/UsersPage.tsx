@@ -48,7 +48,9 @@ import {
   UserPlus,
   CheckCircle,
   XCircle,
-  PlusCircle
+  PlusCircle,
+  Lock,
+  Key
 } from "lucide-react";
 
 export default function UsersPage() {
@@ -59,6 +61,9 @@ export default function UsersPage() {
   const [formState, setFormState] = useState<Partial<User>>({});
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false);
+  const [userToResetPassword, setUserToResetPassword] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState("");
 
   // Fetch users
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
@@ -145,6 +150,35 @@ export default function UsersPage() {
     }
   });
 
+  // Password Reset Mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async ({ id, password }: { id: number, password: string }) => {
+      const res = await apiRequest("PATCH", `/api/admin/users/${id}/reset-password`, { password });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "שגיאה באיפוס סיסמה");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setPasswordResetDialogOpen(false);
+      setUserToResetPassword(null);
+      setNewPassword("");
+      toast({
+        title: "סיסמה אופסה בהצלחה",
+        description: "סיסמת המשתמש עודכנה בהצלחה",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "שגיאה באיפוס סיסמה",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   const resetForm = () => {
     setFormState({
       username: "",
@@ -180,6 +214,28 @@ export default function UsersPage() {
   const handleDeleteUser = () => {
     if (!userToDelete) return;
     deleteUserMutation.mutate(userToDelete.id);
+  };
+  
+  const handleOpenPasswordResetDialog = (user: User) => {
+    setUserToResetPassword(user);
+    setNewPassword('');
+    setPasswordResetDialogOpen(true);
+  };
+  
+  const handleResetPassword = () => {
+    if (!userToResetPassword || !newPassword) {
+      toast({
+        title: "מידע חסר",
+        description: "יש להזין סיסמה חדשה",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    resetPasswordMutation.mutate({ 
+      id: userToResetPassword.id, 
+      password: newPassword 
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -328,6 +384,15 @@ export default function UsersPage() {
                             <Button 
                               variant="ghost" 
                               size="sm" 
+                              className="h-8 w-8 p-0 text-amber-600" 
+                              onClick={() => handleOpenPasswordResetDialog(user)}
+                              title="שנה סיסמה"
+                            >
+                              <Key className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
                               className="h-8 w-8 p-0 text-red-600" 
                               onClick={() => handleOpenDeleteDialog(user)}
                               title="מחק משתמש"
@@ -415,20 +480,25 @@ export default function UsersPage() {
                 </div>
               </div>
               
-              {!editingUser && (
-                <div className="grid gap-2">
-                  <Label htmlFor="password">סיסמה</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={formState.password || ''}
-                    onChange={handleInputChange}
-                    placeholder="הזן סיסמה"
-                    required={!editingUser}
-                  />
-                </div>
-              )}
+              <div className="grid gap-2">
+                <Label htmlFor="password">
+                  {editingUser ? 'שינוי סיסמה (השאר ריק לשמירת הסיסמה הקיימת)' : 'סיסמה'}
+                </Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formState.password || ''}
+                  onChange={handleInputChange}
+                  placeholder={editingUser ? "הזן סיסמה חדשה" : "הזן סיסמה"}
+                  required={!editingUser}
+                />
+                {editingUser && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    * שים לב: השארת שדה זה ריק תשמור על הסיסמה הקיימת
+                  </p>
+                )}
+              </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="role">הרשאות</Label>
@@ -519,6 +589,79 @@ export default function UsersPage() {
                     <>
                       <Trash2 className="ml-2 h-4 w-4" />
                       מחק משתמש
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={passwordResetDialogOpen} onOpenChange={setPasswordResetDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>שינוי סיסמה למשתמש</DialogTitle>
+            <DialogDescription>
+              הזן סיסמה חדשה עבור המשתמש
+            </DialogDescription>
+          </DialogHeader>
+          
+          {userToResetPassword && (
+            <div className="py-4">
+              <div className="bg-muted p-4 rounded-lg mb-4">
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between">
+                    <span className="font-medium">שם משתמש:</span>
+                    <span>{userToResetPassword.username}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">דוא"ל:</span>
+                    <span>{userToResetPassword.email}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="newPassword">סיסמה חדשה</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="הזן סיסמה חדשה"
+                    required
+                    className="border-input"
+                    autoComplete="new-password"
+                  />
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setPasswordResetDialogOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  <XCircle className="ml-2 h-4 w-4" />
+                  ביטול
+                </Button>
+                <Button 
+                  variant="default" 
+                  onClick={handleResetPassword} 
+                  disabled={resetPasswordMutation.isPending || !newPassword}
+                  className="w-full sm:w-auto"
+                >
+                  {resetPasswordMutation.isPending ? (
+                    <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin mx-auto"></div>
+                  ) : (
+                    <>
+                      <Key className="ml-2 h-4 w-4" />
+                      עדכן סיסמה
                     </>
                   )}
                 </Button>
