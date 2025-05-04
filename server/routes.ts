@@ -10,7 +10,7 @@ import {
   insertProductSchema,
   insertCategorySchema
 } from "@shared/schema";
-import { setupAuth, ensureAuthenticated, ensureAdmin } from "./auth";
+import { setupAuth, ensureAuthenticated, ensureAdmin, hashPassword } from "./auth";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -91,6 +91,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Error updating user:", err);
       res.status(500).json({ message: "שגיאה בעדכון משתמש" });
+    }
+  });
+  
+  // Password reset endpoint
+  app.patch("/api/admin/users/:id/reset-password", ensureAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "מזהה משתמש לא תקין" });
+      }
+      
+      const { password } = req.body;
+      if (!password || typeof password !== 'string' || password.trim() === '') {
+        return res.status(400).json({ message: "סיסמה חדשה נדרשת" });
+      }
+      
+      // Check if the user exists
+      const existingUser = await storage.getUser(id);
+      if (!existingUser) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+      
+      // Update the user's password
+      const user = await storage.updateUser(id, { password: hashedPassword });
+      if (!user) {
+        return res.status(404).json({ message: "משתמש לא נמצא" });
+      }
+      
+      res.json({ success: true, message: "סיסמה עודכנה בהצלחה" });
+    } catch (err) {
+      console.error("Error resetting password:", err);
+      res.status(500).json({ message: "שגיאה באיפוס סיסמה" });
     }
   });
   
