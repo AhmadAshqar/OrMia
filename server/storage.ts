@@ -1356,6 +1356,36 @@ export class DatabaseStorage implements IStorage {
       
     return !!result;
   }
+  
+  // Password reset methods
+  async createPasswordResetToken(userId: number, token: string, expiresAt: Date): Promise<PasswordResetToken> {
+    const [result] = await db.insert(passwordResetTokens)
+      .values({
+        userId,
+        token,
+        expiresAt
+      })
+      .returning();
+    
+    return result;
+  }
+  
+  async getPasswordResetTokenByToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [result] = await db.select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token));
+    
+    return result;
+  }
+  
+  async markPasswordResetTokenAsUsed(id: number): Promise<boolean> {
+    const [result] = await db.update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(passwordResetTokens.id, id))
+      .returning();
+    
+    return !!result;
+  }
 }
 
 // Use DatabaseStorage for persistence

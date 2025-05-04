@@ -1090,6 +1090,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "שגיאה בהסרת מוצר מהמועדפים" });
     }
   });
+  
+  // Password reset routes
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "כתובת אימייל נדרשת" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // For security reasons, don't reveal that the email doesn't exist
+        return res.status(200).json({ message: "אם קיים חשבון עם כתובת האימייל הזו, נשלח אליך קישור לאיפוס סיסמה" });
+      }
+
+      // Generate password reset token
+      const { token, expires } = generatePasswordResetToken();
+
+      // Save token to database
+      await storage.createPasswordResetToken(user.id, token, expires);
+
+      // Send password reset email
+      const emailSent = await sendPasswordResetEmail(email, token);
+
+      if (!emailSent) {
+        return res.status(500).json({ error: "שליחת המייל נכשלה, אנא נסה שוב מאוחר יותר" });
+      }
+
+      res.status(200).json({ message: "אם קיים חשבון עם כתובת האימייל הזו, נשלח אליך קישור לאיפוס סיסמה" });
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      res.status(500).json({ error: "אירעה שגיאה, אנא נסה שוב מאוחר יותר" });
+    }
+  });
+
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      
+      if (!token || !password) {
+        return res.status(400).json({ error: "הטוקן והסיסמה החדשה נדרשים" });
+      }
+
+      // Find the token in the database
+      const resetToken = await storage.getPasswordResetTokenByToken(token);
+      
+      if (!resetToken) {
+        return res.status(400).json({ error: "הטוקן אינו חוקי או פג תוקף" });
+      }
+
+      // Check if token is expired
+      if (new Date() > resetToken.expiresAt) {
+        return res.status(400).json({ error: "הטוקן פג תוקף, אנא בקש איפוס סיסמה חדש" });
+      }
+
+      // Check if token has already been used
+      if (resetToken.usedAt) {
+        return res.status(400).json({ error: "הטוקן כבר נוצל, אנא בקש איפוס סיסמה חדש" });
+      }
+
+      // Hash the new password
+      const hashedPassword = await hashPassword(password);
+
+      // Update the user's password
+      await storage.updateUser(resetToken.userId, { password: hashedPassword });
+
+      // Mark token as used
+      await storage.markPasswordResetTokenAsUsed(resetToken.id);
+
+      res.status(200).json({ message: "הסיסמה עודכנה בהצלחה, כעת תוכל להתחבר עם הסיסמה החדשה" });
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      res.status(500).json({ error: "אירעה שגיאה, אנא נסה שוב מאוחר יותר" });
+    }
+  });
 
   const httpServer = createServer(app);
 
