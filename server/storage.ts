@@ -339,6 +339,20 @@ export class MemStorage implements IStorage {
     }));
   }
   
+  async getNewProducts(): Promise<Product[]> {
+    const newProducts = Array.from(this.products.values())
+      .filter(product => product.isNew);
+      
+    return Promise.all(newProducts.map(async (product) => {
+      const category = await this.getCategory(product.categoryId);
+      return {
+        ...product,
+        categoryName: category?.name,
+        categorySlug: category?.slug
+      };
+    }));
+  }
+  
   async getProduct(id: number): Promise<Product | undefined> {
     const product = this.products.get(id);
     if (!product) return undefined;

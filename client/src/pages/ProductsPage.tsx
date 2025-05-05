@@ -15,6 +15,10 @@ const ProductsPage = () => {
     // Set page title and description based on category
     if (category) {
       switch (category) {
+        case "new":
+          setPageTitle("חדש באתר");
+          setPageDescription("גלו את הפריטים החדשים ביותר שנוספו לחנות שלנו, כולם מויסנייט באיכות גבוהה בעיצובים ייחודיים.");
+          break;
         case "rings":
           setPageTitle(t("rings"));
           setPageDescription("גלו את קולקציית הטבעות היוקרתיות שלנו, המשלבות מויסנייט באיכות גבוהה עם עיצובים מודרניים וקלאסיים.");

@@ -31,8 +31,21 @@ const ProductGrid = ({ category }: ProductGridProps) => {
   const [selectedCategory, setSelectedCategory] = useState(category || "all");
   const gridRef = useRef<HTMLDivElement>(null);
   
+  // Determine the API endpoint based on the selected category
+  const getApiEndpoint = () => {
+    if (selectedCategory === 'new') {
+      return '/api/products/new';
+    } else if (selectedCategory === 'featured') {
+      return '/api/products/featured';
+    } else if (selectedCategory !== 'all') {
+      return `/api/categories/${selectedCategory}/products`;
+    } else {
+      return '/api/products';
+    }
+  };
+
   const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ['/api/products', selectedCategory],
+    queryKey: [getApiEndpoint()],
   });
   
   useEffect(() => {
