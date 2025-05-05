@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { Product } from "@shared/schema";
@@ -122,39 +122,16 @@ const ProductGrid = ({ category }: ProductGridProps) => {
   };
 
   const filterByPrice = (products: Product[] | undefined) => {
-    if (!products) return [];
+    if (!products || !products.length) return [];
     
-    console.log("Filtering products:", products.length);
-    console.log("Price range:", priceRange);
-    
-    // Make sure price range values are valid
-    const minPrice = Math.max(0, priceRange[0]);
-    const maxPrice = Math.max(minPrice, priceRange[1]);
-    
-    // Check each product price against the price range
-    const filtered = products.filter(product => {
+    // Simplify filtering logic
+    return products.filter(product => {
       // Get the actual price (sale price if available, otherwise regular price)
-      let productPrice = product.price;
-      if (product.salePrice !== null && product.salePrice !== undefined && product.salePrice > 0) {
-        productPrice = product.salePrice;
-      }
+      const productPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
       
-      // Handle NaN cases or invalid prices
-      if (isNaN(productPrice) || productPrice === null) {
-        return false;
-      }
-      
-      const withinRange = productPrice >= minPrice && productPrice <= maxPrice;
-      
-      if (!withinRange) {
-        console.log("Filtered out product:", product.id, product.name, "Price:", productPrice);
-      }
-      
-      return withinRange;
+      // Check if price is within range
+      return productPrice >= priceRange[0] && productPrice <= priceRange[1];
     });
-    
-    console.log("Filtered products:", filtered.length);
-    return filtered;
   };
 
   const displayedProducts = filterByPrice(sortProducts(products));
@@ -168,29 +145,8 @@ const ProductGrid = ({ category }: ProductGridProps) => {
     { value: "bracelets", label: t("bracelets") },
   ];
 
-  // Debounce price change to prevent excessive re-renders
-  const debouncedPriceChange = useCallback((values: number[]) => {
-    console.log("Setting price range to:", values);
-    setPriceRange(values);
-  }, []);
-  
-  // Store timeout reference
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const handlePriceChange = (values: number[]) => {
-    // Clear any existing timeout
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    
-    // Set a new timeout
-    timerRef.current = setTimeout(() => {
-      debouncedPriceChange(values);
-    }, 300); // 300ms debounce time
-  };
-
   const resetFilters = () => {
-    debouncedPriceChange([0, 5000]);
+    setPriceRange([0, 5000]);
     setSelectedCategory("all");
     setSortBy("newest");
   };
@@ -223,47 +179,18 @@ const ProductGrid = ({ category }: ProductGridProps) => {
               <AccordionTrigger>{t("price_range")}</AccordionTrigger>
               <AccordionContent>
                 <div className="py-4">
-                  <div className="flex flex-row gap-4 mb-4 items-center">
-                    <div className="flex-1">
-                      <label className="text-sm mb-1 block">מ</label>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        max={priceRange[1]}
-                        value={priceRange[0]} 
-                        onChange={(e) => {
-                          const newMin = Math.max(0, Number(e.target.value));
-                          handlePriceChange([newMin, priceRange[1]]);
-                        }}
-                        onBlur={(e) => {
-                          // Force re-evaluation on blur
-                          const newMin = Math.max(0, Number(e.target.value));
-                          handlePriceChange([newMin, priceRange[1]]);
-                        }}
-                        className="w-full p-2 border rounded-md text-right"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-sm mb-1 block">עד</label>
-                      <input 
-                        type="number" 
-                        min={priceRange[0]} 
-                        max="10000"
-                        value={priceRange[1]} 
-                        onChange={(e) => {
-                          const newMax = Math.max(priceRange[0], Number(e.target.value));
-                          handlePriceChange([priceRange[0], newMax]);
-                        }}
-                        onBlur={(e) => {
-                          // Force re-evaluation on blur
-                          const newMax = Math.max(priceRange[0], Number(e.target.value));
-                          handlePriceChange([priceRange[0], newMax]);
-                        }}
-                        className="w-full p-2 border rounded-md text-right"
-                      />
-                    </div>
+                  <Slider 
+                    defaultValue={[0, 5000]} 
+                    value={priceRange}
+                    max={5000}
+                    step={100}
+                    onValueChange={setPriceRange} 
+                    className="my-6" 
+                  />
+                  <div className="flex justify-between mt-2 text-sm text-gray-600">
+                    <div>₪{priceRange[0]}</div>
+                    <div>₪{priceRange[1]}</div>
                   </div>
-
                 </div>
               </AccordionContent>
             </AccordionItem>
