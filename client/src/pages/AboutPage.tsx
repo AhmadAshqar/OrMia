@@ -11,7 +11,7 @@ const AboutPage = () => {
   const { t } = useTranslation();
   
   useEffect(() => {
-    document.title = `${t("about")} | לוקס מויסנייט`;
+    document.title = `${t("about")} | אור מיה`;
     
     // Initialize scroll animations
     const observer = new IntersectionObserver(
@@ -42,7 +42,7 @@ const AboutPage = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <h1 className="text-3xl md:text-5xl font-serif mb-6">
-              <span className="block text-primary mb-2">לוקס מויסנייט</span>
+              <span className="block text-primary mb-2">אור מיה</span>
               <span className="block">החזון שלנו</span>
             </h1>
             <p className="text-lg text-foreground/70 leading-relaxed">
@@ -56,7 +56,7 @@ const AboutPage = () => {
             <div className="slide-in order-2 md:order-1">
               <h2 className="text-2xl md:text-3xl font-serif mb-4">הסיפור שלנו</h2>
               <p className="mb-4 leading-relaxed">
-                לוקס מויסנייט נוסדה בשנת 2018 מתוך חזון להנגיש תכשיטים יוקרתיים לקהל הישראלי. 
+                אור מיה נוסדה בשנת 2018 מתוך חזון להנגיש תכשיטים יוקרתיים לקהל הישראלי. 
                 המייסדים שלנו, זוג צעיר שחיפש טבעת אירוסין, הופתעו מהמחירים הגבוהים של טבעות יהלום, 
                 וגילו את המויסנייט כאלטרנטיבה מושלמת.
               </p>

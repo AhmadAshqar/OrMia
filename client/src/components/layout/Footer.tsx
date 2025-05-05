@@ -45,7 +45,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="mb-6">
-              <img src="/ormia-logo-with-diamond.png" alt="OrMia Jewelry" className="h-16" />
+              <img src="/ormia-logo.png" alt="OrMia Jewelry" className="h-16" />
             </div>
             <p className="text-white/70 mb-6">{t("footer_desc")}</p>
             <div className="flex gap-4">
