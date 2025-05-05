@@ -14,11 +14,11 @@ const Footer = () => {
   const { t } = useTranslation();
 
   const categories = [
-    { name: t("engagement_rings_footer"), path: "/products/engagement-rings" },
-    { name: t("wedding_rings"), path: "/products/wedding-rings" },
-    { name: t("necklaces_footer"), path: "/products/necklaces" },
-    { name: t("bracelets_footer"), path: "/products/bracelets" },
-    { name: t("earrings_footer"), path: "/products/earrings" },
+    { name: t("engagement_rings_footer"), path: "/products/rings" },
+    { name: t("wedding_rings"), path: "/products/rings" },
+    { name: t("necklaces_footer"), path: "/products/שרשראות" },
+    { name: t("bracelets_footer"), path: "/products/צמידים" },
+    { name: t("earrings_footer"), path: "/products/עגילים" },
     { name: t("special_collections"), path: "/products/collections" },
   ];
 
@@ -45,7 +45,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="mb-6">
-              <img src="/ormia-logo.png" alt="OrMia Jewelry" className="h-16" />
+              <img src="/ormia-gold-logo.png" alt="אור מיה תכשיטים" className="h-16" />
             </div>
             <p className="text-white/70 mb-6">{t("footer_desc")}</p>
             <div className="flex gap-4">

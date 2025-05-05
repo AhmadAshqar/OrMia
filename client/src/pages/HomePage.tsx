@@ -82,7 +82,7 @@ const HomePage = () => {
                 <h3 className="text-2xl font-serif text-white mb-3">{t("engagement_rings")}</h3>
                 <p className="text-white/80 mb-4">{t("engagement_rings_desc")}</p>
                 <Link 
-                  href="/products/engagement-rings" 
+                  href="/products/rings" 
                   className="inline-block py-2 px-4 bg-primary/90 hover:bg-primary text-black font-medium transition-all duration-300"
                 >
                   {t("view_collection")}
@@ -120,7 +120,7 @@ const HomePage = () => {
                 <h3 className="text-2xl font-serif text-white mb-3">{t("luxury_earrings")}</h3>
                 <p className="text-white/80 mb-4">{t("luxury_earrings_desc")}</p>
                 <Link 
-                  href="/products/earrings" 
+                  href="/products/עגילים" 
                   className="inline-block py-2 px-4 bg-primary/90 hover:bg-primary text-black font-medium transition-all duration-300"
                 >
                   {t("view_collection")}
@@ -139,7 +139,7 @@ const HomePage = () => {
                 <h3 className="text-2xl font-serif text-white mb-3">{t("luxury_bracelets")}</h3>
                 <p className="text-white/80 mb-4">{t("luxury_bracelets_desc")}</p>
                 <Link 
-                  href="/products/bracelets" 
+                  href="/products/צמידים" 
                   className="inline-block py-2 px-4 bg-primary/90 hover:bg-primary text-black font-medium transition-all duration-300"
                 >
                   {t("view_collection")}
@@ -148,14 +148,7 @@ const HomePage = () => {
             </div>
           </div>
           
-          <div className="mt-12 text-center">
-            <Link 
-              href="/products" 
-              className="gold-hover inline-block py-3 px-8 border-2 border-black hover:border-primary text-black font-medium transition-colors duration-300"
-            >
-              {t("all_collections")}
-            </Link>
-          </div>
+
         </div>
       </section>
       
