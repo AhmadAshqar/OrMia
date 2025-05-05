@@ -23,22 +23,38 @@ export default function AdminMessagesPage() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<number | string | null>(null);
 
-  // Query to fetch all unread messages
-  const { data: unreadMessages, isLoading: isLoadingUnread } = useQuery({
-    queryKey: ['/api/admin/messages/unread'],
+  // Query to fetch all users
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ['/api/admin/users'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/messages/unread');
+      const response = await apiRequest('GET', '/api/admin/users');
       return response.json();
     }
   });
 
-  // Query to fetch all messages
-  const { data: messages, isLoading: isLoadingMessages } = useQuery({
-    queryKey: ['/api/messages'],
+  // Query to fetch unread messages with optional user filtering
+  const { data: unreadMessages, isLoading: isLoadingUnread } = useQuery({
+    queryKey: ['/api/admin/messages/unread', selectedUserId],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/messages');
+      const url = selectedUserId 
+        ? `/api/admin/messages/unread?userId=${selectedUserId}` 
+        : '/api/admin/messages/unread';
+      const response = await apiRequest('GET', url);
+      return response.json();
+    }
+  });
+
+  // Query to fetch all messages for current user or admin view
+  const { data: allMessages, isLoading: isLoadingAllMessages } = useQuery({
+    queryKey: ['/api/admin/messages', selectedUserId],
+    queryFn: async () => {
+      const url = selectedUserId 
+        ? `/api/admin/messages?userId=${selectedUserId}` 
+        : '/api/admin/messages';
+      const response = await apiRequest('GET', url);
       return response.json();
     }
   });
@@ -71,6 +87,7 @@ export default function AdminMessagesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/messages/unread'] });
       if (selectedOrderId) {
         queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedOrderId, 'messages'] });
@@ -93,6 +110,7 @@ export default function AdminMessagesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/messages/unread'] });
       if (selectedOrderId && selectedOrderId !== 'all') {
         queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedOrderId, 'messages'] });
@@ -140,7 +158,7 @@ export default function AdminMessagesPage() {
   };
 
   // Filter messages for search
-  const filteredMessages = messages ? messages.filter((message: Message) => {
+  const filteredMessages = allMessages ? allMessages.filter((message: Message) => {
     if (!searchQuery) return true;
     const searchLower = searchQuery.toLowerCase();
     return (
@@ -151,12 +169,20 @@ export default function AdminMessagesPage() {
     );
   }) : [];
 
+  // Filter messages by conversation (grouped by user)
+  const getMessagesForSelectedUser = (messages: Message[]) => {
+    if (!selectedUserId || !messages) return [];
+    return messages.filter((message) => message.userId === selectedUserId);
+  };
+
   // Determine which messages to display based on the active tab
   const getActiveMessages = (tabValue: string) => {
     if (tabValue === 'unread' && unreadMessages) {
       return unreadMessages;
-    } else if (tabValue === 'search' && messages) {
+    } else if (tabValue === 'search' && allMessages) {
       return filteredMessages;
+    } else if (tabValue === 'chat' && allMessages) {
+      return selectedUserId ? getMessagesForSelectedUser(allMessages) : allMessages;
     } else if (tabValue === 'orders' && orderMessages) {
       return orderMessages;
     }
@@ -177,8 +203,11 @@ export default function AdminMessagesPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="unread" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-4">
+            <Tabs defaultValue="chat" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-4">
+                <TabsTrigger value="chat">
+                  צ'אטים
+                </TabsTrigger>
                 <TabsTrigger value="unread">
                   הודעות חדשות
                   {unreadMessages && unreadMessages.length > 0 && (
@@ -218,6 +247,97 @@ export default function AdminMessagesPage() {
                 </div>
               </TabsContent>
               
+              <TabsContent value="chat">
+                <div className="mb-4">
+                  <Select
+                    value={selectedUserId?.toString() || 'all'}
+                    onValueChange={(value) => setSelectedUserId(value === 'all' ? null : parseInt(value))}
+                  >
+                    <SelectTrigger className="w-full md:w-80">
+                      <SelectValue placeholder="בחר משתמש" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">כל המשתמשים</SelectItem>
+                      {!isLoadingUsers && users && users.map((user: any) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.username || user.email} {user.firstName && user.lastName ? `(${user.firstName} ${user.lastName})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-[600px]">
+                    {isLoadingAllMessages ? (
+                      <div className="flex justify-center items-center h-full">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : !selectedUserId ? (
+                      <div className="flex justify-center items-center h-full">
+                        <p className="text-muted-foreground">יש לבחור משתמש לצפייה בהודעות</p>
+                      </div>
+                    ) : allMessages && allMessages.length > 0 ? (
+                      <div className="h-full flex flex-col">
+                        <div className="p-3 border-b">
+                          <h3 className="text-lg font-semibold">
+                            {users?.find((u: any) => u.id === selectedUserId)?.username || "משתמש"}
+                          </h3>
+                        </div>
+                        <div className="flex-1 overflow-auto">
+                          <MessageThread 
+                            messages={getMessagesForSelectedUser(allMessages)}
+                            onMessageClick={handleMessageClick}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center h-full">
+                        <p className="text-muted-foreground">אין הודעות למשתמש זה</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="md:col-span-2 border rounded-lg overflow-hidden h-[600px]">
+                    {selectedMessage ? (
+                      <div className="h-full flex flex-col">
+                        <div className="flex-1 overflow-auto p-4 bg-gray-50">
+                          <ChatThread 
+                            messages={getMessagesForSelectedUser(allMessages)}
+                            currentUserId={0} // Admin is always 0 in chat view
+                          />
+                        </div>
+                        <div className="p-4 border-t bg-white">
+                          <form onSubmit={handleReplySubmit} className="flex">
+                            <Textarea
+                              className="flex-1 resize-none"
+                              placeholder="כתוב הודעה..."
+                              value={replyContent}
+                              onChange={(e) => setReplyContent(e.target.value)}
+                              dir="rtl"
+                            />
+                            <Button 
+                              type="submit" 
+                              className="ms-2 self-end"
+                              disabled={isReplying || !replyContent.trim()}
+                            >
+                              {isReplying ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                'שלח'
+                              )}
+                            </Button>
+                          </form>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center h-full">
+                        <p className="text-muted-foreground">בחר הודעה כדי להציג את תוכנה</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+              
               <TabsContent value="search">
                 <div className="mb-4 flex items-center">
                   <div className="relative flex-1">
@@ -235,7 +355,7 @@ export default function AdminMessagesPage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="md:col-span-1 border rounded-lg overflow-hidden h-[600px]">
-                    {isLoadingMessages ? (
+                    {isLoadingAllMessages ? (
                       <div className="flex justify-center items-center h-full">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
@@ -370,6 +490,172 @@ function MessageList({ messages, selectedMessageId, onMessageClick }: MessageLis
           </p>
         </div>
       ))}
+    </div>
+  );
+}
+
+// Thread view for WhatsApp style messaging
+interface MessageThreadProps {
+  messages: Message[];
+  onMessageClick: (message: Message) => void;
+}
+
+function MessageThread({ messages, onMessageClick }: MessageThreadProps) {
+  // Group messages by date (today, yesterday, older)
+  const groupedMessages = messages.reduce((groups: Record<string, Message[]>, message) => {
+    const date = new Date(message.createdAt);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    let groupKey;
+    if (date.toDateString() === today.toDateString()) {
+      groupKey = 'היום';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      groupKey = 'אתמול';
+    } else {
+      groupKey = format(date, 'dd/MM/yyyy', { locale: he });
+    }
+    
+    if (!groups[groupKey]) {
+      groups[groupKey] = [];
+    }
+    
+    groups[groupKey].push(message);
+    return groups;
+  }, {});
+  
+  // Sort messages by date
+  const sortedDates = Object.keys(groupedMessages).sort((a, b) => {
+    if (a === 'היום') return -1;
+    if (b === 'היום') return 1;
+    if (a === 'אתמול') return -1;
+    if (b === 'אתמול') return 1;
+    
+    // Parse and compare dates
+    const dateA = a.split('/').reverse().join('-');
+    const dateB = b.split('/').reverse().join('-');
+    return dateB.localeCompare(dateA);
+  });
+  
+  return (
+    <div className="divide-y overflow-auto h-full">
+      {sortedDates.map(dateGroup => (
+        <div key={dateGroup} className="message-date-group">
+          <div className="sticky top-0 bg-gray-100 text-xs text-center py-1">
+            {dateGroup}
+          </div>
+          {groupedMessages[dateGroup]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .map(message => (
+              <div
+                key={message.id}
+                className={`p-3 cursor-pointer hover:bg-muted ${!message.isRead ? 'font-bold' : ''}`}
+                onClick={() => onMessageClick(message)}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 overflow-hidden">
+                    <div className="flex items-start">
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground truncate">
+                          {message.content.substring(0, 50)}
+                          {message.content.length > 50 ? '...' : ''}
+                        </p>
+                      </div>
+                      <div className="ml-2 flex flex-col items-end">
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(message.createdAt), 'HH:mm', { locale: he })}
+                        </p>
+                        {!message.isRead && (
+                          <Badge variant="destructive" className="mt-1">
+                            חדש
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// WhatsApp style chat thread
+interface ChatThreadProps {
+  messages: Message[];
+  currentUserId: number;
+}
+
+function ChatThread({ messages, currentUserId }: ChatThreadProps) {
+  // Combine messages and their replies into a single chronological thread
+  const allMessages = messages.flatMap((message) => {
+    const threadMessages = [
+      {
+        id: message.id,
+        content: message.content,
+        createdAt: message.createdAt,
+        isFromAdmin: message.isFromAdmin || false,
+        userId: message.userId
+      }
+    ];
+    
+    if (message.replies) {
+      message.replies.forEach((reply) => {
+        threadMessages.push({
+          id: reply.id,
+          content: reply.content,
+          createdAt: reply.createdAt,
+          isFromAdmin: reply.isFromAdmin || false,
+          userId: reply.userId
+        });
+      });
+    }
+    
+    return threadMessages;
+  });
+  
+  // Sort all messages by date
+  const sortedMessages = allMessages.sort((a, b) => 
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+  
+  if (sortedMessages.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p className="text-muted-foreground">אין הודעות להצגה</p>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="space-y-4">
+      {sortedMessages.map((msg) => {
+        const isCurrentUser = currentUserId === msg.userId;
+        const isAdmin = msg.isFromAdmin;
+        
+        return (
+          <div 
+            key={msg.id}
+            className={`flex ${isCurrentUser || isAdmin ? 'justify-end' : 'justify-start'}`}
+          >
+            <div 
+              className={`rounded-lg p-3 max-w-[80%] ${
+                isCurrentUser || isAdmin 
+                  ? 'bg-primary/10 text-right' 
+                  : 'bg-gray-200 text-left'
+              }`}
+            >
+              <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(new Date(msg.createdAt), 'HH:mm', { locale: he })}
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

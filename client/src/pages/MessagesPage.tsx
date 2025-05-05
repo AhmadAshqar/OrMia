@@ -234,60 +234,61 @@ export default function MessagesPage() {
                         <div className="p-4 border-b">
                           <h3 className="text-lg font-semibold">{selectedMessage.subject}</h3>
                           <p className="text-sm text-muted-foreground">
-                            {format(new Date(selectedMessage.createdAt), 'dd/MM/yyyy HH:mm', { locale: he })}
+                            צ'אט עם צוות אור מיה
                           </p>
                         </div>
-                        <div className="flex-1 overflow-auto p-4">
-                          <div className="mb-4">
-                            <p className="whitespace-pre-wrap">{selectedMessage.content}</p>
-                          </div>
-                          {selectedMessage.replies && selectedMessage.replies.length > 0 && (
-                            <div className="mt-6 space-y-4">
-                              <h4 className="text-sm font-medium border-b pb-2">תגובות</h4>
-                              {selectedMessage.replies.map((reply) => (
+                        <div className="flex-1 overflow-auto p-4 bg-gray-50">
+                          <div className="space-y-4">
+                            {/* Initial message */}
+                            <div className="flex justify-end">
+                              <div className="rounded-lg p-3 max-w-[80%] bg-primary/10 text-right">
+                                <p className="whitespace-pre-wrap text-sm">{selectedMessage.content}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {format(new Date(selectedMessage.createdAt), 'HH:mm', { locale: he })}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {/* Replies in chronological order */}
+                            {selectedMessage.replies && selectedMessage.replies
+                              .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                              .map((reply) => (
                                 <div
                                   key={reply.id}
-                                  className={`p-3 rounded-lg ${
-                                    reply.isFromAdmin ? 'bg-muted ml-8' : 'bg-primary/10 mr-8'
-                                  }`}
+                                  className={`flex ${reply.isFromAdmin ? 'justify-start' : 'justify-end'}`}
                                 >
-                                  <div className="flex justify-between items-center mb-1">
-                                    <p className="text-sm font-medium">
-                                      {reply.isFromAdmin ? 'צוות אור מיה' : 'אני'}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {format(new Date(reply.createdAt), 'dd/MM/yyyy HH:mm', {
-                                        locale: he,
-                                      })}
+                                  <div
+                                    className={`rounded-lg p-3 max-w-[80%] ${
+                                      reply.isFromAdmin ? 'bg-gray-200 text-left' : 'bg-primary/10 text-right'
+                                    }`}
+                                  >
+                                    <p className="whitespace-pre-wrap text-sm">{reply.content}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {format(new Date(reply.createdAt), 'HH:mm', { locale: he })}
                                     </p>
                                   </div>
-                                  <p className="text-sm whitespace-pre-wrap">{reply.content}</p>
                                 </div>
                               ))}
-                            </div>
-                          )}
+                          </div>
                         </div>
-                        <div className="p-4 border-t bg-card">
-                          <form onSubmit={handleReplySubmit} className="flex flex-col">
+                        <div className="p-4 border-t bg-white">
+                          <form onSubmit={handleReplySubmit} className="flex">
                             <Textarea
+                              className="flex-1 resize-none"
+                              placeholder="כתוב הודעה..."
                               value={replyContent}
                               onChange={(e) => setReplyContent(e.target.value)}
-                              placeholder="הקלד את תשובתך כאן..."
-                              className="min-h-[100px] mb-2"
                               dir="rtl"
                             />
-                            <Button
-                              type="submit"
-                              className="self-start"
-                              disabled={replyMutation.isPending}
+                            <Button 
+                              type="submit" 
+                              className="ms-2 self-end"
+                              disabled={replyMutation.isPending || !replyContent.trim()}
                             >
                               {replyMutation.isPending ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  שולח...
-                                </>
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                'שלח תשובה'
+                                'שלח'
                               )}
                             </Button>
                           </form>
