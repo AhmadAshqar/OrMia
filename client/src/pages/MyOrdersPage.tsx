@@ -93,13 +93,17 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
   const { data: order, isLoading, error } = useQuery({
     queryKey: ["/api/user/orders", orderId],
     queryFn: async () => {
-      const response = await fetch(`/api/user/orders/${orderId}`);
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/user/orders/${orderId}?t=${Date.now()}`);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "שגיאה בטעינת פרטי ההזמנה");
       }
       return response.json();
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   if (isLoading) {
@@ -201,14 +205,18 @@ const MyOrdersPage = () => {
   const { data: orders, isLoading, error } = useQuery({
     queryKey: ["/api/user/orders"],
     queryFn: async () => {
-      const response = await fetch("/api/user/orders");
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/user/orders?t=${Date.now()}`);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "שגיאה בטעינת ההזמנות");
       }
       return response.json();
     },
-    enabled: !!user // Only run query if user is logged in
+    enabled: !!user, // Only run query if user is logged in
+    staleTime: 0, // Always consider data stale
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: true // Refetch when window regains focus
   });
 
   // Redirect to login if not authenticated
