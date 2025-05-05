@@ -35,12 +35,12 @@ const Header = () => {
     : 0;
 
   const navLinks = [
-    { name: t("home"), path: "/" },
-    { name: t("collections"), path: "/products" },
-    { name: t("rings"), path: "/products/rings" },
-    { name: t("necklaces"), path: "/products/necklaces" },
-    { name: t("earrings"), path: "/products/earrings" },
-    { name: t("about"), path: "/about" },
+    { name: "דף הבית", path: "/" },
+    { name: "NEW", path: "/products/new", isHighlighted: true },
+    { name: "טבעות", path: "/products/rings" },
+    { name: "שרשרות", path: "/products/necklaces" },
+    { name: "עגילים", path: "/products/earrings" },
+    { name: "אודות", path: "/about" },
   ];
 
   return (
@@ -66,7 +66,8 @@ const Header = () => {
                   href={link.path}
                   className={cn(
                     "font-medium transition-colors text-white hover:text-primary",
-                    location === link.path ? "text-primary" : ""
+                    location === link.path ? "text-primary" : "",
+                    link.isHighlighted ? "font-bold text-[#FFD700]" : ""
                   )}
                 >
                   {link.name}
@@ -190,7 +191,8 @@ const Header = () => {
                       href={link.path}
                       className={cn(
                         "font-medium text-lg transition-colors hover:text-primary",
-                        location === link.path ? "text-primary" : ""
+                        location === link.path ? "text-primary" : "",
+                        link.isHighlighted ? "font-bold text-[#FFD700]" : ""
                       )}
                     >
                       {link.name}
