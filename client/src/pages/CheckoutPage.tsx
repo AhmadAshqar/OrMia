@@ -868,79 +868,144 @@ const CheckoutPage = () => {
             </div>
             
             <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("order_summary")}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {items.map(({ product, quantity }) => (
-                    <div key={product.id} className="flex items-start justify-between py-2 border-b border-gray-100">
-                      <div className="flex">
-                        <div className="w-16 h-16 bg-gray-100 overflow-hidden rounded-sm mr-3">
-                          <img 
-                            src={product.mainImage} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover"
-                          />
+              <div className="sticky top-24">
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle>{t("order_summary")}</CardTitle>
+                    <CardDescription>סיכום ההזמנה שלך</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Product list with details */}
+                    <div className="max-h-80 overflow-y-auto space-y-3 pr-1">
+                      {items.map(({ product, quantity }) => (
+                        <div key={product.id} className="flex items-start justify-between py-2 border-b border-gray-100">
+                          <div className="flex">
+                            <div className="w-16 h-16 bg-gray-100 overflow-hidden rounded-sm mr-3 flex-shrink-0">
+                              <img 
+                                src={product.mainImage} 
+                                alt={product.name} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{product.name}</p>
+                              <p className="text-sm text-foreground/60">כמות: {quantity}</p>
+                              <p className="text-sm text-primary">
+                                {formatPrice(product.salePrice || product.price)} / יח'
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-primary">
+                              {formatPrice((product.salePrice || product.price) * quantity)}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-sm text-foreground/60">כמות: {quantity}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-primary">
-                          {formatPrice((product.salePrice || product.price) * quantity)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <div className="space-y-2 pt-4">
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">{t("subtotal")}</span>
-                      <span>{formatPrice(subtotal)}</span>
+                      ))}
                     </div>
                     
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">{t("shipping")}</span>
-                      <span>
-                        {subtotal >= 1000 ? (
-                          <span className="text-green-600">{t("free")}</span>
-                        ) : (
-                          "₪35"
-                        )}
-                      </span>
-                    </div>
-                    
-                    <div className="flex justify-between font-medium text-lg pt-4 border-t border-gray-200">
-                      <span>{t("total")}</span>
-                      <span className="text-primary">
-                        {formatPrice(subtotal >= 1000 ? total : total + 35)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4 flex items-center text-sm text-green-600">
-                    <Package2 className="mr-2 h-4 w-4" />
-                    <span>
-                      {subtotal >= 1000 ? (
-                        t("free_shipping")
-                      ) : (
-                        `חסרים לך ${formatPrice(1000 - subtotal)} לקבלת משלוח חינם`
+                    {/* Price breakdown */}
+                    <div className="space-y-2 pt-4">
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">{t("subtotal")}</span>
+                        <span>{formatPrice(subtotal)}</span>
+                      </div>
+                      
+                      {promoApplied && discount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span>הנחה ({form.getValues("promoCode")})</span>
+                          <span>-{formatPrice(discount)}</span>
+                        </div>
                       )}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <div className="mt-6">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center">
-                      <CheckCircle className="mr-2 h-5 w-5 text-green-600" />
-                      <p className="text-sm">כל העסקאות מאובטחות ומוצפנות</p>
+                      
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">{t("shipping")}</span>
+                        <span>
+                          {shippingMethod === "express" ? (
+                            formatPrice(50)
+                          ) : subtotal >= 250 ? (
+                            <span className="text-green-600">{t("free")}</span>
+                          ) : (
+                            formatPrice(35)
+                          )}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>מע"מ כלול (17%)</span>
+                        <span>{formatPrice(tax)}</span>
+                      </div>
+                      
+                      <Separator className="my-2" />
+                      
+                      <div className="flex justify-between font-bold text-lg pt-2">
+                        <span>{t("total")}</span>
+                        <span className="text-primary">
+                          {formatPrice(finalTotal)}
+                        </span>
+                      </div>
                     </div>
+                    
+                    {/* Free shipping promotion */}
+                    {subtotal < 250 && shippingMethod === "standard" && (
+                      <div className="pt-4 flex items-center text-sm text-green-600 border-t">
+                        <Package2 className="mr-2 h-4 w-4" />
+                        <span>
+                          חסרים לך {formatPrice(250 - subtotal)} לקבלת משלוח חינם
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Payment security and customer support */}
+                <Card className="mb-6">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center">
+                      <ShieldCheck className="mr-2 h-5 w-5" />
+                      אבטחה ותשלומים
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center text-sm">
+                      <Lock className="mr-2 h-4 w-4 text-green-600" />
+                      <p>כל העסקאות מאובטחות ומוצפנות SSL</p>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                      <p>הגנת לקוח מלאה בכל רכישה</p>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Package2 className="mr-2 h-4 w-4 text-green-600" />
+                      <p>משלוחים מהירים לכל הארץ</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Customer support info */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">שירות לקוחות</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <p className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 ml-2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                      </svg>
+                      <span>077-3344558</span>
+                    </p>
+                    <p className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 ml-2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                      </svg>
+                      <span>service@ormiajewelry.co.il</span>
+                    </p>
+                    <p className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 ml-2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                      </svg>
+                      <span>ימים א'-ה' 09:00-18:00</span>
+                    </p>
                   </CardContent>
                 </Card>
               </div>
