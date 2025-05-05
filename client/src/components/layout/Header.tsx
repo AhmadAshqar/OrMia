@@ -37,10 +37,10 @@ const Header = () => {
   const navLinks = [
     { name: "דף הבית", path: "/" },
     { name: "NEW", path: "/products/new", isHighlighted: true },
-    { name: "טבעות", path: "/products/rings" },
-    { name: "שרשראות", path: "/products/necklaces" },
-    { name: "עגילים", path: "/products/earrings" },
-    { name: "צמידים", path: "/products/bracelets" },
+    { name: "טבעות", path: "/products/טבעות" },
+    { name: "שרשראות", path: "/products/שרשראות" },
+    { name: "עגילים", path: "/products/עגילים" },
+    { name: "צמידים", path: "/products/צמידים" },
     { name: "אודות", path: "/about" },
   ];
 
