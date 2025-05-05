@@ -140,9 +140,9 @@ export default function OrdersPage() {
     return format(new Date(date), 'dd/MM/yyyy HH:mm', { locale: he });
   };
 
-  // Format price
+  // Format price - divide by 100 to convert cents to shekels
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(price);
+    return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(price / 100);
   };
 
   const handleViewOrder = (order: Order) => {

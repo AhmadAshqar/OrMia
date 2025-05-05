@@ -81,9 +81,11 @@ export default function ProductsPage() {
     reviewCount: 0,
   });
   
-  // Fetch products
+  // Fetch products - use regular product endpoint to match public site
   const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+    staleTime: 0, // Always refetch when component mounts
+    refetchOnMount: true
   });
   
   // Fetch categories
