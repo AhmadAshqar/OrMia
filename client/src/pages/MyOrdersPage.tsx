@@ -26,6 +26,22 @@ const formatDate = (dateString: string) => {
   return `${day}/${month}/${year}`;
 };
 
+// Helper function to safely get shipping status styling
+const getShippingStatus = (status: string | undefined | null) => {
+  if (!status || !shippingStatusMap[status]) {
+    return {
+      color: shippingStatusMap.default.color,
+      icon: shippingStatusMap.default.icon,
+      text: shippingStatusMap.default.text
+    };
+  }
+  return {
+    color: shippingStatusMap[status].color,
+    icon: shippingStatusMap[status].icon,
+    text: shippingStatusMap[status].text
+  };
+};
+
 // Status mapping for displaying the current shipping status
 const shippingStatusMap: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
   pending: {
@@ -315,11 +331,11 @@ const MyOrdersPage = () => {
                       <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                     </div>
                     <Badge 
-                      className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                      className={`${shippingStatusMap[order.shipmentStatus] ? shippingStatusMap[order.shipmentStatus].color : shippingStatusMap.default.color} flex items-center justify-center h-7 px-3`}
                       variant="outline"
                     >
-                      {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                      {shippingStatusMap[order.shipmentStatus || "default"].text}
+                      {shippingStatusMap[order.shipmentStatus] ? shippingStatusMap[order.shipmentStatus].icon : shippingStatusMap.default.icon}
+                      {shippingStatusMap[order.shipmentStatus] ? shippingStatusMap[order.shipmentStatus].text : shippingStatusMap.default.text}
                     </Badge>
                   </CardHeader>
                   <CardContent className="p-5 pt-0">
