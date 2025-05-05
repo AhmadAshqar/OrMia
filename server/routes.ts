@@ -1505,7 +1505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const promoCodeData = insertPromoCodeSchema.parse({
         ...req.body,
-        createdBy: req.user.id,
+        createdBy: 1, // Using known admin ID 1 instead of req.user.id
       });
       
       // Check if code already exists
