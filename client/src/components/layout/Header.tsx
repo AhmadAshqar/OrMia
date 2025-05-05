@@ -38,7 +38,7 @@ const Header = () => {
     { name: "דף הבית", path: "/" },
     { name: "NEW", path: "/products/new", isHighlighted: true },
     { name: "טבעות", path: "/products/rings" },
-    { name: "שרשרות", path: "/products/necklaces" },
+    { name: "שרשראות", path: "/products/necklaces" },
     { name: "עגילים", path: "/products/earrings" },
     { name: "אודות", path: "/about" },
   ];
