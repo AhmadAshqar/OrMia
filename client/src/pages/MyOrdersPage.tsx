@@ -443,13 +443,6 @@ const MyOrdersPage = () => {
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Link>
                       </Button>
-                      <div className="flex items-center">
-                        <Button variant="outline" size="sm" className="mr-2" asChild>
-                          <Link href={`/account/orders/${order.id}`}>
-                            פרטים מלאים
-                          </Link>
-                        </Button>
-                      </div>
                     </CardFooter>
                   </Card>
                 ))}
@@ -523,13 +516,6 @@ const MyOrdersPage = () => {
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Link>
                       </Button>
-                      <div className="flex items-center">
-                        <Button variant="outline" size="sm" className="mr-2" asChild>
-                          <Link href={`/account/orders/${order.id}`}>
-                            פרטים מלאים
-                          </Link>
-                        </Button>
-                      </div>
                     </CardFooter>
                   </Card>
                 ))}
