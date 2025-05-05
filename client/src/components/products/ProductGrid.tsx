@@ -178,18 +178,7 @@ const ProductGrid = ({ category }: ProductGridProps) => {
               <AccordionTrigger>{t("price_range")}</AccordionTrigger>
               <AccordionContent>
                 <div className="py-4">
-                  <div className="flex flex-row-reverse gap-4 mb-4 items-center">
-                    <div className="flex-1">
-                      <label className="text-sm mb-1 block">מ</label>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        max={priceRange[1]}
-                        value={priceRange[0]} 
-                        onChange={(e) => handlePriceChange([Number(e.target.value), priceRange[1]])}
-                        className="w-full p-2 border rounded-md text-right"
-                      />
-                    </div>
+                  <div className="flex flex-row gap-4 mb-4 items-center">
                     <div className="flex-1">
                       <label className="text-sm mb-1 block">עד</label>
                       <input 
@@ -198,6 +187,17 @@ const ProductGrid = ({ category }: ProductGridProps) => {
                         max="10000"
                         value={priceRange[1]} 
                         onChange={(e) => handlePriceChange([priceRange[0], Number(e.target.value)])}
+                        className="w-full p-2 border rounded-md text-right"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-sm mb-1 block">מ</label>
+                      <input 
+                        type="number" 
+                        min="0" 
+                        max={priceRange[1]}
+                        value={priceRange[0]} 
+                        onChange={(e) => handlePriceChange([Number(e.target.value), priceRange[1]])}
                         className="w-full p-2 border rounded-md text-right"
                       />
                     </div>
