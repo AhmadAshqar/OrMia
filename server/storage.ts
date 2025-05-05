@@ -22,6 +22,7 @@ export interface IStorage {
   // Product methods
   getProducts(): Promise<Product[]>;
   getProductsByCategory(categorySlug: string): Promise<Product[]>;
+  getNewProducts(): Promise<Product[]>;
   getFeaturedProducts(): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
@@ -775,6 +776,18 @@ export class DatabaseStorage implements IStorage {
       ...product,
       categoryName: category.name,
       categorySlug: category.slug
+    }));
+  }
+  
+  async getNewProducts(): Promise<Product[]> {
+    const result = await db.select().from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(eq(products.isNew, true));
+      
+    return result.map(row => ({
+      ...row.products,
+      categoryName: row.categories?.name,
+      categorySlug: row.categories?.slug
     }));
   }
   
