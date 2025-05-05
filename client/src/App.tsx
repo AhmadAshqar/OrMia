@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { HelmetProvider } from "react-helmet-async";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/HomePage";
 import ProductsPage from "@/pages/ProductsPage";
@@ -147,10 +148,12 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CartProvider>
-            <TooltipProvider>
-              <Toaster />
-              <AuthPage />
-            </TooltipProvider>
+            <HelmetProvider>
+              <TooltipProvider>
+                <Toaster />
+                <AuthPage />
+              </TooltipProvider>
+            </HelmetProvider>
           </CartProvider>
         </AuthProvider>
       </QueryClientProvider>
@@ -162,10 +165,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <HelmetProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </HelmetProvider>
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
