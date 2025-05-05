@@ -93,11 +93,6 @@ const CartPage = () => {
                       </span>
                     </div>
                     
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">{t("tax")}</span>
-                      <span>{t("calculated_checkout")}</span>
-                    </div>
-                    
                     <div className="pt-3 mt-3 border-t border-gray-200 flex justify-between font-medium">
                       <span>{t("order_total")}</span>
                       <span className="text-primary text-lg">{formatPrice(total)}</span>
