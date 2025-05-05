@@ -6,6 +6,7 @@ import { he } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
+import { createMessage as createFirebaseMessage, FirebaseMessage, getAllMessages, markMessageAsRead } from '@/lib/firebaseMessages';
 
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Message } from '@shared/schema';
 import { Loader2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { EmojiPicker } from '@/components/ui/EmojiPicker';
+import { ImageUploader } from '@/components/ui/ImageUploader';
 
 export default function AdminMessagesPage() {
   const { user } = useAuth();
@@ -28,6 +31,8 @@ export default function AdminMessagesPage() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<number | string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
   const websocketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -291,34 +296,64 @@ export default function AdminMessagesPage() {
     setSelectedMessage(message);
   };
 
-  // Handle reply submit
-  const handleReplySubmit = (e: React.FormEvent) => {
+  // Effect to listen for Firebase messages
+  useEffect(() => {
+    if (!user) return;
+    
+    const unsubscribe = getAllMessages((messages) => {
+      setFirebaseMessages(messages);
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [user]);
+
+  // Handle reply submit with Firebase
+  const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMessage) return;
-    if (!replyContent.trim()) {
+    if (!replyContent.trim() && !selectedImage) {
       toast({
         title: 'שגיאה',
-        description: 'יש להזין תוכן להודעה',
+        description: 'יש להזין תוכן להודעה או לבחור תמונה',
         variant: 'destructive'
       });
       return;
     }
     
-    // If WebSocket is connected, send the message through it
-    if (websocketRef.current && 
-        websocketRef.current.readyState === WebSocket.OPEN && 
-        selectedMessage.orderId) {
-      websocketRef.current.send(JSON.stringify({
-        type: 'message',
-        content: replyContent,
-        orderId: selectedMessage.orderId,
-        parentId: selectedMessage.id
-      }));
-      
-      setReplyContent('');
-    } else {
-      // Fallback to REST API if WebSocket is not connected
-      replyMutation.mutate({ messageId: selectedMessage.id, content: replyContent });
+    try {
+      // Send message through Firebase
+      if (user) {
+        await createFirebaseMessage({
+          content: replyContent,
+          orderId: selectedMessage.orderId,
+          userId: user.id,
+          isAdmin: true,
+          isRead: false,
+          imageUrl: selectedImage || undefined
+        });
+        
+        // Mark related messages as read
+        if (selectedMessage.id) {
+          await markMessageAsRead(selectedMessage.id.toString());
+        }
+        
+        setReplyContent('');
+        setSelectedImage(null);
+        
+        toast({
+          title: 'הודעה נשלחה',
+          description: 'התשובה שלך נשלחה בהצלחה'
+        });
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן לשלוח את התשובה',
+        variant: 'destructive'
+      });
     }
   };
 

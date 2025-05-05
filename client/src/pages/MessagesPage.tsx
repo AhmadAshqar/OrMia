@@ -6,6 +6,7 @@ import { he } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
+import { createMessage as createFirebaseMessage, FirebaseMessage } from '@/lib/firebaseMessages';
 
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { Message } from '@shared/schema';
 import { Loader2, CheckCheck } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { EmojiPicker } from '@/components/ui/EmojiPicker';
+import { ImageUploader } from '@/components/ui/ImageUploader';
 
 export default function MessagesPage() {
   const { user } = useAuth();
@@ -33,6 +36,7 @@ export default function MessagesPage() {
   });
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const websocketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -466,33 +470,53 @@ export default function MessagesPage() {
                           </div>
                         </div>
                         
-                        {/* WhatsApp style message input */}
+                        {/* AliExpress style message input with emoji and image support */}
                         <div className="p-3 border-t bg-white">
                           <form onSubmit={handleReplySubmit} className="flex items-end gap-2">
                             <div className="relative flex-1">
                               <Textarea
-                                className="flex-1 resize-none rounded-full min-h-[50px] py-3 pr-4 pl-12 bg-gray-100"
+                                className="flex-1 resize-none rounded-xl min-h-[50px] py-3 pr-4 pl-24 bg-gray-100"
                                 placeholder="כתוב הודעה..."
                                 value={replyContent}
                                 onChange={(e) => setReplyContent(e.target.value)}
                                 dir="rtl"
                               />
-                              <div className="absolute right-1 bottom-1.5 flex gap-2">
-                                <button type="button" className="text-gray-500 hover:text-blue-500 p-1 rounded-full">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                                    <line x1="9" y1="9" x2="9.01" y2="9" />
-                                    <line x1="15" y1="9" x2="15.01" y2="9" />
-                                  </svg>
-                                </button>
-                                <button type="button" className="text-gray-500 hover:text-blue-500 p-1 rounded-full">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                    <circle cx="8.5" cy="8.5" r="1.5" />
-                                    <polyline points="21 15 16 10 5 21" />
-                                  </svg>
-                                </button>
+                              <div className="absolute right-2 bottom-2 flex gap-2 items-center">
+                                {/* Emoji picker */}
+                                <EmojiPicker 
+                                  onEmojiSelect={(emoji) => setReplyContent(prev => prev + emoji)} 
+                                />
+                                
+                                {/* Image uploader */}
+                                <ImageUploader 
+                                  onImageUploaded={(imageUrl) => {
+                                    if (!selectedMessage) return;
+                                    
+                                    if (websocketRef.current && 
+                                        websocketRef.current.readyState === WebSocket.OPEN && 
+                                        selectedMessage.orderId) {
+                                      // Send image through WebSocket
+                                      websocketRef.current.send(JSON.stringify({
+                                        type: 'message',
+                                        content: '📷 תמונה',
+                                        imageUrl: imageUrl,
+                                        orderId: selectedMessage.orderId,
+                                        parentId: selectedMessage.id
+                                      }));
+                                    } else {
+                                      // Fall back to API
+                                      createFirebaseMessage({
+                                        content: '📷 תמונה',
+                                        imageUrl: imageUrl,
+                                        userId: user.id,
+                                        isAdmin: false,
+                                        orderId: selectedMessage.orderId,
+                                        isRead: false
+                                      });
+                                    }
+                                  }}
+                                  disabled={replyMutation.isPending}
+                                />
                               </div>
                             </div>
                             <Button 
