@@ -294,6 +294,22 @@ export default function AdminMessagesPage() {
   // Handle message click
   const handleMessageClick = (message: Message) => {
     setSelectedMessage(message);
+    setSelectedImage(null);
+    
+    // If the message has an orderId, mark any Firebase messages for this order as read
+    if (message.orderId) {
+      // Filter for Firebase messages for this order
+      const orderMessages = firebaseMessages.filter(msg => 
+        msg.orderId === message.orderId && !msg.isAdmin && !msg.isRead
+      );
+      
+      // Mark unread messages as read
+      orderMessages.forEach(async (msg) => {
+        if (msg.id) {
+          await markMessageAsRead(msg.id);
+        }
+      });
+    }
   };
 
   // Effect to listen for Firebase messages
@@ -896,14 +912,54 @@ function MessageDetails({
   handleReplySubmit,
   isReplying
 }: MessageDetailsProps) {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Load Firebase messages
+  useEffect(() => {
+    if (!selectedMessage?.orderId) return;
+    
+    const unsubscribe = getAllMessages((messages) => {
+      // Filter for this order
+      const orderMessages = messages.filter(msg => 
+        msg.orderId === selectedMessage.orderId
+      );
+      setFirebaseMessages(orderMessages);
+      
+      // Scroll to bottom when messages change
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedMessage?.orderId]);
+  
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: string) => {
+    setReplyContent(prev => prev + emoji);
+  };
+  
+  // Handle image upload
+  const handleImageUploaded = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    toast({
+      title: "תמונה הועלתה",
+      description: "התמונה הועלתה בהצלחה ותשלח עם ההודעה",
+    });
+  };
   
   // Auto-scroll to bottom when replies change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [selectedMessage?.replies]);
+  }, [selectedMessage?.replies, firebaseMessages]);
   return (
     <div className="md:col-span-2 border rounded-lg overflow-hidden h-[600px]">
       {selectedMessage ? (
@@ -934,6 +990,12 @@ function MessageDetails({
             <div className="flex justify-start mb-6">
               <div className="rounded-2xl p-3 max-w-[80%] shadow-sm bg-gray-100 text-gray-800 rounded-tl-none">
                 <p className="whitespace-pre-wrap text-sm">{selectedMessage.content}</p>
+                {/* Show image if it exists */}
+                {selectedMessage.imageUrl && (
+                  <div className="mt-2">
+                    <img src={selectedMessage.imageUrl} alt="תמונה שצורפה" className="max-w-full rounded-lg max-h-40" />
+                  </div>
+                )}
                 <div className="flex items-center text-xs mt-1 text-gray-500">
                   <span>{format(new Date(selectedMessage.createdAt), 'HH:mm', { locale: he })}</span>
                   <span className="mx-1">•</span>
@@ -942,7 +1004,56 @@ function MessageDetails({
               </div>
             </div>
             
-            {/* Replies as chat bubbles */}
+            {/* Firebase messages */}
+            {firebaseMessages.length > 0 && (
+              <div className="space-y-4">
+                {firebaseMessages.map((message) => {
+                  const isAdmin = message.isAdmin;
+                  const senderName = isAdmin ? "מוכר" : "קונה";
+                  
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-3`}
+                    >
+                      <div 
+                        className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                          isAdmin 
+                            ? 'bg-blue-500 text-white rounded-tr-none' 
+                            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                        
+                        {/* Display image if any */}
+                        {message.imageUrl && (
+                          <div className="mt-2">
+                            <img 
+                              src={message.imageUrl} 
+                              alt="תמונה שצורפה" 
+                              className="max-w-full rounded-lg max-h-40" 
+                            />
+                          </div>
+                        )}
+                        
+                        <div className={`flex items-center text-xs mt-1 ${isAdmin ? 'text-blue-100' : 'text-gray-500'}`}>
+                          <span>{message.createdAt ? format(new Date(message.createdAt.toDate()), 'HH:mm', { locale: he }) : ''}</span>
+                          <span className="mx-1">•</span>
+                          <span>{senderName}</span>
+                          {message.isRead && isAdmin && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M18 6L7 17L2 12" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {/* Legacy replies from database */}
             {selectedMessage.replies && selectedMessage.replies.length > 0 && (
               <div className="space-y-4">
                 {selectedMessage.replies.map((reply) => {
@@ -978,6 +1089,26 @@ function MessageDetails({
                 })}
               </div>
             )}
+            
+            {/* Selected image preview for the message being composed */}
+            {selectedImage && (
+              <div className="flex justify-end mb-4">
+                <div className="relative">
+                  <img src={selectedImage} alt="Selected" className="max-w-[200px] max-h-[150px] rounded-lg" />
+                  <button
+                    type="button"
+                    className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-70"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+            
             <div ref={messagesEndRef} />
           </div>
           <div className="p-3 border-t bg-white">
@@ -991,27 +1122,14 @@ function MessageDetails({
                   dir="rtl"
                 />
                 <div className="absolute right-1 bottom-1.5 flex gap-2">
-                  <button type="button" className="text-gray-500 hover:text-primary p-1 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                      <line x1="9" y1="9" x2="9.01" y2="9" />
-                      <line x1="15" y1="9" x2="15.01" y2="9" />
-                    </svg>
-                  </button>
-                  <button type="button" className="text-gray-500 hover:text-primary p-1 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <polyline points="21 15 16 10 5 21" />
-                    </svg>
-                  </button>
+                  <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                  <ImageUploader onImageUploaded={handleImageUploaded} />
                 </div>
               </div>
               <Button 
                 type="submit" 
                 className="rounded-full h-[50px] w-[50px] p-0 flex items-center justify-center bg-blue-500 hover:bg-blue-600"
-                disabled={isReplying || !replyContent.trim()}
+                disabled={isReplying || (!replyContent.trim() && !selectedImage)}
               >
                 {isReplying ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
