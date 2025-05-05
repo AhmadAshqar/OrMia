@@ -34,6 +34,7 @@ const resetPasswordSchema = z
   });
 
 export default function ResetPasswordPage() {
+  console.log("ResetPasswordPage component rendered");
   const { user, isLoading, resetPasswordMutation } = useAuth();
   const [_, navigate] = useLocation();
   const { toast } = useToast();
