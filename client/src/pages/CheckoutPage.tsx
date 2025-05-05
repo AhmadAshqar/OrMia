@@ -423,16 +423,16 @@ const CheckoutPage = () => {
         </div>
       </div>
       
-      <section className="py-12">
+      <section className="py-12 dir-rtl">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 dir-rtl">
             <div className="lg:col-span-2">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
-                        <Home className="mr-2 h-5 w-5" />
+                        <Home className="ml-2 h-5 w-5" />
                         {t("billing_details")}
                       </CardTitle>
                     </CardHeader>
@@ -668,7 +668,7 @@ const CheckoutPage = () => {
                   <Card id="shipping-method">
                     <CardHeader>
                       <CardTitle className="flex items-center">
-                        <Truck className="mr-2 h-5 w-5" />
+                        <Truck className="ml-2 h-5 w-5" />
                         שיטת משלוח
                       </CardTitle>
                       <CardDescription>
@@ -728,7 +728,7 @@ const CheckoutPage = () => {
                   <Card id="promo-code">
                     <CardHeader>
                       <CardTitle className="flex items-center">
-                        <Sparkles className="mr-2 h-5 w-5" />
+                        <Sparkles className="ml-2 h-5 w-5" />
                         קוד קופון
                       </CardTitle>
                     </CardHeader>
@@ -776,7 +776,7 @@ const CheckoutPage = () => {
                       
                       {promoApplied && (
                         <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm flex items-center">
-                          <BellRing className="mr-2 h-5 w-5" />
+                          <BellRing className="ml-2 h-5 w-5" />
                           <span>
                             קוד קופון <strong>{form.getValues("promoCode")}</strong> הופעל! קיבלת הנחה של {formatPrice(discount)}
                           </span>
@@ -789,7 +789,7 @@ const CheckoutPage = () => {
                   <Card id="payment-options">
                     <CardHeader>
                       <CardTitle className="flex items-center">
-                        <CreditCard className="mr-2 h-5 w-5" />
+                        <CreditCard className="ml-2 h-5 w-5" />
                         {t("payment")}
                       </CardTitle>
                       <CardDescription>
@@ -1000,7 +1000,7 @@ const CheckoutPage = () => {
                     {/* Free shipping promotion */}
                     {subtotal < 250 && shippingMethod === "standard" && (
                       <div className="pt-4 flex items-center text-sm text-green-600 border-t">
-                        <Package2 className="mr-2 h-4 w-4" />
+                        <Package2 className="ml-2 h-4 w-4" />
                         <span>
                           חסרים לך {formatPrice(250 - subtotal)} לקבלת משלוח חינם
                         </span>
