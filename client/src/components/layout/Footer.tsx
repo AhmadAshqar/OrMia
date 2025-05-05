@@ -16,9 +16,9 @@ const Footer = () => {
   const categories = [
     { name: t("engagement_rings_footer"), path: "/products/rings" },
     { name: t("wedding_rings"), path: "/products/rings" },
-    { name: t("necklaces_footer"), path: "/products/שרשראות" },
-    { name: t("bracelets_footer"), path: "/products/צמידים" },
-    { name: t("earrings_footer"), path: "/products/עגילים" },
+    { name: t("necklaces_footer"), path: "/products/necklaces" },
+    { name: t("bracelets_footer"), path: "/products/bracelets" },
+    { name: t("earrings_footer"), path: "/products/earrings" },
     { name: t("special_collections"), path: "/products/collections" },
   ];
 

@@ -120,7 +120,7 @@ const HomePage = () => {
                 <h3 className="text-2xl font-serif text-white mb-3">{t("luxury_earrings")}</h3>
                 <p className="text-white/80 mb-4">{t("luxury_earrings_desc")}</p>
                 <Link 
-                  href="/products/עגילים" 
+                  href="/products/earrings" 
                   className="inline-block py-2 px-4 bg-primary/90 hover:bg-primary text-black font-medium transition-all duration-300"
                 >
                   {t("view_collection")}
@@ -139,7 +139,7 @@ const HomePage = () => {
                 <h3 className="text-2xl font-serif text-white mb-3">{t("luxury_bracelets")}</h3>
                 <p className="text-white/80 mb-4">{t("luxury_bracelets_desc")}</p>
                 <Link 
-                  href="/products/צמידים" 
+                  href="/products/bracelets" 
                   className="inline-block py-2 px-4 bg-primary/90 hover:bg-primary text-black font-medium transition-all duration-300"
                 >
                   {t("view_collection")}
