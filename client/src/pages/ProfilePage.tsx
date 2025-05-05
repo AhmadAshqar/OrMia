@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { Link } from "wouter";
 import MainLayout from "@/components/layout/MainLayout";
 import {
   Form,
@@ -26,7 +27,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, UserRound, LockKeyhole } from "lucide-react";
+import { Loader2, Save, UserRound, LockKeyhole, Package, Heart, ChevronLeft } from "lucide-react";
 
 // Profile form schema
 const profileSchema = z.object({
@@ -157,6 +158,24 @@ export default function ProfilePage() {
         </div>
 
         <div className="max-w-3xl mx-auto">
+          {/* Quick Links to Other User Pages */}
+          <div className="flex justify-center mb-8 gap-4">
+            <Button asChild variant="outline" className="border-amber-200 hover:border-amber-400 hover:bg-amber-50">
+              <Link href="/orders" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                <span>ההזמנות שלי</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="border-amber-200 hover:border-amber-400 hover:bg-amber-50">
+              <Link href="/favorites" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                <span>המועדפים שלי</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          
           <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/30">
               <TabsTrigger value="profile" className="flex items-center gap-2 py-3">

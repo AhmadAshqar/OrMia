@@ -1200,6 +1200,34 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
   
+  async updateOrderShipmentStatus(id: number, shipmentStatus: string): Promise<Order | undefined> {
+    // First get the current order to check if it exists
+    const order = await this.getOrder(id);
+    if (!order) return undefined;
+    
+    // Update the order's shipment status
+    const [result] = await db.update(orders)
+      .set({
+        shipmentStatus,
+        updatedAt: new Date()
+      })
+      .where(eq(orders.id, id))
+      .returning();
+    
+    // If there's shipping information associated with this order, update it too
+    const shippingInfo = await db.select().from(shipping)
+      .where(eq(shipping.orderId, id));
+    
+    if (shippingInfo.length > 0) {
+      await this.updateShippingStatus(shippingInfo[0].id, shipmentStatus, {
+        location: "מרכז מיון",
+        notes: `סטטוס משלוח עודכן ל${shipmentStatus}`
+      });
+    }
+    
+    return result;
+  }
+  
   async deleteOrder(id: number): Promise<boolean> {
     const [result] = await db.delete(orders)
       .where(eq(orders.id, id))

@@ -21,6 +21,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes and middleware
   setupAuth(app);
   
+  // User Orders API
+  app.get("/api/user/orders", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const orders = await storage.getUserOrders(userId);
+      res.json(orders);
+    } catch (err) {
+      console.error("Error fetching user orders:", err);
+      res.status(500).json({ message: "שגיאה בטעינת ההזמנות" });
+    }
+  });
+  
+  app.get("/api/user/orders/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.id);
+      if (isNaN(orderId)) {
+        return res.status(400).json({ message: "מזהה הזמנה לא תקין" });
+      }
+      
+      const order = await storage.getOrderWithShippingDetails(orderId);
+      if (!order) {
+        return res.status(404).json({ message: "הזמנה לא נמצאה" });
+      }
+      
+      // Make sure the user owns this order
+      if (order.userId !== req.user!.id) {
+        return res.status(403).json({ message: "אין לך הרשאה לצפות בהזמנה זו" });
+      }
+      
+      res.json(order);
+    } catch (err) {
+      console.error("Error fetching order details:", err);
+      res.status(500).json({ message: "שגיאה בטעינת פרטי ההזמנה" });
+    }
+  });
+  
   // Admin routes for user management
   app.get("/api/admin/users", ensureAdmin, async (req, res) => {
     try {

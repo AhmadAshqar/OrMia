@@ -16,6 +16,7 @@ import AuthPage from "@/pages/auth-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import ProfilePage from "@/pages/ProfilePage";
 import FavoritesPage from "@/pages/FavoritesPage";
+import MyOrdersPage from "@/pages/MyOrdersPage";
 import TermsPage from "@/pages/legal/TermsPage";
 import PrivacyPage from "@/pages/legal/PrivacyPage";
 import ShippingPage from "@/pages/legal/ShippingPage";
@@ -91,6 +92,7 @@ function Router() {
         <ProtectedRoute path="/checkout" component={CheckoutPage} />
         <ProtectedRoute path="/profile" component={ProfilePage} />
         <ProtectedRoute path="/favorites" component={FavoritesPage} />
+        <ProtectedRoute path="/orders" component={MyOrdersPage} />
         <Route path="/about" component={AboutPage} />
         <Route path="/contact" component={ContactPage} />
         <Route path="/faq" component={FaqPage} />
