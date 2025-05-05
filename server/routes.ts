@@ -1217,17 +1217,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orderNumber = `OM-${Date.now()}-${randomUUID().substring(0, 4)}`;
       
       // Create the order with the enhanced data
+      // Convert all money values to integers (cents) for database storage
       const orderData = {
         userId: orderUserId,
         orderNumber,
         status: "confirmed",
-        paymentStatus: paymentMethod === 'credit-card' ? "paid" : "pending",
+        paymentStatus: paymentMethod === 'credit-card' || paymentMethod === 'cash' ? "paid" : "pending",
         shipmentStatus: "processing",
-        total,
-        subtotal,
-        shippingCost: shippingCost || 0,
-        tax: tax || 0,
-        discount: discount || 0,
+        total: Math.round(total * 100), // Convert to cents
+        subtotal: Math.round(subtotal * 100), // Convert to cents
+        shippingCost: Math.round((shippingCost || 0) * 100), // Convert to cents
+        tax: Math.round((tax || 0) * 100), // Convert to cents
+        discount: Math.round((discount || 0) * 100), // Convert to cents
         promoCode: promoCode || null,
         items: items.map(item => ({
           productId: item.product.id,
@@ -1274,7 +1275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timestamp: new Date().toISOString(),
           notes: "ההזמנה התקבלה ובתהליך עיבוד"
         }],
-        shippingCost: shippingCost || 0
+        shippingCost: Math.round((shippingCost || 0) * 100) // Convert to cents
       };
       
       const shippingRecord = await storage.createShipping(shippingData);

@@ -832,6 +832,9 @@ const CheckoutPage = () => {
                         <TabsContent value="bit" className="py-4 text-center dir-rtl">
                           <p>לחץ על "בצע הזמנה" כדי לקבל הנחיות לתשלום באמצעות Bit.</p>
                         </TabsContent>
+                        <TabsContent value="cash" className="py-4 text-center dir-rtl">
+                          <p>לחץ על "בצע הזמנה" כדי לקבל הנחיות לתשלום במזומן בעת קבלת המשלוח.</p>
+                        </TabsContent>
                       </Tabs>
                     </CardContent>
                     <CardContent className="mt-4 border-t pt-4 dir-rtl">
