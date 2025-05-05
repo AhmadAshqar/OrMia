@@ -472,7 +472,7 @@ const CheckoutPage = () => {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="block text-right">{t("email")}</FormLabel>
+                              <FormLabel className="block text-right">אימייל</FormLabel>
                               <FormControl>
                                 <Input {...field} type="email" />
                               </FormControl>
@@ -485,7 +485,7 @@ const CheckoutPage = () => {
                           name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="block text-right">{t("phone")}</FormLabel>
+                              <FormLabel className="block text-right">טלפון</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -500,7 +500,7 @@ const CheckoutPage = () => {
                         name="address"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="block text-right">{t("address")}</FormLabel>
+                            <FormLabel className="block text-right">רחוב</FormLabel>
                             <FormControl>
                               <Input {...field} />
                             </FormControl>
@@ -515,7 +515,7 @@ const CheckoutPage = () => {
                           name="city"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="block text-right">{t("city")}</FormLabel>
+                              <FormLabel className="block text-right">עיר</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
