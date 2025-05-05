@@ -46,8 +46,8 @@ import {
   Printer
 } from "lucide-react";
 
-// Mock order status for the UI
-type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+// Order status types for the UI
+type OrderStatus = 'new' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 interface Order {
   id: number;
@@ -103,6 +103,8 @@ export default function OrdersPage() {
 
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
+      case 'new':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">חדש</Badge>;
       case 'pending':
         return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">ממתין לאישור</Badge>;
       case 'processing':
@@ -120,6 +122,8 @@ export default function OrdersPage() {
 
   const getStatusIcon = (status: OrderStatus) => {
     switch (status) {
+      case 'new':
+        return <ShoppingBag className="h-5 w-5 text-blue-500" />;
       case 'pending':
         return <Clock className="h-5 w-5 text-yellow-500" />;
       case 'processing':
@@ -183,6 +187,7 @@ export default function OrdersPage() {
 
   const getStatusText = (status: OrderStatus) => {
     switch (status) {
+      case 'new': return 'חדש';
       case 'pending': return 'ממתין לאישור';
       case 'processing': return 'בטיפול';
       case 'shipped': return 'נשלח';
@@ -328,6 +333,14 @@ export default function OrdersPage() {
                   
                   <h4 className="font-medium mb-2">עדכון סטטוס</h4>
                   <div className="flex flex-wrap gap-2 mb-6">
+                    <Button 
+                      variant={selectedOrder.status === 'new' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => handleUpdateStatus(selectedOrder.id, 'new')}
+                    >
+                      <ShoppingBag className="ml-1 h-4 w-4" />
+                      חדש
+                    </Button>
                     <Button 
                       variant={selectedOrder.status === 'pending' ? 'default' : 'outline'} 
                       size="sm"
