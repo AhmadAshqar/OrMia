@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetTrigger 
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag, Search, Menu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +14,7 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { title: "דף הבית", href: "/" },
-  { title: "קולקציות", href: "/category/all" },
+  { title: "New", href: "/category/all" },
   { title: "טבעות", href: "/category/rings" },
   { title: "שרשראות", href: "/category/necklaces" },
   { title: "עגילים", href: "/category/earrings" },
@@ -32,7 +28,7 @@ export default function Header() {
 
   // Get cart items count
   const { data: cartItems } = useQuery<any[]>({
-    queryKey: ['/api/cart'],
+    queryKey: ["/api/cart"],
   });
 
   const cartItemCount = cartItems?.length || 0;
@@ -45,7 +41,12 @@ export default function Header() {
           <span>משלוח חינם בהזמנות מעל ₪1,000</span>
         </div>
         <div className="flex gap-6 items-center">
-          <a href="/faq" className="hover:text-[hsl(var(--gold))] transition-colors">עזרה</a>
+          <a
+            href="/faq"
+            className="hover:text-[hsl(var(--gold))] transition-colors"
+          >
+            עזרה
+          </a>
         </div>
       </div>
 
@@ -54,14 +55,17 @@ export default function Header() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-8">
-              <Link href="/" className="text-3xl font-serif font-bold text-black">
+              <Link
+                href="/"
+                className="text-3xl font-serif font-bold text-black"
+              >
                 <span className="text-[hsl(var(--gold))]">לוקס</span>מויסנייט
               </Link>
-              
+
               <nav className="hidden md:flex gap-8">
                 {navLinks.map((link) => (
-                  <Link 
-                    key={link.href} 
+                  <Link
+                    key={link.href}
                     href={link.href}
                     className={`font-medium hover:text-[hsl(var(--gold))] transition-colors ${
                       location === link.href ? "text-[hsl(var(--gold))]" : ""
@@ -72,18 +76,21 @@ export default function Header() {
                 ))}
               </nav>
             </div>
-            
+
             <div className="flex items-center gap-6">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setSearchOpen(true)}
                 className="hover:text-[hsl(var(--gold))] transition-colors"
               >
                 <Search className="h-5 w-5" />
               </Button>
-              
-              <Link href="/cart" className="hover:text-[hsl(var(--gold))] transition-colors relative">
+
+              <Link
+                href="/cart"
+                className="hover:text-[hsl(var(--gold))] transition-colors relative"
+              >
                 <ShoppingBag className="h-5 w-5" />
                 {cartItemCount > 0 && (
                   <Badge className="absolute -top-2 -right-2 bg-[hsl(var(--gold))] text-black h-5 w-5 flex items-center justify-center p-0 text-xs">
@@ -91,19 +98,19 @@ export default function Header() {
                   </Badge>
                 )}
               </Link>
-              
-              <a 
-                href="/auth" 
+
+              <a
+                href="/auth"
                 className="px-4 py-2 bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-white font-medium rounded-md"
               >
                 התחברות
               </a>
-              
+
               <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="md:hidden hover:text-[hsl(var(--gold))] transition-colors"
                   >
                     <Menu className="h-5 w-5" />
@@ -112,11 +119,13 @@ export default function Header() {
                 <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                   <nav className="flex flex-col gap-4 mt-8">
                     {navLinks.map((link) => (
-                      <Link 
-                        key={link.href} 
+                      <Link
+                        key={link.href}
                         href={link.href}
                         className={`text-xl py-2 border-b border-gray-100 ${
-                          location === link.href ? "text-[hsl(var(--gold))]" : ""
+                          location === link.href
+                            ? "text-[hsl(var(--gold))]"
+                            : ""
                         }`}
                         onClick={() => setMenuOpen(false)}
                       >
@@ -133,17 +142,23 @@ export default function Header() {
 
       {/* Search overlay (simplified implementation) */}
       {searchOpen && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setSearchOpen(false)}>
-          <div className="bg-white w-full max-w-2xl p-6 rounded-md" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSearchOpen(false)}
+        >
+          <div
+            className="bg-white w-full max-w-2xl p-6 rounded-md"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center border-b border-gray-300 pb-2">
               <Search className="h-5 w-5 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="חפש מוצרים..." 
-                className="w-full px-4 py-2 outline-none text-right" 
+              <input
+                type="text"
+                placeholder="חפש מוצרים..."
+                className="w-full px-4 py-2 outline-none text-right"
                 autoFocus
               />
-              <button 
+              <button
                 onClick={() => setSearchOpen(false)}
                 className="text-gray-500 hover:text-[hsl(var(--gold))]"
               >
