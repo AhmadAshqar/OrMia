@@ -6,7 +6,8 @@ if (!process.env.SENDGRID_API_KEY) {
 
 const mailService = new MailService();
 if (process.env.SENDGRID_API_KEY) {
-  mailService.setApiKey(process.env.SENDGRID_API_KEY);
+  // Cast to string to avoid TypeScript error
+  mailService.setApiKey(process.env.SENDGRID_API_KEY as string);
 }
 
 interface EmailParams {
@@ -52,9 +53,9 @@ export function generatePasswordResetToken(): { token: string, expires: Date } {
 }
 
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
-  // Use a dedicated reset password page with token as query parameter
+  // Use a special reset_token parameter to bypass router issues
   const baseUrl = process.env.SITE_URL || 'http://localhost:5000';
-  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+  const resetUrl = `${baseUrl}/?reset_token=${resetToken}`;
   
   // HTML email with Hebrew RTL support
   const htmlContent = `

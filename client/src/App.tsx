@@ -103,10 +103,12 @@ function Router() {
 }
 
 function App() {
-  // Use URLSearchParams to check for a direct auth request in case routing isn't working
+  // Check for special query parameters for direct page rendering
   const searchParams = new URLSearchParams(window.location.search);
   const directAuth = searchParams.get('directAuth') === 'true';
+  const resetToken = searchParams.get('reset_token');
   
+  // Handle direct authentication page rendering
   if (directAuth) {
     return (
       <QueryClientProvider client={queryClient}>
@@ -122,6 +124,23 @@ function App() {
     );
   }
   
+  // Handle direct reset password page rendering
+  if (resetToken) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <CartProvider>
+            <TooltipProvider>
+              <Toaster />
+              <ResetPasswordPage />
+            </TooltipProvider>
+          </CartProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+  }
+  
+  // Normal app rendering
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

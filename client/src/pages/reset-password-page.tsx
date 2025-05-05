@@ -51,10 +51,10 @@ export default function ResetPasswordPage() {
     },
   });
 
-  // Get token from URL
+  // Get token from URL query params
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const tokenParam = searchParams.get("token");
+    let tokenParam = searchParams.get("token") || searchParams.get("reset_token");
     
     console.log("Reset token page - URL search params:", window.location.search);
     console.log("Reset token page - Token detected:", tokenParam);
@@ -62,17 +62,28 @@ export default function ResetPasswordPage() {
     if (tokenParam) {
       setToken(tokenParam);
       resetPasswordForm.setValue("token", tokenParam);
+      setIsFormReady(true);
     } else {
-      // No token? Redirect to auth page
-      toast({
-        title: "שגיאה",
-        description: "לא נמצא טוקן איפוס תקף",
-        variant: "destructive",
-      });
-      setTimeout(() => navigate("/auth"), 2000);
+      // No token in search params? Check if it's in the root App component state 
+      // (when we use reset_token in the root path)
+      const urlParams = new URLSearchParams(window.location.search);
+      tokenParam = urlParams.get("reset_token");
+      
+      if (tokenParam) {
+        console.log("Found token in URL params:", tokenParam);
+        setToken(tokenParam);
+        resetPasswordForm.setValue("token", tokenParam);
+        setIsFormReady(true);
+      } else {
+        // No token anywhere? Redirect to auth page
+        toast({
+          title: "שגיאה",
+          description: "לא נמצא טוקן איפוס תקף",
+          variant: "destructive",
+        });
+        setTimeout(() => navigate("/auth"), 2000);
+      }
     }
-
-    setIsFormReady(true);
   }, [resetPasswordForm, navigate, toast]);
 
   async function onResetPasswordSubmit(values: z.infer<typeof resetPasswordSchema>) {
