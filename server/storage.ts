@@ -1715,6 +1715,116 @@ export class DatabaseStorage implements IStorage {
     
     return !!result;
   }
+
+  // Message methods
+  async getMessages(): Promise<Message[]> {
+    const allMessages = await db.select().from(messages)
+      .orderBy(desc(messages.createdAt));
+    
+    return allMessages;
+  }
+
+  async getUserMessages(userId: number): Promise<Message[]> {
+    const userMessages = await db.select().from(messages)
+      .where(eq(messages.userId, userId))
+      .orderBy(desc(messages.createdAt));
+    
+    return userMessages;
+  }
+
+  async getOrderMessages(orderId: number): Promise<Message[]> {
+    const orderMessages = await db.select().from(messages)
+      .where(eq(messages.orderId, orderId))
+      .orderBy(desc(messages.createdAt));
+    
+    return orderMessages;
+  }
+
+  async getUnreadUserMessages(userId: number): Promise<Message[]> {
+    const unreadMessages = await db.select().from(messages)
+      .where(
+        and(
+          eq(messages.userId, userId),
+          eq(messages.isRead, false),
+          eq(messages.isFromAdmin, true)
+        )
+      )
+      .orderBy(desc(messages.createdAt));
+    
+    return unreadMessages;
+  }
+
+  async getUnreadAdminMessages(): Promise<Message[]> {
+    const unreadMessages = await db.select().from(messages)
+      .where(
+        and(
+          eq(messages.isRead, false),
+          eq(messages.isFromAdmin, false)
+        )
+      )
+      .orderBy(desc(messages.createdAt));
+    
+    return unreadMessages;
+  }
+
+  async getMessage(id: number): Promise<Message | undefined> {
+    const [message] = await db.select().from(messages)
+      .where(eq(messages.id, id));
+      
+    if (!message) return undefined;
+    
+    // Find replies
+    const replies = await db.select().from(messages)
+      .where(eq(messages.parentId, id))
+      .orderBy(asc(messages.createdAt));
+    
+    // Get user and order if exists
+    const user = message.userId ? await this.getUser(message.userId) : undefined;
+    const order = message.orderId ? await this.getOrder(message.orderId) : undefined;
+    const parent = message.parentId ? await this.getMessage(message.parentId) : undefined;
+    
+    return {
+      ...message,
+      replies: replies.length > 0 ? replies : undefined,
+      user,
+      order,
+      parent
+    };
+  }
+
+  async createMessage(message: InsertMessage): Promise<Message> {
+    const [newMessage] = await db.insert(messages)
+      .values(message)
+      .returning();
+    
+    return newMessage;
+  }
+
+  async markMessageAsRead(id: number): Promise<boolean> {
+    const result = await db.update(messages)
+      .set({ isRead: true })
+      .where(eq(messages.id, id))
+      .returning();
+    
+    return result.length > 0;
+  }
+
+  async replyToMessage(parentId: number, message: InsertMessage): Promise<Message> {
+    const parentMessage = await this.getMessage(parentId);
+    if (!parentMessage) {
+      throw new Error("Parent message not found");
+    }
+    
+    // Create the reply with the parentId
+    const [newMessage] = await db.insert(messages)
+      .values({
+        ...message,
+        parentId
+      })
+      .returning();
+    
+    return newMessage;
+  }
 }
 
 // Use DatabaseStorage for persistence

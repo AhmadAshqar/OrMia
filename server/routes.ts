@@ -1977,5 +1977,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Messaging system API routes
+  
+  // Get all messages for the current user
+  app.get("/api/messages", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const messages = await storage.getUserMessages(req.user.id);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "שגיאה בטעינת הודעות" });
+    }
+  });
+
+  // Get unread messages count for the current user
+  app.get("/api/messages/unread/count", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const messages = await storage.getUnreadUserMessages(req.user.id);
+      res.json({ count: messages.length });
+    } catch (error) {
+      console.error("Error fetching unread messages count:", error);
+      res.status(500).json({ error: "שגיאה בטעינת מספר הודעות שלא נקראו" });
+    }
+  });
+
+  // Get a specific message by ID
+  app.get("/api/messages/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const messageId = parseInt(req.params.id);
+      const message = await storage.getMessage(messageId);
+      
+      if (!message) {
+        return res.status(404).json({ error: "הודעה לא נמצאה" });
+      }
+      
+      // Check if the message belongs to the current user
+      if (message.userId !== req.user.id && !req.user.role?.includes('admin')) {
+        return res.status(403).json({ error: "אין הרשאה לצפות בהודעה זו" });
+      }
+      
+      res.json(message);
+    } catch (error) {
+      console.error("Error fetching message:", error);
+      res.status(500).json({ error: "שגיאה בטעינת הודעה" });
+    }
+  });
+
+  // Create a new message
+  app.post("/api/messages", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const { subject, content, orderId } = req.body;
+      
+      if (!subject || !content) {
+        return res.status(400).json({ error: "נושא ותוכן נדרשים" });
+      }
+      
+      const message = await storage.createMessage({
+        userId: req.user.id,
+        subject,
+        content,
+        orderId: orderId ? parseInt(orderId) : null,
+        isFromAdmin: req.user.role?.includes('admin') || false,
+        isRead: false
+      });
+      
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error creating message:", error);
+      res.status(500).json({ error: "שגיאה ביצירת הודעה" });
+    }
+  });
+
+  // Reply to a message
+  app.post("/api/messages/:id/reply", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const messageId = parseInt(req.params.id);
+      const { content } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ error: "תוכן נדרש" });
+      }
+      
+      const originalMessage = await storage.getMessage(messageId);
+      if (!originalMessage) {
+        return res.status(404).json({ error: "הודעה לא נמצאה" });
+      }
+      
+      // Check if user has permission to reply
+      const isAdmin = req.user.role?.includes('admin');
+      if (!isAdmin && originalMessage.userId !== req.user.id) {
+        return res.status(403).json({ error: "אין הרשאה להשיב להודעה זו" });
+      }
+      
+      const reply = await storage.replyToMessage(messageId, {
+        userId: req.user.id,
+        subject: `תגובה: ${originalMessage.subject}`,
+        content,
+        orderId: originalMessage.orderId,
+        isFromAdmin: isAdmin,
+        isRead: false
+      });
+      
+      res.status(201).json(reply);
+    } catch (error) {
+      console.error("Error replying to message:", error);
+      res.status(500).json({ error: "שגיאה בשליחת תגובה" });
+    }
+  });
+
+  // Mark a message as read
+  app.patch("/api/messages/:id/read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const messageId = parseInt(req.params.id);
+      const message = await storage.getMessage(messageId);
+      
+      if (!message) {
+        return res.status(404).json({ error: "הודעה לא נמצאה" });
+      }
+      
+      // Check if user can mark this message as read
+      const isAdmin = req.user.role?.includes('admin');
+      if (!isAdmin && message.userId !== req.user.id) {
+        return res.status(403).json({ error: "אין הרשאה לסמן הודעה זו כנקראה" });
+      }
+      
+      const success = await storage.markMessageAsRead(messageId);
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ error: "שגיאה בסימון הודעה כנקראה" });
+      }
+    } catch (error) {
+      console.error("Error marking message as read:", error);
+      res.status(500).json({ error: "שגיאה בסימון הודעה כנקראה" });
+    }
+  });
+
+  // Admin routes for messages
+  
+  // Get all unread messages (admin only)
+  app.get("/api/admin/messages/unread", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.role?.includes('admin')) {
+      return res.status(403).json({ error: "אין הרשאה" });
+    }
+
+    try {
+      const messages = await storage.getUnreadAdminMessages();
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching unread admin messages:", error);
+      res.status(500).json({ error: "שגיאה בטעינת הודעות שלא נקראו" });
+    }
+  });
+
+  // Get all messages related to an order
+  app.get("/api/orders/:orderId/messages", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const order = await storage.getOrder(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: "הזמנה לא נמצאה" });
+      }
+      
+      // Check if user has permission to view order messages
+      const isAdmin = req.user.role?.includes('admin');
+      if (!isAdmin && order.userId !== req.user.id) {
+        return res.status(403).json({ error: "אין הרשאה לצפות בהודעות הזמנה זו" });
+      }
+      
+      const messages = await storage.getOrderMessages(orderId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching order messages:", error);
+      res.status(500).json({ error: "שגיאה בטעינת הודעות הזמנה" });
+    }
+  });
+
   return httpServer;
 }
