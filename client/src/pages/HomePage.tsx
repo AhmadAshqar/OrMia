@@ -148,11 +148,14 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="slide-in">
-              <img 
-                src="https://images.unsplash.com/photo-1584735010574-46eda95709dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" 
-                alt="מויסנייט" 
-                className="w-full rounded-sm shadow-lg"
-              />
+              <div className="relative flex justify-center items-center">
+                <div className="absolute w-full h-full bg-gradient-to-b from-amber-50/10 to-amber-100/20 rounded-full opacity-60 blur-3xl"></div>
+                <img 
+                  src="/images/diamond-gemstone.png" 
+                  alt="מויסנייט" 
+                  className="w-3/4 mx-auto diamond-shine z-10 relative"
+                />
+              </div>
             </div>
             
             <div className="slide-in">
