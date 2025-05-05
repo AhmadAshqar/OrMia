@@ -16,9 +16,9 @@ export default function AboutMoissanite() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="slide-in">
             <img 
-              src="https://images.unsplash.com/photo-1584735010574-46eda95709dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" 
-              alt="מויסנייט" 
-              className="w-full rounded-sm shadow-lg"
+              src="/assets/diamond-gemstone.png" 
+              alt="מויסנייט אור מיה" 
+              className="w-full rounded-sm shadow-lg diamond-shine"
             />
           </div>
           
@@ -29,7 +29,7 @@ export default function AboutMoissanite() {
               מויסנייט הוא אבן חן מרהיבה שנתגלתה לראשונה בשנת 1893 על ידי המדען הצרפתי הנרי מויסן. בעלת נצנוץ ובהירות יוצאי דופן, המויסנייט משלבת יופי ועמידות, ולעתים קרובות נחשבת לאלטרנטיבה אתית ויפהפייה ליהלומים.
             </p>
             <p className="text-[hsl(var(--black-light))] mb-6 leading-relaxed">
-              אצלנו בלוקס מויסנייט, אנו בוחרים רק את אבני המויסנייט באיכות הגבוהה ביותר, המשלבות נצנוץ יוצא דופן עם דירוג צבע וניקיון מעולים. כל תכשיט מעוצב ומיוצר בקפידה כדי להבטיח איכות ועמידות לאורך זמן.
+              אצלנו באור מיה, אנו בוחרים רק את אבני המויסנייט באיכות הגבוהה ביותר, המשלבות נצנוץ יוצא דופן עם דירוג צבע וניקיון מעולים. כל תכשיט מעוצב ומיוצר בקפידה כדי להבטיח איכות ועמידות לאורך זמן.
             </p>
             
             <div className="grid grid-cols-2 gap-4 mb-8">

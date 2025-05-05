@@ -18,7 +18,7 @@ const CartPage = () => {
   const total = cartContext?.total || 0;
 
   useEffect(() => {
-    document.title = `${t("your_cart")} | לוקס מויסנייט`;
+    document.title = `${t("your_cart")} | אור מיה`;
   }, [t]);
 
   return (

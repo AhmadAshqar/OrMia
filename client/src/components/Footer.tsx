@@ -139,7 +139,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-white/50 text-sm mb-4 md:mb-0">© 2023 לוקס מויסנייט. כל הזכויות שמורות.</p>
+          <p className="text-white/50 text-sm mb-4 md:mb-0">© 2023 אור מיה. כל הזכויות שמורות.</p>
           <div className="flex gap-2">
             <img 
               src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" 
