@@ -2058,6 +2058,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isRead: false
       });
       
+      // Broadcast the new message to all clients subscribed to this order
+      if (orderId) {
+        const orderIdNum = parseInt(orderId);
+        broadcastToOrder(orderIdNum, {
+          type: 'new_message',
+          message
+        });
+      }
+      
       res.status(201).json(message);
     } catch (error) {
       console.error("Error creating message:", error);
@@ -2099,6 +2108,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isRead: false
       });
       
+      // Broadcast the new message to all clients subscribed to this order
+      if (originalMessage.orderId) {
+        broadcastToOrder(originalMessage.orderId, {
+          type: 'new_message',
+          message: reply
+        });
+      }
+      
       res.status(201).json(reply);
     } catch (error) {
       console.error("Error replying to message:", error);
@@ -2129,6 +2146,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const success = await storage.markMessageAsRead(messageId);
       
       if (success) {
+        // Broadcast read status to all clients subscribed to this order
+        if (message.orderId) {
+          broadcastToOrder(message.orderId, {
+            type: 'message_read',
+            messageId
+          });
+        }
+        
         res.json({ success: true });
       } else {
         res.status(500).json({ error: "שגיאה בסימון הודעה כנקראה" });

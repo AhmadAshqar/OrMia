@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/use-auth';
 
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import { Loader2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function AdminMessagesPage() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
@@ -25,6 +27,9 @@ export default function AdminMessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<number | string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const websocketRef = useRef<WebSocket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Query to fetch all users
   const { data: users, isLoading: isLoadingUsers } = useQuery({
