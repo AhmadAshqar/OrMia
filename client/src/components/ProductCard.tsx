@@ -122,12 +122,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
         </Link>
         
+        {/* If product is both new and on sale, show badges in different positions */}
         {product.isNew && (
-          <Badge className="absolute top-2 right-2 bg-[hsl(var(--gold))] text-black">חדש</Badge>
+          <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs font-bold py-1 px-3 rounded-full shadow-md transform rotate-[-5deg]">
+            חדש
+          </div>
         )}
         
-        {product.salePrice && (
-          <Badge className="absolute top-2 right-2 bg-[hsl(var(--burgundy))] text-white">מבצע</Badge>
+        {product.salePrice && product.salePrice < product.price && (
+          <div className="absolute top-2 left-2 bg-[hsl(var(--burgundy))] text-white text-xs font-bold py-1 px-3 rounded-full shadow-md transform rotate-[-5deg]">
+            מבצע
+          </div>
         )}
         
         <div 

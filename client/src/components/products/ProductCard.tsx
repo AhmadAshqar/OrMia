@@ -95,15 +95,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
           />
         </Link>
         
+        {/* If product is both new and on sale, show badges in different positions */}
         {product.isNew && (
-          <div className="absolute top-2 right-2 bg-primary text-black text-xs py-1 px-2">
-            {t("new")}
+          <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs font-bold py-1 px-3 rounded-full shadow-md transform rotate-[-5deg]">
+            חדש
           </div>
         )}
         
         {product.salePrice && product.salePrice < product.price && (
-          <div className="absolute top-2 right-2 bg-destructive text-white text-xs py-1 px-2">
-            {t("sale")}
+          <div className="absolute top-2 left-2 bg-destructive text-white text-xs font-bold py-1 px-3 rounded-full shadow-md transform rotate-[-5deg]">
+            מבצע
           </div>
         )}
         
