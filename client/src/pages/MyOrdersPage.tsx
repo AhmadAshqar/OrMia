@@ -306,7 +306,7 @@ const MyOrdersPage = () => {
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-gray-500">סכום כולל:</div>
-                        <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
+                        <div className="font-semibold">₪{(order.total / 100).toLocaleString()}</div>
                       </div>
                     </div>
 
