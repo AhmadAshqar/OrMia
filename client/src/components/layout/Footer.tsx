@@ -32,12 +32,7 @@ const Footer = () => {
     { name: t("contact_footer"), path: "/contact" },
   ];
 
-  const paymentIcons = [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png", alt: "Visa" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png", alt: "Mastercard" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/2560px-PayPal.svg.png", alt: "PayPal" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Payoneer_logo.svg/2560px-Payoneer_logo.svg.png", alt: "Payoneer" },
-  ];
+
 
   return (
     <footer className="bg-black text-white py-12">
@@ -121,18 +116,8 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-white/50 text-sm mb-4 md:mb-0">{t("copyright")}</p>
-          <div className="flex gap-2">
-            {paymentIcons.map((icon, index) => (
-              <img 
-                key={index} 
-                src={icon.src} 
-                alt={icon.alt} 
-                className="h-8 w-auto"
-              />
-            ))}
-          </div>
+        <div className="border-t border-white/10 mt-12 pt-8 flex justify-center">
+          <p className="text-white/50 text-sm">{t("copyright")}</p>
         </div>
       </div>
     </footer>
