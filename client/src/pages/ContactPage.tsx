@@ -110,7 +110,7 @@ const ContactPage = () => {
                     <Phone className="h-5 w-5 text-primary mt-1 ml-3" />
                     <div>
                       <h3 className="font-medium mb-1">טלפון</h3>
-                      <p className="text-foreground/70">03-1234567</p>
+                      <p className="text-foreground/70">054-243-4995</p>
                     </div>
                   </div>
                   
@@ -118,16 +118,7 @@ const ContactPage = () => {
                     <Mail className="h-5 w-5 text-primary mt-1 ml-3" />
                     <div>
                       <h3 className="font-medium mb-1">דוא"ל</h3>
-                      <p className="text-foreground/70">info@luxmoissanite.co.il</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Clock className="h-5 w-5 text-primary mt-1 ml-3" />
-                    <div>
-                      <h3 className="font-medium mb-1">שעות פעילות</h3>
-                      <p className="text-foreground/70">א'-ה': 9:00-19:00</p>
-                      <p className="text-foreground/70">ו': 9:00-14:00</p>
+                      <p className="text-foreground/70">info@edigital-x.com</p>
                     </div>
                   </div>
                 </div>

@@ -322,7 +322,7 @@ const HomePage = () => {
             </a>
             <a href="#" className="block group relative overflow-hidden slide-in">
               <img 
-                src="/assets/Sbe37956e4558475d89b256bcc6e5d8a54.webp"
+                src="/images/Sbe37956e4558475d89b256bcc6e5d8a54.webp"
                 alt={t("instagram_image")}
                 className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
               />
@@ -332,7 +332,7 @@ const HomePage = () => {
             </a>
             <a href="#" className="block group relative overflow-hidden slide-in">
               <img 
-                src="/assets/04d5a7e99691c5490bb1118ad9a6b502.png"
+                src="/images/04d5a7e99691c5490bb1118ad9a6b502.png"
                 alt={t("instagram_image")}
                 className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
               />

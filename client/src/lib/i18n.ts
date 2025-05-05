@@ -101,9 +101,8 @@ const resources = {
       'contact_footer': 'צור קשר',
       'contact_info': 'צור קשר',
       'address': 'רחוב אלנבי 40, תל אביב',
-      'phone': '03-1234567',
-      'email': 'info@ormiajewelry.co.il',
-      'hours': 'א\'-ה\': 9:00-19:00 ו\': 9:00-14:00',
+      'phone': '054-243-4995',
+      'email': 'info@edigital-x.com',
       'copyright': 'כל הזכויות שמורות ל eDigital-X 2024 Ⓒ',
       
       // Cart

@@ -112,10 +112,6 @@ const Footer = () => {
                 <MailIcon className="h-5 w-5 text-primary mt-1 ml-3" />
                 <span className="text-white/70">{t("email")}</span>
               </li>
-              <li className="flex items-start">
-                <ClockIcon className="h-5 w-5 text-primary mt-1 ml-3" />
-                <span className="text-white/70">{t("hours")}</span>
-              </li>
             </ul>
           </div>
         </div>
