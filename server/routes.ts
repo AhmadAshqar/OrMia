@@ -1213,8 +1213,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Generate a unique order number
-      const orderNumber = `OM-${Date.now()}-${randomUUID().substring(0, 4)}`;
+      // Generate a simple numeric order number
+      const timestamp = Date.now().toString().substring(6); // Use only the last part of the timestamp
+      const orderNumber = timestamp;
       
       // Debug the values being passed
       console.log("Checkout values before conversion:", {
