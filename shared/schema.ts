@@ -388,4 +388,49 @@ export const promoCodesRelations = relations(promoCodes, ({ one }) => ({
   }),
 }));
 
+// Define Messages Schema
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  orderId: integer("order_id").references(() => orders.id),
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  isFromAdmin: boolean("is_from_admin").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  parentId: integer("parent_id").references(() => messages.id),
+});
+
+// Define Message Insert Schema
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Define Message Type
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof messages.$inferSelect & {
+  replies?: Message[];
+  user?: User;
+  order?: Order;
+  parent?: Message;
+};
+
+// Define Message Relations
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+  user: one(users, {
+    fields: [messages.userId],
+    references: [users.id],
+  }),
+  order: one(orders, {
+    fields: [messages.orderId],
+    references: [orders.id],
+  }),
+  parent: one(messages, {
+    fields: [messages.parentId],
+    references: [messages.id],
+  }),
+  replies: many(messages, { relationName: "replies" }),
+}));
+
 

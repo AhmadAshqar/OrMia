@@ -11,7 +11,8 @@ import {
   shipping, type Shipping, type InsertShipping,
   favorites, type Favorite, type InsertFavorite,
   passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken,
-  promoCodes, type PromoCode, type InsertPromoCode
+  promoCodes, type PromoCode, type InsertPromoCode,
+  messages, type Message, type InsertMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, sql, isNotNull } from "drizzle-orm";
@@ -128,6 +129,17 @@ export interface IStorage {
   incrementPromoCodeUsage(id: number): Promise<boolean>;
   togglePromoCodeActive(id: number, isActive: boolean): Promise<boolean>;
   deletePromoCode(id: number): Promise<boolean>;
+  
+  // Message methods
+  getMessages(): Promise<Message[]>;
+  getUserMessages(userId: number): Promise<Message[]>;
+  getOrderMessages(orderId: number): Promise<Message[]>;
+  getUnreadUserMessages(userId: number): Promise<Message[]>;
+  getUnreadAdminMessages(): Promise<Message[]>;
+  getMessage(id: number): Promise<Message | undefined>;
+  createMessage(message: InsertMessage): Promise<Message>;
+  markMessageAsRead(id: number): Promise<boolean>;
+  replyToMessage(parentId: number, message: InsertMessage): Promise<Message>;
 }
 
 export class MemStorage implements IStorage {
@@ -140,6 +152,10 @@ export class MemStorage implements IStorage {
   private inventoryItems: Map<number, Inventory>;
   private orders: Map<number, Order>;
   private shippings: Map<number, Shipping>;
+  private messages: Map<number, Message>;
+  private favorites: Map<number, Favorite>;
+  private passwordResetTokens: Map<number, PasswordResetToken>;
+  private promoCodes: Map<number, PromoCode>;
   
   private productId: number = 1;
   private categoryId: number = 1;
@@ -150,6 +166,10 @@ export class MemStorage implements IStorage {
   private inventoryId: number = 1;
   private orderId: number = 1;
   private shippingId: number = 1;
+  private messageId: number = 1;
+  private favoriteId: number = 1;
+  private passwordResetTokenId: number = 1;
+  private promoCodeId: number = 1;
   
   constructor() {
     this.products = new Map();
@@ -161,6 +181,10 @@ export class MemStorage implements IStorage {
     this.inventoryItems = new Map();
     this.orders = new Map();
     this.shippings = new Map();
+    this.messages = new Map();
+    this.favorites = new Map();
+    this.passwordResetTokens = new Map();
+    this.promoCodes = new Map();
     
     // Initialize with seed data
     this.initializeData();
