@@ -77,11 +77,14 @@ export interface IStorage {
   
   // Order methods
   getOrders(): Promise<Order[]>;
+  getUserOrders(userId: number): Promise<Order[]>;
   getOrder(id: number): Promise<Order | undefined>;
   getOrderByNumber(orderNumber: string): Promise<Order | undefined>;
+  getOrderWithShippingDetails(id: number): Promise<Order | undefined>;
   createOrder(order: InsertOrder): Promise<Order>;
   updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined>;
   updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
+  updateOrderShipmentStatus(id: number, shipmentStatus: string): Promise<Order | undefined>;
   deleteOrder(id: number): Promise<boolean>;
   
   // Shipping methods
@@ -1114,11 +1117,47 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(orders.createdAt));
   }
   
+  async getUserOrders(userId: number): Promise<Order[]> {
+    const userOrders = await db.select().from(orders)
+      .where(eq(orders.userId, userId))
+      .orderBy(desc(orders.createdAt));
+    
+    // For each order, fetch its shipping information
+    const ordersWithShipping = await Promise.all(
+      userOrders.map(async (order) => {
+        const shippingInfo = await db.select().from(shipping)
+          .where(eq(shipping.orderId, order.id));
+        
+        return {
+          ...order,
+          shipping: shippingInfo
+        };
+      })
+    );
+    
+    return ordersWithShipping;
+  }
+  
   async getOrder(id: number): Promise<Order | undefined> {
     const [result] = await db.select().from(orders)
       .where(eq(orders.id, id));
       
     return result;
+  }
+  
+  async getOrderWithShippingDetails(id: number): Promise<Order | undefined> {
+    const [orderResult] = await db.select().from(orders)
+      .where(eq(orders.id, id));
+    
+    if (!orderResult) return undefined;
+    
+    const shippingRecords = await db.select().from(shipping)
+      .where(eq(shipping.orderId, id));
+    
+    return {
+      ...orderResult,
+      shipping: shippingRecords
+    };
   }
   
   async getOrderByNumber(orderNumber: string): Promise<Order | undefined> {
