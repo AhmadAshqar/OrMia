@@ -101,10 +101,6 @@ const Footer = () => {
             <h4 className="text-lg font-medium mb-6">{t("contact_info")}</h4>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <MapPinIcon className="h-5 w-5 text-primary mt-1 ml-3" />
-                <span className="text-white/70">{t("address")}</span>
-              </li>
-              <li className="flex items-start">
                 <PhoneIcon className="h-5 w-5 text-primary mt-1 ml-3" />
                 <span className="text-white/70">{t("phone")}</span>
               </li>
