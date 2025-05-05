@@ -107,21 +107,36 @@ export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   orderNumber: text("order_number").notNull().unique(),
-  status: text("status").default("pending").notNull(),
+  status: text("status").default("pending").notNull(), // pending, processing, completed, cancelled, refunded
+  paymentStatus: text("payment_status").default("pending").notNull(), // pending, paid, failed, refunded
+  shipmentStatus: text("shipment_status").default("pending").notNull(), // pending, processing, shipped, delivered, returned
   total: integer("total").notNull(),
+  subtotal: integer("subtotal").notNull(),
+  tax: integer("tax").default(0).notNull(),
+  shippingCost: integer("shipping_cost").default(0).notNull(),
+  discount: integer("discount").default(0),
+  couponCode: text("coupon_code"),
   items: json("items").$type<{
     productId: number;
     productName: string;
     quantity: number;
     price: number;
+    imageUrl: string;
   }[]>(),
   shippingAddress: json("shipping_address").$type<{
+    firstName: string;
+    lastName: string;
     address: string;
+    apartment?: string;
     city: string;
     zipCode: string;
+    country: string;
+    phone: string;
   }>(),
   customerName: text("customer_name").notNull(),
   customerEmail: text("customer_email").notNull(),
+  customerPhone: text("customer_phone"),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -133,13 +148,19 @@ export const shipping = pgTable("shipping", {
   trackingNumber: text("tracking_number").notNull().unique(),
   orderNumber: text("order_number").notNull(),
   customerName: text("customer_name").notNull(),
-  shippingMethod: text("shipping_method").default("standard").notNull(),
-  status: text("status").default("pending").notNull(),
+  carrierName: text("carrier_name").default("Israel Post").notNull(),
+  shippingMethod: text("shipping_method").default("standard").notNull(), // standard, express, same-day
+  status: text("status").default("pending").notNull(), // pending, processing, in-transit, out-for-delivery, delivered, failed, returned
+  currentLocation: text("current_location"),
   address: json("address").$type<{
+    firstName: string;
+    lastName: string;
     address: string;
+    apartment?: string;
     city: string;
     zipCode: string;
     country: string;
+    phone: string;
   }>(),
   history: json("history").$type<{
     status: string;
@@ -148,8 +169,12 @@ export const shipping = pgTable("shipping", {
     notes?: string;
   }[]>(),
   estimatedDelivery: timestamp("estimated_delivery"),
+  actualDelivery: timestamp("actual_delivery"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  signature: boolean("signature").default(false).notNull(),
+  insurance: boolean("insurance").default(false).notNull(),
+  shippingCost: integer("shipping_cost").default(0).notNull(),
 });
 
 // Define User Favorites Schema
@@ -266,10 +291,14 @@ export type Inventory = typeof inventory.$inferSelect & {
 };
 
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
-export type Order = typeof orders.$inferSelect;
+export type Order = typeof orders.$inferSelect & {
+  shipping?: Shipping[];
+};
 
 export type InsertShipping = z.infer<typeof insertShippingSchema>;
-export type Shipping = typeof shipping.$inferSelect;
+export type Shipping = typeof shipping.$inferSelect & {
+  order?: Order;
+};
 
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type Favorite = typeof favorites.$inferSelect & {
@@ -303,6 +332,21 @@ export const favoritesRelations = relations(favorites, ({ one }) => ({
   product: one(products, {
     fields: [favorites.productId],
     references: [products.id],
+  }),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+  shipping: many(shipping),
+}));
+
+export const shippingRelations = relations(shipping, ({ one }) => ({
+  order: one(orders, {
+    fields: [shipping.orderId],
+    references: [orders.id],
   }),
 }));
 
