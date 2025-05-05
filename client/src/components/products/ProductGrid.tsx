@@ -194,28 +194,6 @@ const ProductGrid = ({ category }: ProductGridProps) => {
                 </div>
               </AccordionContent>
             </AccordionItem>
-            
-            <AccordionItem value="category">
-              <AccordionTrigger>{t("category")}</AccordionTrigger>
-              <AccordionContent>
-                <div className="py-2 space-y-3">
-                  {categories.map((cat) => (
-                    <label key={cat.value} className="flex items-center space-x-reverse space-x-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="category"
-                        checked={selectedCategory === cat.value}
-                        onChange={() => setSelectedCategory(cat.value)}
-                        className="ml-3"
-                      />
-                      <span className={cat.value === 'new' ? 'font-bold text-yellow-500' : ''}>
-                        {cat.label}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
           </Accordion>
           
           <div className="mt-6 pt-6 border-t border-gray-200">
