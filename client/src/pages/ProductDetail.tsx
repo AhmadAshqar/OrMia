@@ -69,13 +69,37 @@ export default function ProductDetail() {
     }
   };
 
-  const handleAddToWishlist = () => {
+  const handleAddToWishlist = async () => {
     if (!product) return;
     
-    toast({
-      title: "נוסף לרשימת המשאלות",
-      description: `${product.name} נוסף לרשימת המשאלות בהצלחה.`,
-    });
+    try {
+      await apiRequest('POST', '/api/favorites', { productId: product.id });
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      
+      toast({
+        title: "נוסף למועדפים",
+        description: `${product.name} נוסף למועדפים בהצלחה.`,
+      });
+    } catch (error: any) {
+      if (error.status === 401) {
+        toast({
+          title: "שגיאה",
+          description: "יש להתחבר תחילה כדי להוסיף מוצרים למועדפים.",
+          variant: "destructive",
+        });
+      } else if (error.status === 409) {
+        toast({
+          title: "מוצר כבר נמצא במועדפים",
+          description: `${product.name} כבר נמצא במועדפים שלך.`,
+        });
+      } else {
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בהוספת המוצר למועדפים.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleShare = () => {
