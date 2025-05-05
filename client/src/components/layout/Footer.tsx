@@ -13,13 +13,14 @@ import {
 const Footer = () => {
   const { t } = useTranslation();
 
-  const categories = [
-    { name: t("engagement_rings_footer"), path: "/products/rings" },
-    { name: t("wedding_rings"), path: "/products/rings" },
-    { name: t("necklaces_footer"), path: "/products/necklaces" },
-    { name: t("bracelets_footer"), path: "/products/bracelets" },
-    { name: t("earrings_footer"), path: "/products/earrings" },
-    { name: t("special_collections"), path: "/products/collections" },
+  const navLinks = [
+    { name: "דף הבית", path: "/" },
+    { name: "NEW", path: "/products/new", isHighlighted: true },
+    { name: "טבעות", path: "/products/rings" },
+    { name: "שרשראות", path: "/products/necklaces" },
+    { name: "עגילים", path: "/products/earrings" },
+    { name: "צמידים", path: "/products/bracelets" },
+    { name: "אודות", path: "/about" },
   ];
 
   const information = [
@@ -62,15 +63,18 @@ const Footer = () => {
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-6">{t("categories")}</h4>
+            <h4 className="text-lg font-medium mb-6">{t("navigation")}</h4>
             <ul className="space-y-3">
-              {categories.map((category, index) => (
+              {navLinks.map((link, index) => (
                 <li key={index}>
                   <Link 
-                    href={category.path} 
-                    className="text-white/70 hover:text-primary transition-colors"
+                    href={link.path} 
+                    className={cn(
+                      "text-white/70 hover:text-primary transition-colors",
+                      link.isHighlighted ? "font-bold text-[#FFD700]" : ""
+                    )}
                   >
-                    {category.name}
+                    {link.name}
                   </Link>
                 </li>
               ))}
