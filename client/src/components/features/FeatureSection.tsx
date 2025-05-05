@@ -63,8 +63,8 @@ const FeatureSection = () => {
       
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-serif font-bold mb-4 text-gold-gradient bg-white/95 px-6 py-3 rounded-lg inline-block shadow-sm">למה לבחור באור מיה?</h2>
-          <p className="max-w-2xl mx-auto text-lg text-gray-800 bg-white/95 px-4 py-2 rounded-lg inline-block shadow-sm">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
+          <h2 className="text-4xl font-serif font-bold mb-4 text-gold-gradient bg-white px-6 py-3 rounded-lg inline-block shadow-md border border-primary/20">למה לבחור באור מיה?</h2>
+          <p className="max-w-2xl mx-auto text-lg text-gray-800 bg-white px-4 py-2 rounded-lg inline-block shadow-md border border-primary/20">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map((feature, index) => (
@@ -84,8 +84,8 @@ const FeatureSection = () => {
                   </div>
                 </div>
                 
-                <h3 className="text-2xl font-serif mb-4 text-gold-gradient bg-white/95 px-4 py-2 rounded-lg shadow-sm">{feature.title}</h3>
-                <p className="text-foreground/90 leading-relaxed bg-white/95 px-3 py-2 rounded-lg">{feature.description}</p>
+                <h3 className="text-2xl font-serif mb-4 text-gold-gradient bg-white px-4 py-2 rounded-lg shadow-sm border border-primary/10">{feature.title}</h3>
+                <p className="text-foreground/90 leading-relaxed bg-white px-3 py-2 rounded-lg shadow-sm">{feature.description}</p>
               </div>
             </div>
           ))}
