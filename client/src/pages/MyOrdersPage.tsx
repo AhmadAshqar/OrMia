@@ -11,6 +11,7 @@ import { ShoppingBag, Truck, Package, CheckCircle, XCircle, AlertCircle, Clock, 
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import MainLayout from "@/components/layout/MainLayout";
 
 // Helper functions to format data
 const formatDate = (dateString: string) => {
@@ -133,7 +134,7 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
           </div>
           <div>
             <p className="text-gray-500 mb-1">חברת שליחות:</p>
-            <p className="font-medium">{shipping?.carrier || "לא צוין"}</p>
+            <p className="font-medium">{shipping?.carrierName || "לא צוין"}</p>
           </div>
           {shipping?.estimatedDelivery && (
             <div>
@@ -221,8 +222,10 @@ const MyOrdersPage = () => {
     return null; // Render nothing while redirecting
   }
 
+  let content;
+  
   if (isLoading) {
-    return (
+    content = (
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
         <div className="space-y-4">
@@ -232,15 +235,14 @@ const MyOrdersPage = () => {
         </div>
       </div>
     );
-  }
-
-  if (error) {
+  } else if (error) {
     toast({
       variant: "destructive",
       title: "שגיאה בטעינת ההזמנות",
       description: error instanceof Error ? error.message : "אירעה שגיאה. אנא נסה שוב מאוחר יותר."
     });
-    return (
+    
+    content = (
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
         <div className="text-center py-12">
@@ -251,10 +253,8 @@ const MyOrdersPage = () => {
         </div>
       </div>
     );
-  }
-
-  if (orders?.length === 0) {
-    return (
+  } else if (orders?.length === 0) {
+    content = (
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
@@ -267,251 +267,257 @@ const MyOrdersPage = () => {
         </div>
       </div>
     );
+  } else {
+    content = (
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
+        
+        <Tabs defaultValue="all" className="w-full">
+          <div className="flex justify-end mb-4">
+            <TabsList>
+              <TabsTrigger value="all">כל ההזמנות</TabsTrigger>
+              <TabsTrigger value="active">בתהליך</TabsTrigger>
+              <TabsTrigger value="completed">הושלמו</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="all" className="mt-0">
+            <div className="space-y-4">
+              {orders.map((order: any) => (
+                <Card key={order.id} className="overflow-hidden transition-all">
+                  <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
+                    <div className="text-right">
+                      <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
+                      <CardDescription>{formatDate(order.createdAt)}</CardDescription>
+                    </div>
+                    <Badge 
+                      className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                      variant="outline"
+                    >
+                      {shippingStatusMap[order.shipmentStatus || "default"].icon}
+                      {shippingStatusMap[order.shipmentStatus || "default"].text}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="p-5 pt-0">
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <ClipboardList className="mr-1 h-4 w-4" />
+                        <span>{order.items?.length || 0} פריטים</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-gray-500">סכום כולל:</div>
+                        <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
+                      </div>
+                    </div>
+
+                    <Accordion 
+                      type="single" 
+                      collapsible 
+                      className="w-full"
+                      value={selectedOrderId === order.id ? "item-1" : undefined}
+                      onValueChange={(value) => setSelectedOrderId(value === "item-1" ? order.id : null)}
+                    >
+                      <AccordionItem value="item-1" className="border-0">
+                        <AccordionTrigger className="pt-4 pb-0">
+                          <span className="text-primary text-sm">
+                            {selectedOrderId === order.id ? "הסתר פרטים" : "הצג פרטים"}
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4">
+                          <OrderDetail orderId={order.id} />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </CardContent>
+                  <Separator />
+                  <CardFooter className="p-4 flex justify-between bg-gray-50">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/support/order/${order.id}`} className="flex items-center">
+                        צור קשר בנוגע להזמנה
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <div className="flex items-center">
+                      <Button variant="outline" size="sm" className="mr-2" asChild>
+                        <Link href={`/account/orders/${order.id}`}>
+                          פרטים מלאים
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="active" className="mt-0">
+            <div className="space-y-4">
+              {orders
+                .filter((order: any) => 
+                  ["pending", "processing", "shipped"].includes(order.shipmentStatus))
+                .map((order: any) => (
+                  <Card key={order.id} className="overflow-hidden transition-all">
+                    <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
+                      <div className="text-right">
+                        <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
+                        <CardDescription>{formatDate(order.createdAt)}</CardDescription>
+                      </div>
+                      <Badge 
+                        className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                        variant="outline"
+                      >
+                        {shippingStatusMap[order.shipmentStatus || "default"].icon}
+                        {shippingStatusMap[order.shipmentStatus || "default"].text}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-0">
+                      <div className="flex justify-between items-center mt-4">
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <ClipboardList className="mr-1 h-4 w-4" />
+                          <span>{order.items?.length || 0} פריטים</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">סכום כולל:</div>
+                          <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      <Accordion 
+                        type="single" 
+                        collapsible 
+                        className="w-full"
+                        value={selectedOrderId === order.id ? "item-1" : undefined}
+                        onValueChange={(value) => setSelectedOrderId(value === "item-1" ? order.id : null)}
+                      >
+                        <AccordionItem value="item-1" className="border-0">
+                          <AccordionTrigger className="pt-4 pb-0">
+                            <span className="text-primary text-sm">
+                              {selectedOrderId === order.id ? "הסתר פרטים" : "הצג פרטים"}
+                            </span>
+                          </AccordionTrigger>
+                          <AccordionContent className="pt-4">
+                            <OrderDetail orderId={order.id} />
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </CardContent>
+                    <Separator />
+                    <CardFooter className="p-4 flex justify-between bg-gray-50">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/support/order/${order.id}`} className="flex items-center">
+                          צור קשר בנוגע להזמנה
+                          <ChevronRight className="ml-1 h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <div className="flex items-center">
+                        <Button variant="outline" size="sm" className="mr-2" asChild>
+                          <Link href={`/account/orders/${order.id}`}>
+                            פרטים מלאים
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+                {orders.filter((order: any) => 
+                  ["pending", "processing", "shipped"].includes(order.shipmentStatus)).length === 0 && (
+                  <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
+                    <CheckCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h2 className="text-xl font-semibold mb-2">אין הזמנות פעילות</h2>
+                    <p className="text-gray-600">כל ההזמנות שלך הושלמו או בוטלו</p>
+                  </div>
+                )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="completed" className="mt-0">
+            <div className="space-y-4">
+              {orders
+                .filter((order: any) => 
+                  ["delivered", "cancelled"].includes(order.shipmentStatus))
+                .map((order: any) => (
+                  <Card key={order.id} className="overflow-hidden transition-all">
+                    <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
+                      <div className="text-right">
+                        <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
+                        <CardDescription>{formatDate(order.createdAt)}</CardDescription>
+                      </div>
+                      <Badge 
+                        className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                        variant="outline"
+                      >
+                        {shippingStatusMap[order.shipmentStatus || "default"].icon}
+                        {shippingStatusMap[order.shipmentStatus || "default"].text}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-0">
+                      <div className="flex justify-between items-center mt-4">
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <ClipboardList className="mr-1 h-4 w-4" />
+                          <span>{order.items?.length || 0} פריטים</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">סכום כולל:</div>
+                          <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
+                        </div>
+                      </div>
+
+                      <Accordion 
+                        type="single" 
+                        collapsible 
+                        className="w-full"
+                        value={selectedOrderId === order.id ? "item-1" : undefined}
+                        onValueChange={(value) => setSelectedOrderId(value === "item-1" ? order.id : null)}
+                      >
+                        <AccordionItem value="item-1" className="border-0">
+                          <AccordionTrigger className="pt-4 pb-0">
+                            <span className="text-primary text-sm">
+                              {selectedOrderId === order.id ? "הסתר פרטים" : "הצג פרטים"}
+                            </span>
+                          </AccordionTrigger>
+                          <AccordionContent className="pt-4">
+                            <OrderDetail orderId={order.id} />
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </CardContent>
+                    <Separator />
+                    <CardFooter className="p-4 flex justify-between bg-gray-50">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/support/order/${order.id}`} className="flex items-center">
+                          צור קשר בנוגע להזמנה
+                          <ChevronRight className="ml-1 h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <div className="flex items-center">
+                        <Button variant="outline" size="sm" className="mr-2" asChild>
+                          <Link href={`/account/orders/${order.id}`}>
+                            פרטים מלאים
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+                {orders.filter((order: any) => 
+                  ["delivered", "cancelled"].includes(order.shipmentStatus)).length === 0 && (
+                  <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
+                    <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h2 className="text-xl font-semibold mb-2">אין הזמנות שהושלמו</h2>
+                    <p className="text-gray-600">ההזמנות שלך עדיין בטיפול או במשלוח</p>
+                  </div>
+                )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
-      
-      <Tabs defaultValue="all" className="w-full">
-        <div className="flex justify-end mb-4">
-          <TabsList>
-            <TabsTrigger value="all">כל ההזמנות</TabsTrigger>
-            <TabsTrigger value="active">בתהליך</TabsTrigger>
-            <TabsTrigger value="completed">הושלמו</TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <TabsContent value="all" className="mt-0">
-          <div className="space-y-4">
-            {orders.map((order: any) => (
-              <Card key={order.id} className="overflow-hidden transition-all">
-                <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
-                  <div className="text-right">
-                    <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
-                    <CardDescription>{formatDate(order.createdAt)}</CardDescription>
-                  </div>
-                  <Badge 
-                    className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
-                    variant="outline"
-                  >
-                    {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                    {shippingStatusMap[order.shipmentStatus || "default"].text}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="p-5 pt-0">
-                  <div className="flex justify-between items-center mt-4">
-                    <div className="flex items-center text-gray-500 text-sm">
-                      <ClipboardList className="mr-1 h-4 w-4" />
-                      <span>{order.items?.length || 0} פריטים</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">סכום כולל:</div>
-                      <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
-                    </div>
-                  </div>
-
-                  <Accordion 
-                    type="single" 
-                    collapsible 
-                    className="w-full"
-                    value={selectedOrderId === order.id ? "item-1" : undefined}
-                    onValueChange={(value) => setSelectedOrderId(value === "item-1" ? order.id : null)}
-                  >
-                    <AccordionItem value="item-1" className="border-0">
-                      <AccordionTrigger className="pt-4 pb-0">
-                        <span className="text-primary text-sm">
-                          {selectedOrderId === order.id ? "הסתר פרטים" : "הצג פרטים"}
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-4">
-                        <OrderDetail orderId={order.id} />
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
-                <Separator />
-                <CardFooter className="p-4 flex justify-between bg-gray-50">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/support/order/${order.id}`} className="flex items-center">
-                      צור קשר בנוגע להזמנה
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <div className="flex items-center">
-                    <Button variant="outline" size="sm" className="mr-2" asChild>
-                      <Link href={`/account/orders/${order.id}`}>
-                        פרטים מלאים
-                      </Link>
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="active" className="mt-0">
-          <div className="space-y-4">
-            {orders
-              .filter((order: any) => 
-                ["pending", "processing", "shipped"].includes(order.shipmentStatus))
-              .map((order: any) => (
-                <Card key={order.id} className="overflow-hidden transition-all">
-                  <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
-                    <div className="text-right">
-                      <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
-                      <CardDescription>{formatDate(order.createdAt)}</CardDescription>
-                    </div>
-                    <Badge 
-                      className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
-                      variant="outline"
-                    >
-                      {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                      {shippingStatusMap[order.shipmentStatus || "default"].text}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="p-5 pt-0">
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="flex items-center text-gray-500 text-sm">
-                        <ClipboardList className="mr-1 h-4 w-4" />
-                        <span>{order.items?.length || 0} פריטים</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-gray-500">סכום כולל:</div>
-                        <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
-                      </div>
-                    </div>
-
-                    <Accordion 
-                      type="single" 
-                      collapsible 
-                      className="w-full"
-                      value={selectedOrderId === order.id ? "item-1" : undefined}
-                      onValueChange={(value) => setSelectedOrderId(value === "item-1" ? order.id : null)}
-                    >
-                      <AccordionItem value="item-1" className="border-0">
-                        <AccordionTrigger className="pt-4 pb-0">
-                          <span className="text-primary text-sm">
-                            {selectedOrderId === order.id ? "הסתר פרטים" : "הצג פרטים"}
-                          </span>
-                        </AccordionTrigger>
-                        <AccordionContent className="pt-4">
-                          <OrderDetail orderId={order.id} />
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </CardContent>
-                  <Separator />
-                  <CardFooter className="p-4 flex justify-between bg-gray-50">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/support/order/${order.id}`} className="flex items-center">
-                        צור קשר בנוגע להזמנה
-                        <ChevronRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <div className="flex items-center">
-                      <Button variant="outline" size="sm" className="mr-2" asChild>
-                        <Link href={`/account/orders/${order.id}`}>
-                          פרטים מלאים
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-              {orders.filter((order: any) => 
-                ["pending", "processing", "shipped"].includes(order.shipmentStatus)).length === 0 && (
-                <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
-                  <CheckCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">אין הזמנות פעילות</h2>
-                  <p className="text-gray-600">כל ההזמנות שלך הושלמו או בוטלו</p>
-                </div>
-              )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="completed" className="mt-0">
-          <div className="space-y-4">
-            {orders
-              .filter((order: any) => 
-                ["delivered", "cancelled"].includes(order.shipmentStatus))
-              .map((order: any) => (
-                <Card key={order.id} className="overflow-hidden transition-all">
-                  <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
-                    <div className="text-right">
-                      <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
-                      <CardDescription>{formatDate(order.createdAt)}</CardDescription>
-                    </div>
-                    <Badge 
-                      className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
-                      variant="outline"
-                    >
-                      {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                      {shippingStatusMap[order.shipmentStatus || "default"].text}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="p-5 pt-0">
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="flex items-center text-gray-500 text-sm">
-                        <ClipboardList className="mr-1 h-4 w-4" />
-                        <span>{order.items?.length || 0} פריטים</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-gray-500">סכום כולל:</div>
-                        <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
-                      </div>
-                    </div>
-
-                    <Accordion 
-                      type="single" 
-                      collapsible 
-                      className="w-full"
-                      value={selectedOrderId === order.id ? "item-1" : undefined}
-                      onValueChange={(value) => setSelectedOrderId(value === "item-1" ? order.id : null)}
-                    >
-                      <AccordionItem value="item-1" className="border-0">
-                        <AccordionTrigger className="pt-4 pb-0">
-                          <span className="text-primary text-sm">
-                            {selectedOrderId === order.id ? "הסתר פרטים" : "הצג פרטים"}
-                          </span>
-                        </AccordionTrigger>
-                        <AccordionContent className="pt-4">
-                          <OrderDetail orderId={order.id} />
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </CardContent>
-                  <Separator />
-                  <CardFooter className="p-4 flex justify-between bg-gray-50">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/support/order/${order.id}`} className="flex items-center">
-                        צור קשר בנוגע להזמנה
-                        <ChevronRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <div className="flex items-center">
-                      <Button variant="outline" size="sm" className="mr-2" asChild>
-                        <Link href={`/account/orders/${order.id}`}>
-                          פרטים מלאים
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-              {orders.filter((order: any) => 
-                ["delivered", "cancelled"].includes(order.shipmentStatus)).length === 0 && (
-                <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
-                  <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">אין הזמנות שהושלמו</h2>
-                  <p className="text-gray-600">ההזמנות שלך עדיין בטיפול או במשלוח</p>
-                </div>
-              )}
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+    <MainLayout>
+      {content}
+    </MainLayout>
   );
 };
 
