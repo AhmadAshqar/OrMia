@@ -35,39 +35,50 @@ export default function AuthPage() {
   const [isFormReady, setIsFormReady] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
-  // Get URL parameters for reset token and mode
-  const searchParams = new URLSearchParams(window.location.search);
-  const mode = searchParams.get("mode");
-  const resetToken = searchParams.get("reset");
-  const defaultTab = mode === "register" ? "register" : "login";
-  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(!!resetToken);
-
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [defaultTab, setDefaultTab] = useState("login");
+  
+  // Initialize the reset password form
   const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      token: resetToken || "",
+      token: "",
       password: "",
       confirmPassword: "",
     },
   });
   
-  // Effect to handle form initialization
+  // Effect to handle URL parameters and form initialization
   useEffect(() => {
     // Delay form initialization to improve initial page load
     const timer = setTimeout(() => {
       setIsFormReady(true);
+      
+      // Get URL parameters after component has mounted
+      const searchParams = new URLSearchParams(window.location.search);
+      const modeParam = searchParams.get("mode");
+      const resetTokenParam = searchParams.get("reset");
+      
+      console.log("URL search params:", window.location.search);
+      console.log("Reset token detected:", resetTokenParam);
+      
+      // Set mode for tabs
+      if (modeParam === "register") {
+        setDefaultTab("register");
+      }
+      
+      // Handle reset token if present
+      if (resetTokenParam) {
+        console.log("Setting reset token and opening dialog");
+        setResetToken(resetTokenParam);
+        resetPasswordForm.setValue("token", resetTokenParam);
+        setIsResetPasswordOpen(true);
+      }
     }, 100);
     
     return () => clearTimeout(timer);
   }, []);
-  
-  // Effect to handle reset token
-  useEffect(() => {
-    if (resetToken) {
-      resetPasswordForm.setValue("token", resetToken);
-      setIsResetPasswordOpen(true);
-    }
-  }, [resetToken, resetPasswordForm]);
   
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
