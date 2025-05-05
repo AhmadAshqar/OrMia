@@ -17,6 +17,8 @@ import { setupAuth, ensureAuthenticated, ensureAdmin, hashPassword } from "./aut
 import { generatePasswordResetToken, sendPasswordResetEmail } from "./email";
 import { z } from "zod";
 
+import { randomUUID } from "crypto";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes and middleware
   setupAuth(app);
