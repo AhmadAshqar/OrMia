@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,27 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingBag, Truck, Package, CheckCircle, XCircle, AlertCircle, Clock, Calendar, ClipboardList, ChevronRight } from "lucide-react";
+import { 
+  ShoppingBag, 
+  Truck, 
+  Package, 
+  CheckCircle, 
+  XCircle, 
+  AlertCircle, 
+  Clock, 
+  Calendar, 
+  ClipboardList, 
+  ChevronRight,
+  Loader2
+} from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import MainLayout from "@/components/layout/MainLayout";
+import { apiRequest } from "@/lib/queryClient";
 
 // Helper functions to format data
 const formatDate = (dateString: string) => {
@@ -226,7 +242,65 @@ const MyOrdersPage = () => {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [orderMessageForm, setOrderMessageForm] = useState({
+    subject: '',
+    content: ''
+  });
+  const [orderMessageSubmitting, setOrderMessageSubmitting] = useState(false);
+
+  // Mutation to send messages about an order
+  const createMessageMutation = useMutation({
+    mutationFn: async ({ orderId, subject, content }: { orderId: number; subject: string; content: string }) => {
+      const response = await apiRequest('POST', '/api/messages', { orderId, subject, content });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+      toast({
+        title: 'הודעה נשלחה',
+        description: 'ההודעה שלך נשלחה בהצלחה'
+      });
+      setOrderMessageForm({
+        subject: '',
+        content: ''
+      });
+      setOrderMessageSubmitting(false);
+    },
+    onError: (error) => {
+      console.error('Error sending message:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן לשלוח את ההודעה',
+        variant: 'destructive'
+      });
+      setOrderMessageSubmitting(false);
+    }
+  });
+
+  // Handle order message submission
+  const handleOrderMessageSubmit = (e: React.FormEvent, orderId: number) => {
+    e.preventDefault();
+    setOrderMessageSubmitting(true);
+    
+    if (!orderMessageForm.subject.trim() || !orderMessageForm.content.trim()) {
+      toast({
+        title: 'שגיאה',
+        description: 'יש להזין נושא ותוכן להודעה',
+        variant: 'destructive'
+      });
+      setOrderMessageSubmitting(false);
+      return;
+    }
+    
+    createMessageMutation.mutate({
+      orderId,
+      subject: orderMessageForm.subject,
+      content: orderMessageForm.content
+    });
+  };
 
   const { data: orders, isLoading, error } = useQuery({
     queryKey: ["/api/user/orders"],
@@ -371,12 +445,67 @@ const MyOrdersPage = () => {
                   </CardContent>
                   <Separator />
                   <CardFooter className="p-4 flex justify-between bg-gray-50">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/support/order/${order.id}`} className="flex items-center">
-                        צור קשר בנוגע להזמנה
-                        <ChevronRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="flex items-center">
+                          צור קשר בנוגע להזמנה
+                          <ChevronRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>פנייה בנוגע להזמנה #{order.orderNumber}</DialogTitle>
+                          <DialogDescription>שליחת הודעה לצוות אור מיה בנוגע להזמנה זו</DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={(e) => handleOrderMessageSubmit(e, order.id)}>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                נושא
+                              </label>
+                              <Input
+                                value={orderMessageForm.subject}
+                                onChange={(e) => setOrderMessageForm({
+                                  ...orderMessageForm,
+                                  subject: e.target.value
+                                })}
+                                dir="rtl"
+                                className="w-full"
+                                placeholder="נושא ההודעה"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                תוכן ההודעה
+                              </label>
+                              <Textarea
+                                value={orderMessageForm.content}
+                                onChange={(e) => setOrderMessageForm({
+                                  ...orderMessageForm,
+                                  content: e.target.value
+                                })}
+                                dir="rtl"
+                                className="w-full"
+                                placeholder="תוכן ההודעה"
+                                rows={5}
+                              />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button type="submit" disabled={orderMessageSubmitting}>
+                              {orderMessageSubmitting ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  שולח...
+                                </>
+                              ) : (
+                                'שלח הודעה'
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
 
                   </CardFooter>
                 </Card>
