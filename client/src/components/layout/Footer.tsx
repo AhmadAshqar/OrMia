@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { 
   FacebookIcon, 
@@ -63,21 +63,25 @@ const Footer = () => {
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-6">{t("navigation")}</h4>
-            <ul className="space-y-3">
-              {navLinks.map((link, index) => (
-                <li key={index}>
-                  <Link 
-                    href={link.path} 
-                    className={cn(
-                      "text-white/70 hover:text-primary transition-colors",
-                      link.isHighlighted ? "font-bold text-[#FFD700]" : ""
-                    )}
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
+            <ul className="space-y-3 mt-6">
+              {navLinks.map((link, index) => {
+                const [location] = useLocation();
+                const isActive = location === link.path;
+                return (
+                  <li key={index}>
+                    <Link 
+                      href={link.path} 
+                      className={cn(
+                        "text-white/70 hover:text-primary transition-colors",
+                        link.isHighlighted ? "font-bold text-[#FFD700]" : "",
+                        isActive ? "font-bold" : ""
+                      )}
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
           
