@@ -299,16 +299,21 @@ export default function AdminMessagesPage() {
     // If the message has an orderId, mark any Firebase messages for this order as read
     if (message.orderId) {
       // Filter for Firebase messages for this order
-      const orderMessages = firebaseMessages.filter(msg => 
+      const unreadMessages = firebaseMessages.filter(msg => 
         msg.orderId === message.orderId && !msg.isAdmin && !msg.isRead
       );
       
-      // Mark unread messages as read
-      orderMessages.forEach(async (msg) => {
-        if (msg.id) {
-          await markMessageAsRead(msg.id);
+      // Use batch update to mark all unread messages as read at once
+      if (unreadMessages.length > 0) {
+        const messageIds = unreadMessages
+          .filter(msg => msg.id)
+          .map(msg => msg.id as string);
+        
+        if (messageIds.length > 0) {
+          markMessageAsRead(messageIds)
+            .catch(error => console.error("Error marking messages as read:", error));
         }
-      });
+      }
     }
   };
 
@@ -361,9 +366,14 @@ export default function AdminMessagesPage() {
             msg.orderId === selectedMessage.orderId && !msg.isAdmin && !msg.isRead
           );
           
-          for (const msg of unreadUserMessages) {
-            if (msg.id) {
-              await markMessageAsRead(msg.id);
+          // Use batch update to mark all unread messages as read at once
+          if (unreadUserMessages.length > 0) {
+            const messageIds = unreadUserMessages
+              .filter(msg => msg.id)
+              .map(msg => msg.id as string);
+            
+            if (messageIds.length > 0) {
+              await markMessageAsRead(messageIds);
             }
           }
         }

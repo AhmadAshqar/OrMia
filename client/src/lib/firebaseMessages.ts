@@ -9,7 +9,8 @@ import {
   onSnapshot,
   serverTimestamp,
   updateDoc,
-  doc
+  doc,
+  writeBatch
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -107,7 +108,7 @@ export async function markMessageAsRead(messageId: string | string[]) {
   try {
     if (Array.isArray(messageId)) {
       // Batch update for multiple messages
-      const batch = db.batch();
+      const batch = writeBatch(db);
       messageId.forEach((id) => {
         const messageRef = doc(db, MESSAGES_COLLECTION, id);
         batch.update(messageRef, { isRead: true });
