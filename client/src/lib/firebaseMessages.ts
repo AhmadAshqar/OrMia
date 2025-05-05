@@ -103,13 +103,25 @@ export function getAllMessages(callback: (messages: FirebaseMessage[]) => void) 
 }
 
 // Mark a message as read
-export async function markMessageAsRead(messageId: string) {
+export async function markMessageAsRead(messageId: string | string[]) {
   try {
-    const messageRef = doc(db, MESSAGES_COLLECTION, messageId);
-    await updateDoc(messageRef, {
-      isRead: true
-    });
-    return true;
+    if (Array.isArray(messageId)) {
+      // Batch update for multiple messages
+      const batch = db.batch();
+      messageId.forEach((id) => {
+        const messageRef = doc(db, MESSAGES_COLLECTION, id);
+        batch.update(messageRef, { isRead: true });
+      });
+      await batch.commit();
+      return true;
+    } else {
+      // Single message update
+      const messageRef = doc(db, MESSAGES_COLLECTION, messageId);
+      await updateDoc(messageRef, {
+        isRead: true
+      });
+      return true;
+    }
   } catch (error) {
     console.error('Error marking message as read:', error);
     throw error;
