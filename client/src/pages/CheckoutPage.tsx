@@ -762,10 +762,11 @@ const CheckoutPage = () => {
                     </CardHeader>
                     <CardContent className="dir-rtl">
                       <Tabs defaultValue="credit-card" className="w-full" onValueChange={setPaymentMethod}>
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className="grid w-full grid-cols-4">
                           <TabsTrigger value="credit-card">{t("credit_card")}</TabsTrigger>
                           <TabsTrigger value="paypal">{t("paypal")}</TabsTrigger>
                           <TabsTrigger value="bit">{t("bit")}</TabsTrigger>
+                          <TabsTrigger value="cash">מזומן</TabsTrigger>
                         </TabsList>
                         <TabsContent value="credit-card" className="space-y-4 pt-4 dir-rtl text-right">
                           <FormField
