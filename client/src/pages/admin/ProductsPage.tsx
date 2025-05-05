@@ -561,7 +561,12 @@ export default function ProductsPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="placeholder">בחר קטגוריה</SelectItem>
-                          {categories?.map((category) => (
+                          {categories?.filter(category => 
+                            // Filter for only main categories: Rings, Necklaces, Earrings
+                            category.slug === 'rings' || 
+                            category.slug === 'necklaces' || 
+                            category.slug === 'earrings'
+                          ).map((category) => (
                             <SelectItem key={category.id} value={category.id.toString()}>
                               {category.name}
                             </SelectItem>
@@ -717,7 +722,10 @@ export default function ProductsPage() {
               <TabsContent value="settings" className="space-y-4">
                 <div className="grid gap-4">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="inStock" className="cursor-pointer">זמין במלאי</Label>
+                    <div>
+                      <Label htmlFor="inStock" className="cursor-pointer">זמין במלאי</Label>
+                      <p className="text-xs text-muted-foreground">סימון האם המוצר זמין למכירה כרגע</p>
+                    </div>
                     <Switch
                       id="inStock"
                       checked={formState.inStock || false}
@@ -726,7 +734,10 @@ export default function ProductsPage() {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="isNew" className="cursor-pointer">מוצר חדש</Label>
+                    <div>
+                      <Label htmlFor="isNew" className="cursor-pointer">מוצר חדש</Label>
+                      <p className="text-xs text-muted-foreground">סימון מוצר כחדש יציג אותו בקטגוריית NEW</p>
+                    </div>
                     <Switch
                       id="isNew"
                       checked={formState.isNew || false}
@@ -735,7 +746,10 @@ export default function ProductsPage() {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="isFeatured" className="cursor-pointer">הצג בדף הראשי</Label>
+                    <div>
+                      <Label htmlFor="isFeatured" className="cursor-pointer">הצג בדף הראשי</Label>
+                      <p className="text-xs text-muted-foreground">סימון מוצר כמודגש יציג אותו בדף הבית</p>
+                    </div>
                     <Switch
                       id="isFeatured"
                       checked={formState.isFeatured || false}
