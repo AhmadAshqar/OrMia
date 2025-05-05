@@ -14,7 +14,7 @@ import {
   promoCodes, type PromoCode, type InsertPromoCode
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, or, sql, isNotNull } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -1485,6 +1485,130 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.update(passwordResetTokens)
       .set({ usedAt: new Date() })
       .where(eq(passwordResetTokens.id, id))
+      .returning();
+    
+    return !!result;
+  }
+
+  // Promo code methods
+  async getPromoCodes(): Promise<PromoCode[]> {
+    return db.select()
+      .from(promoCodes)
+      .orderBy(desc(promoCodes.createdAt));
+  }
+
+  async getActivePromoCodes(): Promise<PromoCode[]> {
+    const now = new Date();
+    return db.select()
+      .from(promoCodes)
+      .where(
+        and(
+          eq(promoCodes.isActive, true),
+          or(
+            eq(promoCodes.startDate, null),
+            sql`${promoCodes.startDate} <= ${now}`
+          ),
+          or(
+            eq(promoCodes.endDate, null),
+            sql`${promoCodes.endDate} >= ${now}`
+          ),
+          or(
+            eq(promoCodes.maxUses, null),
+            sql`${promoCodes.usedCount} < ${promoCodes.maxUses}`
+          )
+        )
+      )
+      .orderBy(asc(promoCodes.code));
+  }
+
+  async getPromoCode(id: number): Promise<PromoCode | undefined> {
+    const [promoCode] = await db.select()
+      .from(promoCodes)
+      .where(eq(promoCodes.id, id));
+    
+    if (!promoCode) return undefined;
+    
+    // Check if there's a related admin
+    let adminInfo = null;
+    if (promoCode.createdBy) {
+      const [admin] = await db.select({
+        id: admins.id,
+        username: admins.username
+      })
+      .from(admins)
+      .where(eq(admins.id, promoCode.createdBy));
+      
+      if (admin) {
+        adminInfo = admin;
+      }
+    }
+    
+    return {
+      ...promoCode,
+      createdByAdmin: adminInfo
+    };
+  }
+
+  async getPromoCodeByCode(code: string): Promise<PromoCode | undefined> {
+    const [promoCode] = await db.select()
+      .from(promoCodes)
+      .where(eq(promoCodes.code, code));
+    
+    return promoCode;
+  }
+
+  async createPromoCode(promoCode: InsertPromoCode): Promise<PromoCode> {
+    const [newPromoCode] = await db.insert(promoCodes)
+      .values({
+        ...promoCode,
+        usedCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return newPromoCode;
+  }
+
+  async updatePromoCode(id: number, promoCode: Partial<InsertPromoCode>): Promise<PromoCode | undefined> {
+    const [updatedPromoCode] = await db.update(promoCodes)
+      .set({
+        ...promoCode,
+        updatedAt: new Date()
+      })
+      .where(eq(promoCodes.id, id))
+      .returning();
+    
+    return updatedPromoCode;
+  }
+
+  async incrementPromoCodeUsage(id: number): Promise<boolean> {
+    const [result] = await db.update(promoCodes)
+      .set({ 
+        usedCount: sql`${promoCodes.usedCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(promoCodes.id, id))
+      .returning();
+    
+    return !!result;
+  }
+
+  async togglePromoCodeActive(id: number, isActive: boolean): Promise<boolean> {
+    const [result] = await db.update(promoCodes)
+      .set({ 
+        isActive,
+        updatedAt: new Date()
+      })
+      .where(eq(promoCodes.id, id))
+      .returning();
+    
+    return !!result;
+  }
+
+  async deletePromoCode(id: number): Promise<boolean> {
+    const [result] = await db.delete(promoCodes)
+      .where(eq(promoCodes.id, id))
       .returning();
     
     return !!result;
