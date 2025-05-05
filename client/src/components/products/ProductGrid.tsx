@@ -180,7 +180,7 @@ const ProductGrid = ({ category }: ProductGridProps) => {
                 <div className="py-4">
                   <div className="flex flex-row-reverse gap-4 mb-4 items-center">
                     <div className="flex-1">
-                      <label className="text-sm mb-1 block">{t("min_price")}</label>
+                      <label className="text-sm mb-1 block">מ</label>
                       <input 
                         type="number" 
                         min="0" 
@@ -191,7 +191,7 @@ const ProductGrid = ({ category }: ProductGridProps) => {
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="text-sm mb-1 block">{t("max_price")}</label>
+                      <label className="text-sm mb-1 block">עד</label>
                       <input 
                         type="number" 
                         min={priceRange[0]} 
