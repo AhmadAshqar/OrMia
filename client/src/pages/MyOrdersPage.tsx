@@ -17,13 +17,13 @@ import MainLayout from "@/components/layout/MainLayout";
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toLocaleDateString("he-IL", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  
+  // Format: DD/MM/YYYY
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year}`;
 };
 
 // Status mapping for displaying the current shipping status
