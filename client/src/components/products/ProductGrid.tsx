@@ -133,6 +133,7 @@ const ProductGrid = ({ category }: ProductGridProps) => {
 
   const categories = [
     { value: "all", label: t("all") },
+    { value: "new", label: "NEW" },
     { value: "rings", label: t("rings") },
     { value: "necklaces", label: t("necklaces") },
     { value: "earrings", label: t("earrings") },
