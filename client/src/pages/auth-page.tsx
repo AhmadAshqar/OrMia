@@ -29,13 +29,13 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useState, useEffect } from "react";
 
-export default function AuthPage({ isPasswordReset, token }: { isPasswordReset?: boolean, token?: string }) {
+export default function AuthPage() {
   const { user, isLoading, loginMutation, registerMutation, forgotPasswordMutation, resetPasswordMutation } = useAuth();
   const [_, navigate] = useLocation();
   const [isFormReady, setIsFormReady] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
-  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(isPasswordReset || false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
   const [defaultTab, setDefaultTab] = useState("login");
   
@@ -43,21 +43,11 @@ export default function AuthPage({ isPasswordReset, token }: { isPasswordReset?:
   const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      token: token || "",
+      token: "",
       password: "",
       confirmPassword: "",
     },
   });
-  
-  // Effect for direct reset password route
-  useEffect(() => {
-    if (isPasswordReset && token) {
-      console.log("Direct password reset route with token:", token);
-      setResetToken(token);
-      resetPasswordForm.setValue("token", token);
-      setIsResetPasswordOpen(true);
-    }
-  }, [isPasswordReset, token, resetPasswordForm]);
   
   // Effect to handle URL parameters and form initialization
   useEffect(() => {
@@ -68,9 +58,10 @@ export default function AuthPage({ isPasswordReset, token }: { isPasswordReset?:
       // Get URL parameters after component has mounted
       const searchParams = new URLSearchParams(window.location.search);
       const modeParam = searchParams.get("mode");
-      const resetTokenParam = searchParams.get("reset");
+      const resetTokenParam = searchParams.get("token");
       
       console.log("URL search params:", window.location.search);
+      console.log("Mode:", modeParam);
       console.log("Reset token detected:", resetTokenParam);
       
       // Set mode for tabs
@@ -78,8 +69,8 @@ export default function AuthPage({ isPasswordReset, token }: { isPasswordReset?:
         setDefaultTab("register");
       }
       
-      // Handle reset token if present in URL query params
-      if (resetTokenParam) {
+      // Handle reset password mode
+      if (modeParam === "reset" && resetTokenParam) {
         console.log("Setting reset token from query params and opening dialog");
         setResetToken(resetTokenParam);
         resetPasswordForm.setValue("token", resetTokenParam);

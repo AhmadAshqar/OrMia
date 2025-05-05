@@ -52,7 +52,9 @@ export function generatePasswordResetToken(): { token: string, expires: Date } {
 }
 
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
-  const resetUrl = `${process.env.SITE_URL || 'http://localhost:5000'}/reset-password/${resetToken}`;
+  // Use a URL format that's easier to debug with query parameters instead of path parameters
+  const baseUrl = process.env.SITE_URL || 'http://localhost:5000';
+  const resetUrl = `${baseUrl}/auth?mode=reset&token=${resetToken}`;
   
   // HTML email with Hebrew RTL support
   const htmlContent = `
