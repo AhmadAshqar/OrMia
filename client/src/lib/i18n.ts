@@ -100,7 +100,7 @@ const resources = {
       'contact_info': 'צור קשר',
       'address': 'רחוב אלנבי 40, תל אביב',
       'phone': '03-1234567',
-      'email': 'info@luxmoissanite.co.il',
+      'email': 'info@ormiajewelry.co.il',
       'hours': 'א\'-ה\': 9:00-19:00 ו\': 9:00-14:00',
       'copyright': '© 2023 אור מיה. כל הזכויות שמורות.',
       
