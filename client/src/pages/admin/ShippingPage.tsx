@@ -166,8 +166,12 @@ export default function ShippingPage() {
 
   // Update shipping status API connection
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: ShippingStatus }) => {
-      const response = await apiRequest('PATCH', `/api/admin/shipping/${id}/status`, { status });
+    mutationFn: async ({ id, status, location }: { id: number; status: ShippingStatus; location: string }) => {
+      const response = await apiRequest('PATCH', `/api/admin/shipping/${id}/status`, { 
+        status,
+        location,
+        notes: `Changed status to ${status}`
+      });
       if (!response.ok) {
         throw new Error('Failed to update shipping status');
       }
@@ -192,7 +196,30 @@ export default function ShippingPage() {
   });
   
   const handleUpdateStatus = (shipmentId: number, newStatus: ShippingStatus) => {
-    updateStatusMutation.mutate({ id: shipmentId, status: newStatus });
+    // Get location based on status
+    let location = 'ישראל';
+    
+    switch(newStatus) {
+      case 'pending':
+        location = 'מחסן החברה - ממתין לעיבוד';
+        break;
+      case 'processing':
+        location = 'מחסן החברה - באריזה';
+        break;
+      case 'in_transit':
+        location = 'בדרך ללקוח';
+        break;
+      case 'delivered':
+        location = 'נמסר ללקוח';
+        break;
+      case 'failed':
+        location = 'החזרה למחסן';
+        break;
+      default:
+        location = 'מחסן החברה';
+    }
+    
+    updateStatusMutation.mutate({ id: shipmentId, status: newStatus, location });
   };
 
   const getStatusText = (status: ShippingStatus) => {
