@@ -44,9 +44,9 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-2xl font-serif mb-6">
-              <span className="text-primary">לוקס</span>מויסנייט
-            </h3>
+            <div className="mb-6">
+              <img src="/ormia-logo-with-diamond.png" alt="OrMia Jewelry" className="h-16" />
+            </div>
             <p className="text-white/70 mb-6">{t("footer_desc")}</p>
             <div className="flex gap-4">
               <a 
