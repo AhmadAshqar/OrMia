@@ -17,7 +17,6 @@ import ResetPasswordPage from "@/pages/reset-password-page";
 import ProfilePage from "@/pages/ProfilePage";
 import FavoritesPage from "@/pages/FavoritesPage";
 import MyOrdersPage from "@/pages/MyOrdersPage";
-import NewProductsPage from "@/pages/NewProductsPage";
 import TermsPage from "@/pages/legal/TermsPage";
 import PrivacyPage from "@/pages/legal/PrivacyPage";
 import ShippingPage from "@/pages/legal/ShippingPage";
@@ -91,7 +90,6 @@ function Router() {
         <Route path="/products/:category" component={ProductsPage} />
         <Route path="/product/:id" component={ProductDetailPage} />
         <Route path="/cart" component={CartPage} />
-        <Route path="/new" component={NewProductsPage} />
         <ProtectedRoute path="/checkout" component={CheckoutPage} />
         <ProtectedRoute path="/profile" component={ProfilePage} />
         <ProtectedRoute path="/favorites" component={FavoritesPage} />

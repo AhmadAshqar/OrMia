@@ -41,7 +41,6 @@ const Header = () => {
     { name: t("necklaces"), path: "/products/necklaces" },
     { name: t("earrings"), path: "/products/earrings" },
     { name: t("about"), path: "/about" },
-    { name: "NEW", path: "/new", special: true }, // Special English link for new products
   ];
 
   return (
@@ -67,8 +66,7 @@ const Header = () => {
                   href={link.path}
                   className={cn(
                     "font-medium transition-colors text-white hover:text-primary",
-                    location === link.path ? "text-primary" : "",
-                    link.special ? "font-bold text-[#FFD700]" : "" // Gold color and bold for the NEW link
+                    location === link.path ? "text-primary" : ""
                   )}
                 >
                   {link.name}
@@ -192,8 +190,7 @@ const Header = () => {
                       href={link.path}
                       className={cn(
                         "font-medium text-lg transition-colors hover:text-primary",
-                        location === link.path ? "text-primary" : "",
-                        link.special ? "font-bold text-[#FFD700]" : "" // Gold color and bold for the NEW link
+                        location === link.path ? "text-primary" : ""
                       )}
                     >
                       {link.name}
