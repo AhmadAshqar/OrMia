@@ -56,17 +56,21 @@ const FeatureSection = () => {
   ];
 
   return (
-    <section ref={sectionRef} className="py-20 bg-gradient-to-b from-secondary to-white relative">
+    <section ref={sectionRef} className="py-20 relative bg-cover bg-center" style={{ backgroundImage: 'url("/diamond-dust-bg.jpg")' }}>
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
       
       <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-serif font-bold mb-4 text-gold-gradient">למה לבחור באור מיה?</h2>
+          <p className="max-w-2xl mx-auto text-lg text-gray-800 bg-white/80 px-4 py-2 rounded-lg inline-block">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="slide-in flex flex-col items-center text-center p-8 relative group"
+              className="slide-in flex flex-col items-center text-center p-8 relative group bg-white/90 backdrop-blur-sm rounded-lg shadow-md"
             >
               {/* Background decorations */}
               <div className="absolute -inset-0.5 bg-gradient-to-tr from-primary/5 to-primary/0 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>

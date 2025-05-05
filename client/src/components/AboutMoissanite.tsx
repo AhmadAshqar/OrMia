@@ -16,9 +16,9 @@ export default function AboutMoissanite() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="slide-in">
             <img 
-              src="/assets/diamond-gemstone.png" 
-              alt="מויסנייט אור מיה" 
-              className="w-full rounded-sm shadow-lg diamond-shine"
+              src="/diamond-gemstone.png" 
+              alt="אור מיה מויסנייט תכשיטים" 
+              className="w-full max-w-md mx-auto rounded-sm shadow-lg diamond-shine"
             />
           </div>
           
