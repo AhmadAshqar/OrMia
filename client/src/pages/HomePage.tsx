@@ -56,8 +56,8 @@ const HomePage = () => {
       {/* Hero Section */}
       <HeroSection />
       
-      {/* Feature Section - adding top padding to ensure proper spacing after full-screen hero */}
-      <div className="pt-10">
+      {/* Feature Section - removed top padding as requested */}
+      <div>
         <FeatureSection />
       </div>
       
