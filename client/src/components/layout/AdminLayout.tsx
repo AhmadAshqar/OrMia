@@ -65,6 +65,11 @@ export default function AdminLayout({ children, title }: AdminLayoutProps & { ti
       icon: <Users className="ml-2 h-5 w-5" />,
     },
     {
+      title: "הודעות",
+      href: "/admin/messages",
+      icon: <MessageSquare className="ml-2 h-5 w-5" />,
+    },
+    {
       title: "פניות",
       href: "/admin/contact",
       icon: <MessageSquare className="ml-2 h-5 w-5" />,
