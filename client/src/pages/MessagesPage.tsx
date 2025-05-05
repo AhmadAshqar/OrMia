@@ -334,62 +334,88 @@ export default function MessagesPage() {
                 <TabsTrigger value="orders">הודעות לפי הזמנה</TabsTrigger>
               </TabsList>
               <TabsContent value="messages">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-[600px]">
-                    {isLoadingMessages ? (
-                      <div className="flex justify-center items-center h-full">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      </div>
-                    ) : messages && messages.length > 0 ? (
-                      <div className="divide-y overflow-auto h-full">
-                        {messages.map((message: Message) => (
-                          <div
-                            key={message.id}
-                            className={`p-3 cursor-pointer hover:bg-muted ${
-                              selectedMessage?.id === message.id ? 'bg-muted' : ''
-                            } ${!message.isRead && !message.isFromAdmin ? 'font-bold' : ''}`}
-                            onClick={() => handleMessageClick(message)}
-                          >
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1 overflow-hidden">
-                                <div className="flex items-center">
-                                  <p className="font-medium truncate">{message.subject}</p>
-                                  {!message.isRead && (
-                                    <Badge variant="outline" className="text-primary ml-2">
-                                      חדש
-                                    </Badge>
-                                  )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
+                  {/* Left panel - Messages list */}
+                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
+                    <div className="p-3 border-b bg-white">
+                      <h3 className="font-semibold">הודעות שלי</h3>
+                    </div>
+                    
+                    <div className="flex-1 overflow-auto">
+                      {isLoadingMessages ? (
+                        <div className="flex justify-center items-center h-full">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                      ) : messages && messages.length > 0 ? (
+                        <div className="divide-y overflow-auto h-full">
+                          {messages.map((message: Message) => (
+                            <div
+                              key={message.id}
+                              className={`p-3 cursor-pointer hover:bg-muted ${
+                                selectedMessage?.id === message.id ? 'bg-muted' : ''
+                              } ${!message.isRead && !message.isFromAdmin ? 'font-semibold' : ''}`}
+                              onClick={() => handleMessageClick(message)}
+                            >
+                              <div className="flex flex-col">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1 overflow-hidden">
+                                    <div className="flex items-center">
+                                      <p className="font-medium truncate">{message.subject}</p>
+                                      {!message.isRead && !message.isFromAdmin && (
+                                        <Badge variant="outline" className="text-primary ml-2">
+                                          חדש
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(message.createdAt), 'dd/MM HH:mm', { locale: he })}
+                                  </span>
                                 </div>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {message.content.substring(0, 50)}
-                                  {message.content.length > 50 ? '...' : ''}
+                                <p className="text-sm text-muted-foreground mt-1 truncate">
+                                  {/* Show preview of the last message */}
+                                  {message.replies && message.replies.length > 0 
+                                    ? message.replies[message.replies.length - 1].content.substring(0, 40) + (message.replies[message.replies.length - 1].content.length > 40 ? '...' : '')
+                                    : message.content.substring(0, 40) + (message.content.length > 40 ? '...' : '')}
                                 </p>
+                                {message.orderId && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    הזמנה #{message.orderId}
+                                  </p>
+                                )}
                               </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {format(new Date(message.createdAt), 'dd/MM/yyyy HH:mm', { locale: he })}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex flex-col justify-center items-center h-full p-4 text-center">
-                        <p className="mb-4 text-muted-foreground">אין הודעות עדיין</p>
-                        <Button onClick={() => setIsNewMessageDialogOpen(true)}>
-                          שלח הודעה חדשה
-                        </Button>
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col justify-center items-center h-full p-4 text-center">
+                          <p className="mb-4 text-muted-foreground">אין הודעות עדיין</p>
+                          <Button onClick={() => setIsNewMessageDialogOpen(true)}>
+                            שלח הודעה חדשה
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="md:col-span-2 border rounded-lg overflow-hidden h-[600px]">
+                  
+                  {/* Right panel - Chat view */}
+                  <div className="md:col-span-2 border rounded-lg overflow-hidden h-full">
                     {selectedMessage ? (
                       <div className="h-full flex flex-col">
-                        <div className="p-4 border-b">
-                          <h3 className="text-lg font-semibold">{selectedMessage.subject}</h3>
+                        <div className="p-3 border-b bg-white">
+                          <h3 className="font-semibold">
+                            {selectedMessage.subject}
+                            {selectedMessage.orderId && (
+                              <span className="text-sm text-muted-foreground mr-2">
+                                (הזמנה #{selectedMessage.orderId})
+                              </span>
+                            )}
+                          </h3>
                           <p className="text-sm text-muted-foreground">
                             צ'אט עם צוות אור מיה
                           </p>
                         </div>
+                        
                         <div className="flex-1 overflow-auto p-4 bg-gray-50">
                           <div className="space-y-4">
                             {/* Initial message */}
@@ -404,7 +430,7 @@ export default function MessagesPage() {
                               </div>
                             </div>
                             
-                            {/* Replies in chronological order */}
+                            {/* All replies in chronological order - WhatsApp style */}
                             {selectedMessage.replies && selectedMessage.replies
                               .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                               .map((reply) => {
@@ -428,6 +454,9 @@ export default function MessagesPage() {
                                         <span>{format(new Date(reply.createdAt), 'HH:mm', { locale: he })}</span>
                                         <span className="mx-1">•</span>
                                         <span>{senderName}</span>
+                                        {!isAdmin && reply.isRead && (
+                                          <CheckCheck className="ml-1 h-3 w-3" />
+                                        )}
                                       </div>
                                     </div>
                                   </div>
@@ -436,6 +465,8 @@ export default function MessagesPage() {
                             <div ref={messagesEndRef} />
                           </div>
                         </div>
+                        
+                        {/* WhatsApp style message input */}
                         <div className="p-3 border-t bg-white">
                           <form onSubmit={handleReplySubmit} className="flex items-end gap-2">
                             <div className="relative flex-1">
@@ -482,8 +513,11 @@ export default function MessagesPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex justify-center items-center h-full text-muted-foreground">
-                        <p>יש לבחור הודעה כדי לצפות בפרטים</p>
+                      <div className="flex flex-col justify-center items-center h-full text-muted-foreground">
+                        <p className="mb-4">יש לבחור הודעה כדי לצפות בשיחה</p>
+                        <Button variant="outline" onClick={() => setIsNewMessageDialogOpen(true)}>
+                          הודעה חדשה
+                        </Button>
                       </div>
                     )}
                   </div>
