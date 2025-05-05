@@ -254,10 +254,7 @@ const CheckoutPage = () => {
       const promoData = await response.json();
       console.log("Response from server:", promoData);
       
-      if (!response.ok) {
-        throw new Error(promoData.error || promoData.message || 'קוד הקופון אינו תקף');
-      }
-      
+      // We handle both success and error as regular responses with 'valid' field
       if (!promoData.valid) {
         throw new Error(promoData.message || 'קוד הקופון אינו תקף');
       }

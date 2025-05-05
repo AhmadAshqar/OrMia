@@ -1297,63 +1297,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Promo code validation endpoint
-  app.post("/api/validate-promo", async (req, res) => {
-    try {
-      const { code } = req.body;
-      
-      if (!code) {
-        return res.status(400).json({ 
-          valid: false, 
-          message: "קוד הנחה לא סופק" 
-        });
-      }
-      
-      // Check for valid promo codes
-      // In production, these would come from a database
-      if (code === 'WELCOME10') {
-        return res.json({
-          valid: true,
-          code: 'WELCOME10',
-          discount: 10,
-          discountType: 'percent',
-          message: "10% הנחה לחברים חדשים!",
-          minOrder: 0
-        });
-      } else if (code === 'ORMIA20') {
-        return res.json({
-          valid: true,
-          code: 'ORMIA20',
-          discount: 20,
-          discountType: 'percent',
-          message: "20% הנחה ללקוחות נאמנים!",
-          minOrder: 500 // Minimum order of 500 NIS
-        });
-      } else if (code === 'FREESHIP') {
-        return res.json({
-          valid: true,
-          code: 'FREESHIP',
-          discount: 100,
-          discountType: 'shipping',
-          message: "משלוח חינם!",
-          minOrder: 300 // Minimum order of 300 NIS for free shipping
-        });
-      }
-      
-      // Invalid promo code
-      return res.status(404).json({
-        valid: false,
-        message: "קוד הנחה אינו זמין או פג תוקף"
-      });
-      
-    } catch (err) {
-      console.error("Error validating promo code:", err);
-      res.status(500).json({ 
-        valid: false,
-        message: "שגיאה באימות קוד ההנחה" 
-      });
-    }
-  });
+  // Removed old promo code validation endpoint to avoid route conflicts
+  // This has been replaced by the enhanced implementation below that uses the database
   
   // Password reset routes
   app.post("/api/forgot-password", async (req, res) => {
