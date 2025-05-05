@@ -258,12 +258,13 @@ export default function ProductsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formState.categoryId) {
+    if (!formState.categoryId || formState.categoryId === 0) {
       toast({
         title: "בחר קטגוריה",
         description: "יש לבחור קטגוריה עבור המוצר",
         variant: "destructive",
       });
+      setActiveTab("basic");
       return;
     }
 
@@ -538,21 +539,35 @@ export default function ProductsPage() {
                     
                     <div className="grid gap-2">
                       <Label htmlFor="categoryId">קטגוריה</Label>
-                      <select
-                        id="categoryId"
-                        name="categoryId"
-                        value={formState.categoryId || ''}
-                        onChange={handleInputChange}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                      <Select
+                        value={formState.categoryId?.toString() || 'placeholder'}
+                        onValueChange={(value) => {
+                          if (value === 'placeholder') {
+                            setFormState({
+                              ...formState,
+                              categoryId: undefined
+                            });
+                          } else {
+                            setFormState({
+                              ...formState,
+                              categoryId: parseInt(value)
+                            });
+                          }
+                        }}
                         required
                       >
-                        <option value="">בחר קטגוריה</option>
-                        {categories?.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger id="categoryId">
+                          <SelectValue placeholder="בחר קטגוריה" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="placeholder">בחר קטגוריה</SelectItem>
+                          {categories?.map((category) => (
+                            <SelectItem key={category.id} value={category.id.toString()}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
