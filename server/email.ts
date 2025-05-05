@@ -58,9 +58,9 @@ export function generatePasswordResetToken(): { token: string, expires: Date } {
 }
 
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
-  // Use a special reset_token parameter to bypass router issues
+  // Use a direct API endpoint that handles the redirection
   const baseUrl = process.env.SITE_URL || 'http://localhost:5000';
-  const resetUrl = `${baseUrl}/?reset_token=${resetToken}`;
+  const resetUrl = `${baseUrl}/api/reset-redirect?token=${resetToken}`;
   
   // HTML email with Hebrew RTL support
   const htmlContent = `

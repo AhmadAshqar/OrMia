@@ -132,17 +132,6 @@ function App() {
   // Check for special query parameters for direct page rendering
   const searchParams = new URLSearchParams(window.location.search);
   const directAuth = searchParams.get('directAuth') === 'true';
-  const resetToken = searchParams.get('reset_token');
-  
-  console.log("App render, reset_token:", resetToken);
-  
-  // If we have a reset token, redirect to reset-password page with token
-  useEffect(() => {
-    if (resetToken) {
-      console.log("Redirecting to reset password page with token");
-      window.location.href = `/reset-password?token=${resetToken}`;
-    }
-  }, [resetToken]);
   
   // Handle direct authentication page rendering
   if (directAuth) {

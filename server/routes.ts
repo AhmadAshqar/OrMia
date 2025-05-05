@@ -1181,5 +1181,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
+  // Add a server-side redirect for password reset
+  app.get("/api/reset-redirect", (req, res) => {
+    const token = req.query.token;
+    if (!token) {
+      return res.status(400).send("Missing reset token");
+    }
+    
+    // Send a special HTML page that includes JavaScript to handle the redirect
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirecting...</title>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+          <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+            <div style="text-align: center;">
+              <h2>מפנה לדף איפוס הסיסמה...</h2>
+              <p>אנא המתן.</p>
+              <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #8B7355; border-radius: 50%; margin: 20px auto; animation: spin 1s linear infinite;"></div>
+            </div>
+          </div>
+          
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            body {
+              direction: rtl;
+              margin: 0;
+              padding: 0;
+              background-color: #f8f8f8;
+            }
+          </style>
+          
+          <script>
+            // Redirect to the reset password page with the token
+            window.location.href = "/reset-password?token=${token}";
+          </script>
+        </body>
+      </html>
+    `);
+  });
+
   return httpServer;
 }
