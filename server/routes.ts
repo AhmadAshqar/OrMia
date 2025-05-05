@@ -2366,12 +2366,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Function to broadcast a message to all clients subscribed to an order
-  function broadcastToOrder(orderId, message) {
-    for (const [id, client] of clients.entries()) {
+  function broadcastToOrder(orderId: number | string, message: any) {
+    clients.forEach((client, id) => {
       if (client.orderId === orderId && client.ws.readyState === WebSocket.OPEN) {
         client.ws.send(JSON.stringify(message));
       }
-    }
+    });
   }
   
   return httpServer;

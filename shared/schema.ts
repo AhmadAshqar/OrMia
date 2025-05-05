@@ -398,7 +398,7 @@ export const messages = pgTable("messages", {
   isRead: boolean("is_read").default(false).notNull(),
   isFromAdmin: boolean("is_from_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  parentId: integer("parent_id").references(() => messages.id),
+  parentId: integer("parent_id").references((): any => messages.id),
 });
 
 // Define Message Insert Schema
@@ -431,6 +431,6 @@ export const messagesRelations = relations(messages, ({ one, many }) => ({
     references: [messages.id],
   }),
   replies: many(messages, { relationName: "replies" }),
-}));
+})) as any;
 
 
