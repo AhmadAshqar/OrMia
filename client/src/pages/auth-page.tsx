@@ -51,35 +51,33 @@ export default function AuthPage() {
   
   // Effect to handle URL parameters and form initialization
   useEffect(() => {
-    // Delay form initialization to improve initial page load
-    const timer = setTimeout(() => {
-      setIsFormReady(true);
-      
-      // Get URL parameters after component has mounted
-      const searchParams = new URLSearchParams(window.location.search);
-      const modeParam = searchParams.get("mode");
-      const resetTokenParam = searchParams.get("token");
-      
-      console.log("URL search params:", window.location.search);
-      console.log("Mode:", modeParam);
-      console.log("Reset token detected:", resetTokenParam);
-      
-      // Set mode for tabs
-      if (modeParam === "register") {
-        setDefaultTab("register");
-      }
-      
-      // Handle reset password mode
-      if (modeParam === "reset" && resetTokenParam) {
-        console.log("Setting reset token from query params and opening dialog");
-        setResetToken(resetTokenParam);
-        resetPasswordForm.setValue("token", resetTokenParam);
-        setIsResetPasswordOpen(true);
-      }
-    }, 100);
+    // Get URL parameters after component has mounted
+    const searchParams = new URLSearchParams(window.location.search);
+    const modeParam = searchParams.get("mode");
+    const resetTokenParam = searchParams.get("token");
     
-    return () => clearTimeout(timer);
-  }, [resetPasswordForm]);
+    console.log("URL search params:", window.location.search);
+    console.log("Mode:", modeParam);
+    console.log("Reset token detected:", resetTokenParam);
+    
+    // Set mode for tabs
+    if (modeParam === "register") {
+      setDefaultTab("register");
+    }
+    
+    // Handle reset password mode
+    if (modeParam === "reset" && resetTokenParam) {
+      console.log("Setting reset token from query params and opening dialog");
+      setResetToken(resetTokenParam);
+      resetPasswordForm.setValue("token", resetTokenParam);
+      setIsResetPasswordOpen(true);
+    }
+    
+    // Delay setting form ready flag
+    setTimeout(() => {
+      setIsFormReady(true);
+    }, 100);
+  }, [resetPasswordForm, setDefaultTab, setResetToken, setIsResetPasswordOpen]);
   
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -336,6 +334,85 @@ export default function AuthPage() {
                                     )}
                                   </Button>
                                 </div>
+                              </form>
+                            </Form>
+                          </DialogContent>
+                        </Dialog>
+                        
+                        {/* Reset Password Dialog - Shown when token is in URL */}
+                        <Dialog open={isResetPasswordOpen} onOpenChange={setIsResetPasswordOpen}>
+                          <DialogContent className="rtl gold-gradient-bg luxury-card">
+                            <DialogHeader>
+                              <DialogTitle className="text-2xl font-serif font-bold text-center text-black">
+                                הגדרת סיסמה חדשה
+                              </DialogTitle>
+                              <DialogDescription className="text-center text-amber-900 mt-2">
+                                אנא הזן את הסיסמה החדשה שלך
+                              </DialogDescription>
+                            </DialogHeader>
+                            <Form {...resetPasswordForm}>
+                              <form
+                                onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)}
+                                className="space-y-4 mt-4"
+                              >
+                                <Input
+                                  type="hidden"
+                                  {...resetPasswordForm.register("token")}
+                                />
+                                <FormField
+                                  control={resetPasswordForm.control}
+                                  name="password"
+                                  render={({ field }) => (
+                                    <FormItem className="text-right">
+                                      <FormLabel className="form-label-gold">
+                                        סיסמה חדשה
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          className="form-input-gold"
+                                          type="password"
+                                          placeholder="הזן סיסמה חדשה"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={resetPasswordForm.control}
+                                  name="confirmPassword"
+                                  render={({ field }) => (
+                                    <FormItem className="text-right">
+                                      <FormLabel className="form-label-gold">
+                                        אימות סיסמה
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          className="form-input-gold"
+                                          type="password"
+                                          placeholder="הזן שוב את הסיסמה החדשה"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <Button
+                                  type="submit"
+                                  className="w-full btn-luxury"
+                                  disabled={resetPasswordMutation.isPending}
+                                >
+                                  {resetPasswordMutation.isPending ? (
+                                    <div className="flex items-center">
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      מעבד...
+                                    </div>
+                                  ) : (
+                                    "שמור סיסמה חדשה"
+                                  )}
+                                </Button>
                               </form>
                             </Form>
                           </DialogContent>
