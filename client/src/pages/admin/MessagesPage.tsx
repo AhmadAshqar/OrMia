@@ -756,6 +756,15 @@ interface ChatThreadProps {
 }
 
 function ChatThread({ messages, currentUserId }: ChatThreadProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+  
   // Combine messages and their replies into a single chronological thread
   const allMessages = messages.flatMap((message) => {
     const threadMessages = [
@@ -797,7 +806,7 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
   }
   
   return (
-    <div className="space-y-4 p-2">
+    <div className="space-y-4 p-2 bg-gray-50">
       {sortedMessages.map((msg) => {
         const isCurrentUser = currentUserId === msg.userId;
         const isAdmin = msg.isFromAdmin;
@@ -823,7 +832,7 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
                 <span>{format(new Date(msg.createdAt), 'HH:mm', { locale: he })}</span>
                 <span className="mx-1">•</span>
                 <span>{senderName}</span>
-                {msg.isRead && alignRight && (
+                {alignRight && (
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                     <path d="M18 6L7 17L2 12" />
                   </svg>
@@ -833,6 +842,7 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
           </div>
         );
       })}
+      <div ref={messagesEndRef} />
     </div>
   );
 }
@@ -853,6 +863,14 @@ function MessageDetails({
   handleReplySubmit,
   isReplying
 }: MessageDetailsProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when replies change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [selectedMessage?.replies]);
   return (
     <div className="md:col-span-2 border rounded-lg overflow-hidden h-[600px]">
       {selectedMessage ? (
@@ -929,24 +947,46 @@ function MessageDetails({
             )}
             <div ref={messagesEndRef} />
           </div>
-          <div className="p-4 border-t bg-white">
-            <form onSubmit={handleReplySubmit} className="flex">
-              <Textarea
-                className="flex-1 resize-none"
-                placeholder="כתוב הודעה..."
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                dir="rtl"
-              />
+          <div className="p-3 border-t bg-white">
+            <form onSubmit={handleReplySubmit} className="flex items-end gap-2">
+              <div className="relative flex-1">
+                <Textarea
+                  className="flex-1 resize-none rounded-full min-h-[50px] py-3 pr-4 pl-12 bg-gray-100"
+                  placeholder="כתוב הודעה..."
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  dir="rtl"
+                />
+                <div className="absolute right-1 bottom-1.5 flex gap-2">
+                  <button type="button" className="text-gray-500 hover:text-primary p-1 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                      <line x1="9" y1="9" x2="9.01" y2="9" />
+                      <line x1="15" y1="9" x2="15.01" y2="9" />
+                    </svg>
+                  </button>
+                  <button type="button" className="text-gray-500 hover:text-primary p-1 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
               <Button 
                 type="submit" 
-                className="ms-2 self-end"
+                className="rounded-full h-[50px] w-[50px] p-0 flex items-center justify-center bg-blue-500 hover:bg-blue-600"
                 disabled={isReplying || !replyContent.trim()}
               >
                 {isReplying ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  'שלח'
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
                 )}
               </Button>
             </form>

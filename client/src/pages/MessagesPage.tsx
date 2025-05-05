@@ -393,56 +393,89 @@ export default function MessagesPage() {
                         <div className="flex-1 overflow-auto p-4 bg-gray-50">
                           <div className="space-y-4">
                             {/* Initial message */}
-                            <div className="flex justify-end">
-                              <div className="rounded-lg p-3 max-w-[80%] bg-primary/10 text-right">
+                            <div className="flex justify-end mb-3">
+                              <div className="rounded-2xl p-3 max-w-[80%] shadow-sm bg-blue-500 text-white rounded-tr-none">
                                 <p className="whitespace-pre-wrap text-sm">{selectedMessage.content}</p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {format(new Date(selectedMessage.createdAt), 'HH:mm', { locale: he })}
-                                </p>
+                                <div className="flex items-center text-xs mt-1 text-blue-100">
+                                  <span>{format(new Date(selectedMessage.createdAt), 'HH:mm', { locale: he })}</span>
+                                  <span className="mx-1">•</span>
+                                  <span>אני</span>
+                                </div>
                               </div>
                             </div>
                             
                             {/* Replies in chronological order */}
                             {selectedMessage.replies && selectedMessage.replies
                               .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                              .map((reply) => (
-                                <div
-                                  key={reply.id}
-                                  className={`flex ${reply.isFromAdmin ? 'justify-start' : 'justify-end'}`}
-                                >
+                              .map((reply) => {
+                                const isAdmin = reply.isFromAdmin;
+                                const senderName = isAdmin ? "צוות אור מיה" : "אני";
+                                
+                                return (
                                   <div
-                                    className={`rounded-lg p-3 max-w-[80%] ${
-                                      reply.isFromAdmin ? 'bg-gray-200 text-left' : 'bg-primary/10 text-right'
-                                    }`}
+                                    key={reply.id}
+                                    className={`flex ${isAdmin ? 'justify-start' : 'justify-end'} mb-3`}
                                   >
-                                    <p className="whitespace-pre-wrap text-sm">{reply.content}</p>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      {format(new Date(reply.createdAt), 'HH:mm', { locale: he })}
-                                    </p>
+                                    <div
+                                      className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                                        isAdmin 
+                                          ? 'bg-gray-100 text-gray-800 rounded-tl-none' 
+                                          : 'bg-blue-500 text-white rounded-tr-none'
+                                      }`}
+                                    >
+                                      <p className="whitespace-pre-wrap text-sm">{reply.content}</p>
+                                      <div className={`flex items-center text-xs mt-1 ${isAdmin ? 'text-gray-500' : 'text-blue-100'}`}>
+                                        <span>{format(new Date(reply.createdAt), 'HH:mm', { locale: he })}</span>
+                                        <span className="mx-1">•</span>
+                                        <span>{senderName}</span>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             <div ref={messagesEndRef} />
                           </div>
                         </div>
-                        <div className="p-4 border-t bg-white">
-                          <form onSubmit={handleReplySubmit} className="flex">
-                            <Textarea
-                              className="flex-1 resize-none"
-                              placeholder="כתוב הודעה..."
-                              value={replyContent}
-                              onChange={(e) => setReplyContent(e.target.value)}
-                              dir="rtl"
-                            />
+                        <div className="p-3 border-t bg-white">
+                          <form onSubmit={handleReplySubmit} className="flex items-end gap-2">
+                            <div className="relative flex-1">
+                              <Textarea
+                                className="flex-1 resize-none rounded-full min-h-[50px] py-3 pr-4 pl-12 bg-gray-100"
+                                placeholder="כתוב הודעה..."
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                dir="rtl"
+                              />
+                              <div className="absolute right-1 bottom-1.5 flex gap-2">
+                                <button type="button" className="text-gray-500 hover:text-blue-500 p-1 rounded-full">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                                    <line x1="9" y1="9" x2="9.01" y2="9" />
+                                    <line x1="15" y1="9" x2="15.01" y2="9" />
+                                  </svg>
+                                </button>
+                                <button type="button" className="text-gray-500 hover:text-blue-500 p-1 rounded-full">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                    <circle cx="8.5" cy="8.5" r="1.5" />
+                                    <polyline points="21 15 16 10 5 21" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
                             <Button 
                               type="submit" 
-                              className="ms-2 self-end"
+                              className="rounded-full h-[50px] w-[50px] p-0 flex items-center justify-center bg-blue-500 hover:bg-blue-600"
                               disabled={replyMutation.isPending || !replyContent.trim()}
                             >
                               {replyMutation.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-5 w-5 animate-spin" />
                               ) : (
-                                'שלח'
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="22" y1="2" x2="11" y2="13" />
+                                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                </svg>
                               )}
                             </Button>
                           </form>
