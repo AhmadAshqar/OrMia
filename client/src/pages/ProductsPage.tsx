@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "wouter";
 
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import MainLayout from "@/components/layout/MainLayout";
 import ProductGrid from "@/components/products/ProductGrid";
 
 const ProductsPage = () => {
@@ -43,9 +42,7 @@ const ProductsPage = () => {
   }, [category, t]);
 
   return (
-    <>
-      <Header />
-      
+    <MainLayout>
       <div className="bg-gray-50 py-6">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-serif mb-2">{pageTitle}</h1>
@@ -58,9 +55,7 @@ const ProductsPage = () => {
           <ProductGrid category={category} />
         </div>
       </section>
-      
-      <Footer />
-    </>
+    </MainLayout>
   );
 };
 

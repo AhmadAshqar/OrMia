@@ -10,7 +10,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <>
       <Header />
-      <main>{children}</main>
+      <main className="pt-32">{children}</main>
       <Footer />
     </>
   );
