@@ -2140,6 +2140,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin routes for messages
   
+  // Get all messages for admin viewing with optional user filtering
+  app.get("/api/admin/messages", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.role?.includes('admin')) {
+      return res.status(403).json({ error: "אין הרשאה" });
+    }
+
+    try {
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const messages = await storage.getMessages(userId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching admin messages:", error);
+      res.status(500).json({ error: "שגיאה בטעינת הודעות" });
+    }
+  });
+  
   // Get all unread messages (admin only)
   app.get("/api/admin/messages/unread", async (req, res) => {
     if (!req.isAuthenticated() || !req.user.role?.includes('admin')) {
@@ -2147,7 +2163,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const messages = await storage.getUnreadAdminMessages();
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const messages = await storage.getUnreadAdminMessages(userId);
       res.json(messages);
     } catch (error) {
       console.error("Error fetching unread admin messages:", error);

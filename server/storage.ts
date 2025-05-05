@@ -1717,16 +1717,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Message methods
-  async getMessages(): Promise<Message[]> {
-    const allMessages = await db.select().from(messages)
-      .orderBy(desc(messages.createdAt));
+  async getMessages(userId?: number): Promise<Message[]> {
+    // Create query
+    let query = db.select().from(messages);
+    
+    // Filter by userId if provided
+    if (userId) {
+      query = query.where(eq(messages.userId, userId));
+    }
+    
+    // Execute query with ordering
+    const allMessages = await query.orderBy(desc(messages.createdAt));
     
     return allMessages;
   }
 
   async getUserMessages(userId: number): Promise<Message[]> {
+    // Get messages where:
+    // 1. Messages created by this user, OR
+    // 2. Admin messages directed specifically to this user
     const userMessages = await db.select().from(messages)
-      .where(eq(messages.userId, userId))
+      .where(
+        or(
+          eq(messages.userId, userId),
+          and(
+            eq(messages.isFromAdmin, true),
+            eq(messages.userId, userId)
+          )
+        )
+      )
       .orderBy(desc(messages.createdAt));
     
     return userMessages;
@@ -1754,14 +1773,23 @@ export class DatabaseStorage implements IStorage {
     return unreadMessages;
   }
 
-  async getUnreadAdminMessages(): Promise<Message[]> {
+  async getUnreadAdminMessages(userId?: number): Promise<Message[]> {
+    // Create base conditions
+    let conditions = and(
+      eq(messages.isRead, false),
+      eq(messages.isFromAdmin, false)
+    );
+    
+    // If userId is provided, filter by specific user
+    if (userId) {
+      conditions = and(
+        conditions,
+        eq(messages.userId, userId)
+      );
+    }
+    
     const unreadMessages = await db.select().from(messages)
-      .where(
-        and(
-          eq(messages.isRead, false),
-          eq(messages.isFromAdmin, false)
-        )
-      )
+      .where(conditions)
       .orderBy(desc(messages.createdAt));
     
     return unreadMessages;
