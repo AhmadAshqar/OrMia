@@ -2,7 +2,7 @@ import { Route, Switch } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/HomePage";
 import ProductsPage from "@/pages/ProductsPage";
@@ -24,8 +24,31 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import { AdminRoute } from "@/lib/admin-route";
 import { CartProvider } from "@/components/cart/CartContext";
 import { AuthProvider } from "@/hooks/use-auth";
-import { useEffect, useRef, lazy, Suspense } from "react";
+import { useEffect, useRef, lazy, Suspense, useState } from "react";
 import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // Admin pages - lazy loaded
 const DashboardPage = lazy(() => import("@/pages/admin/DashboardPage"));
@@ -102,11 +125,24 @@ function Router() {
   );
 }
 
+// We've removed these components since they have import issues that are difficult to fix
+// and we're now using a redirect approach instead
+
 function App() {
   // Check for special query parameters for direct page rendering
   const searchParams = new URLSearchParams(window.location.search);
   const directAuth = searchParams.get('directAuth') === 'true';
   const resetToken = searchParams.get('reset_token');
+  
+  console.log("App render, reset_token:", resetToken);
+  
+  // If we have a reset token, redirect to reset-password page with token
+  useEffect(() => {
+    if (resetToken) {
+      console.log("Redirecting to reset password page with token");
+      window.location.href = `/reset-password?token=${resetToken}`;
+    }
+  }, [resetToken]);
   
   // Handle direct authentication page rendering
   if (directAuth) {
@@ -117,22 +153,6 @@ function App() {
             <TooltipProvider>
               <Toaster />
               <AuthPage />
-            </TooltipProvider>
-          </CartProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    );
-  }
-  
-  // Handle direct reset password page rendering
-  if (resetToken) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <CartProvider>
-            <TooltipProvider>
-              <Toaster />
-              <ResetPasswordPage />
             </TooltipProvider>
           </CartProvider>
         </AuthProvider>
