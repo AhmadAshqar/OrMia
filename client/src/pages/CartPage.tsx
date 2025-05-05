@@ -25,7 +25,7 @@ const CartPage = () => {
     <>
       <Header />
       
-      <div className="bg-gray-50 py-6">
+      <div className="bg-gray-50 py-6 pt-32">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-serif mb-2">{t("your_cart")}</h1>
         </div>
