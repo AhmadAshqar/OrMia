@@ -1234,7 +1234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: item.product.id,
           productName: item.product.name,
           quantity: item.quantity,
-          price: item.product.salePrice || item.product.price,
+          price: Math.round((item.product.salePrice || item.product.price) * 100), // Convert to cents
           imageUrl: item.product.mainImage
         })),
         shippingAddress,
