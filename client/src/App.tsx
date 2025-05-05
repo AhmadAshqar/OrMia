@@ -57,6 +57,7 @@ const ProductsAdminPage = lazy(() => import("@/pages/admin/ProductsPage"));
 const UsersAdminPage = lazy(() => import("@/pages/admin/UsersPage"));
 const OrdersAdminPage = lazy(() => import("@/pages/admin/OrdersPage"));
 const ShippingAdminPage = lazy(() => import("@/pages/admin/ShippingPage"));
+const PromoCodesPage = lazy(() => import("@/pages/admin/PromoCodesPage"));
 
 function Router() {
   const [location] = useLocation();
@@ -109,6 +110,7 @@ function Router() {
         <AdminRoute path="/admin/products" component={() => <ProductsAdminPage />} />
         <AdminRoute path="/admin/orders" component={() => <OrdersAdminPage />} />
         <AdminRoute path="/admin/shipping" component={() => <ShippingAdminPage />} />
+        <AdminRoute path="/admin/promo-codes" component={() => <PromoCodesPage />} />
         <AdminRoute path="/admin/users" component={() => <UsersAdminPage />} />
         
         <Route component={NotFound} />

@@ -15,7 +15,9 @@ import {
   LogOut,
   ChevronLeft,
   ShoppingCart,
-  Truck
+  Truck,
+  Tag,
+  Ticket
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -51,6 +53,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       title: "ניהול משלוחים",
       href: "/admin/shipping",
       icon: <Truck className="ml-2 h-5 w-5" />,
+    },
+    {
+      title: "קודי קופון",
+      href: "/admin/promo-codes",
+      icon: <Ticket className="ml-2 h-5 w-5" />,
     },
     {
       title: "משתמשים",
