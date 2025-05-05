@@ -4,8 +4,7 @@ import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Product } from "@shared/schema";
 
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import MainLayout from "@/components/layout/MainLayout";
 import { CartContext } from "@/components/cart/CartContext";
 import { toast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
@@ -120,8 +119,7 @@ const ProductDetailPage = () => {
   
   if (isLoading) {
     return (
-      <>
-        <Header />
+      <MainLayout>
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <Skeleton className="w-full aspect-square" />
@@ -135,15 +133,13 @@ const ProductDetailPage = () => {
             </div>
           </div>
         </div>
-        <Footer />
-      </>
+      </MainLayout>
     );
   }
   
   if (!product) {
     return (
-      <>
-        <Header />
+      <MainLayout>
         <div className="container mx-auto px-4 py-12 text-center">
           <h1 className="text-2xl font-medium mb-4">המוצר לא נמצא</h1>
           <p className="mb-8">המוצר שחיפשת אינו קיים או שהוסר מהחנות.</p>
@@ -151,15 +147,12 @@ const ProductDetailPage = () => {
             <Link href="/products">חזרה למוצרים</Link>
           </Button>
         </div>
-        <Footer />
-      </>
+      </MainLayout>
     );
   }
   
   return (
-    <>
-      <Header />
-      
+    <MainLayout>
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Product Images */}
@@ -405,13 +398,32 @@ const ProductDetailPage = () => {
                       <Star className="h-4 w-4 fill-primary" />
                       <Star className="h-4 w-4" />
                     </div>
-                    <span className="mr-2 font-medium">שווה את הכסף</span>
+                    <span className="mr-2 font-medium">יפה מאוד, משלוח קצת איטי</span>
                   </div>
-                  <p className="mb-2">מוצר יפה מאוד ואיכותי. הברק שלו מרשים וממש נראה כמו יהלום אמיתי. מורידה כוכב רק בגלל זמן המשלוח שהיה קצת ארוך.</p>
+                  <p className="mb-2">מוצר יפה מאוד, איכותי ומרשים. הזמנתי כמתנה לאשתי והיא מאוד אהבה. אם כי המשלוח לקח יותר זמן ממה שציפיתי.</p>
                   <div className="flex items-center text-sm text-foreground/70">
-                    <span className="font-medium">יעקב ל.</span>
+                    <span className="font-medium">דוד ל.</span>
                     <span className="mx-2">•</span>
-                    <span>3 באפריל, 2023</span>
+                    <span>3 ביוני, 2023</span>
+                  </div>
+                </div>
+                
+                <div className="border-b border-gray-200 pb-6">
+                  <div className="flex items-center mb-2">
+                    <div className="flex text-primary">
+                      <Star className="h-4 w-4 fill-primary" />
+                      <Star className="h-4 w-4 fill-primary" />
+                      <Star className="h-4 w-4 fill-primary" />
+                      <Star className="h-4 w-4 fill-primary" />
+                      <Star className="h-4 w-4 fill-primary" />
+                    </div>
+                    <span className="mr-2 font-medium">שירות מצוין, מוצר מדהים</span>
+                  </div>
+                  <p className="mb-2">התקשרתי עם כמה שאלות לפני ההזמנה וקיבלתי שירות מעולה. המוצר הגיע מהר מאוד והיה מדהים, בדיוק כמו שציפיתי.</p>
+                  <div className="flex items-center text-sm text-foreground/70">
+                    <span className="font-medium">מיכל ש.</span>
+                    <span className="mx-2">•</span>
+                    <span>22 ביולי, 2023</span>
                   </div>
                 </div>
               </div>
@@ -425,9 +437,7 @@ const ProductDetailPage = () => {
           <FeaturedProducts />
         </div>
       </div>
-      
-      <Footer />
-    </>
+    </MainLayout>
   );
 };
 
