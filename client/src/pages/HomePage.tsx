@@ -282,7 +282,7 @@ const HomePage = () => {
             {/* Instagram Images with our jewelry photos */}
             <a href="#" className="block group relative overflow-hidden slide-in">
               <img 
-                src="/assets/claire.webp"
+                src="/images/claire.webp"
                 alt={t("instagram_image")}
                 className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
               />
@@ -292,7 +292,7 @@ const HomePage = () => {
             </a>
             <a href="#" className="block group relative overflow-hidden slide-in">
               <img 
-                src="/assets/images-0_1e280e03-b0bb-479b-863c-183f5d6821f2.webp"
+                src="/images/images-0_1e280e03-b0bb-479b-863c-183f5d6821f2.webp"
                 alt={t("instagram_image")}
                 className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
               />
@@ -302,7 +302,7 @@ const HomePage = () => {
             </a>
             <a href="#" className="block group relative overflow-hidden slide-in">
               <img 
-                src="/assets/images-1_8b23ddbb-cf59-4787-b3f9-1109208f7812.webp"
+                src="/images/images-1_8b23ddbb-cf59-4787-b3f9-1109208f7812.webp"
                 alt={t("instagram_image")}
                 className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
               />
@@ -312,7 +312,7 @@ const HomePage = () => {
             </a>
             <a href="#" className="block group relative overflow-hidden slide-in">
               <img 
-                src="/assets/images-7_f688b062-882c-4502-88ea-55534a480589.webp"
+                src="/images/images-7_f688b062-882c-4502-88ea-55534a480589.webp"
                 alt={t("instagram_image")}
                 className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
               />
