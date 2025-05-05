@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Product } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +25,47 @@ const ProductCard = ({ product }: ProductCardProps) => {
       title: t("add_to_cart"),
       description: `${product.name} ${t("add_to_cart")}`,
     });
+  };
+  
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    // Prevent the event from bubbling up to avoid navigation
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log("ProductCard (products folder) - handleAddToWishlist called for product:", product.id);
+    
+    try {
+      console.log("Adding to favorites, product ID:", product.id);
+      const response = await apiRequest('POST', '/api/favorites', { productId: Number(product.id) });
+      console.log("Favorites API response:", response);
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      toast({
+        title: "נוסף למועדפים",
+        description: `${product.name} נוסף למועדפים בהצלחה.`,
+      });
+    } catch (error: any) {
+      console.error("Error adding to favorites:", error);
+      
+      if (error.status === 401) {
+        toast({
+          title: "שגיאה",
+          description: "יש להתחבר תחילה כדי להוסיף מוצרים למועדפים.",
+          variant: "destructive",
+        });
+      } else if (error.status === 409) {
+        toast({
+          title: "מוצר כבר נמצא במועדפים",
+          description: `${product.name} כבר נמצא במועדפים שלך.`,
+        });
+      } else {
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בהוספת המוצר למועדפים.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -66,7 +108,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
         
         <div className="absolute bottom-0 right-0 p-3 flex gap-2 translate-y-full group-hover:translate-y-0 transition-transform">
-          <button className="bg-white text-black hover:bg-primary hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors" title={t("add_to_wishlist")}>
+          <button 
+            onClick={handleAddToWishlist}
+            className="bg-white text-black hover:bg-primary hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors" 
+            title={t("add_to_wishlist")}
+          >
             <Heart className="h-4 w-4" />
           </button>
           <Link href={`/product/${product.id}`} className="bg-white text-black hover:bg-primary hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors">
