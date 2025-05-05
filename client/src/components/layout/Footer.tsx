@@ -19,7 +19,6 @@ const Footer = () => {
     { name: t("necklaces_footer"), path: "/products/necklaces" },
     { name: t("bracelets_footer"), path: "/products/bracelets" },
     { name: t("earrings_footer"), path: "/products/earrings" },
-    { name: t("special_collections"), path: "/products/collections" },
   ];
 
   const information = [
@@ -37,7 +36,7 @@ const Footer = () => {
   return (
     <footer className="bg-black text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="mb-6">
               <img src="/ormia-gold-logo.png" alt="אור מיה תכשיטים" className="h-16" />
@@ -90,28 +89,6 @@ const Footer = () => {
                   </Link>
                 </li>
               ))}
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="text-lg font-medium mb-6">{t("contact_info")}</h4>
-            <ul className="space-y-3">
-              <li className="flex items-start">
-                <MapPinIcon className="h-5 w-5 text-primary mt-1 ml-3" />
-                <span className="text-white/70">{t("address")}</span>
-              </li>
-              <li className="flex items-start">
-                <PhoneIcon className="h-5 w-5 text-primary mt-1 ml-3" />
-                <span className="text-white/70">{t("phone")}</span>
-              </li>
-              <li className="flex items-start">
-                <MailIcon className="h-5 w-5 text-primary mt-1 ml-3" />
-                <span className="text-white/70">{t("email")}</span>
-              </li>
-              <li className="flex items-start">
-                <ClockIcon className="h-5 w-5 text-primary mt-1 ml-3" />
-                <span className="text-white/70">{t("hours")}</span>
-              </li>
             </ul>
           </div>
         </div>
