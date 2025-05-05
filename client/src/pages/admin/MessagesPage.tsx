@@ -797,27 +797,38 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
   }
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-2">
       {sortedMessages.map((msg) => {
         const isCurrentUser = currentUserId === msg.userId;
         const isAdmin = msg.isFromAdmin;
+        const isSeller = isAdmin || currentUserId === 0; // Admin is denoted by currentUserId = 0
+        const alignRight = isSeller;
+        const alignLeft = !isSeller;
+        const senderName = isSeller ? "מוכר" : "קונה";
         
         return (
           <div 
             key={msg.id}
-            className={`flex ${isCurrentUser || isAdmin ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${alignRight ? 'justify-end' : 'justify-start'} mb-3`}
           >
             <div 
-              className={`rounded-lg p-3 max-w-[80%] ${
-                isCurrentUser || isAdmin 
-                  ? 'bg-primary/10 text-right' 
-                  : 'bg-gray-200 text-left'
+              className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                alignRight 
+                  ? 'bg-blue-500 text-white rounded-tr-none' 
+                  : 'bg-gray-100 text-gray-800 rounded-tl-none'
               }`}
             >
               <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {format(new Date(msg.createdAt), 'HH:mm', { locale: he })}
-              </p>
+              <div className={`flex items-center text-xs mt-1 ${alignRight ? 'text-blue-100' : 'text-gray-500'}`}>
+                <span>{format(new Date(msg.createdAt), 'HH:mm', { locale: he })}</span>
+                <span className="mx-1">•</span>
+                <span>{senderName}</span>
+                {msg.isRead && alignRight && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M18 6L7 17L2 12" />
+                  </svg>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -867,36 +878,56 @@ function MessageDetails({
               )}
             </div>
           </div>
-          <div className="flex-1 overflow-auto p-4">
-            <div className="mb-4">
-              <p className="whitespace-pre-wrap">{selectedMessage.content}</p>
+          <div className="flex-1 overflow-auto p-4 bg-gray-50">
+            {/* Initial message */}
+            <div className="flex justify-start mb-6">
+              <div className="rounded-2xl p-3 max-w-[80%] shadow-sm bg-gray-100 text-gray-800 rounded-tl-none">
+                <p className="whitespace-pre-wrap text-sm">{selectedMessage.content}</p>
+                <div className="flex items-center text-xs mt-1 text-gray-500">
+                  <span>{format(new Date(selectedMessage.createdAt), 'HH:mm', { locale: he })}</span>
+                  <span className="mx-1">•</span>
+                  <span>קונה</span>
+                </div>
+              </div>
             </div>
             
+            {/* Replies as chat bubbles */}
             {selectedMessage.replies && selectedMessage.replies.length > 0 && (
-              <div className="mt-6 space-y-4">
-                <h4 className="text-sm font-medium border-b pb-2">תגובות</h4>
-                {selectedMessage.replies.map((reply) => (
-                  <div
-                    key={reply.id}
-                    className={`p-3 rounded-lg ${
-                      reply.isFromAdmin ? 'bg-primary/10 ml-8' : 'bg-muted mr-8'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <p className="text-sm font-medium">
-                        {reply.isFromAdmin ? 'מנהל' : (reply.user?.username || 'משתמש')}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(reply.createdAt), 'dd/MM/yyyy HH:mm', {
-                          locale: he,
-                        })}
-                      </p>
+              <div className="space-y-4">
+                {selectedMessage.replies.map((reply) => {
+                  const isAdmin = reply.isFromAdmin;
+                  const senderName = isAdmin ? "מוכר" : "קונה";
+                  
+                  return (
+                    <div
+                      key={reply.id}
+                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-3`}
+                    >
+                      <div 
+                        className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                          isAdmin 
+                            ? 'bg-blue-500 text-white rounded-tr-none' 
+                            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap text-sm">{reply.content}</p>
+                        <div className={`flex items-center text-xs mt-1 ${isAdmin ? 'text-blue-100' : 'text-gray-500'}`}>
+                          <span>{format(new Date(reply.createdAt), 'HH:mm', { locale: he })}</span>
+                          <span className="mx-1">•</span>
+                          <span>{senderName}</span>
+                          {reply.isRead && isAdmin && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M18 6L7 17L2 12" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm whitespace-pre-wrap">{reply.content}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
           <div className="p-4 border-t bg-white">
             <form onSubmit={handleReplySubmit} className="flex">
