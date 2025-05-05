@@ -13,6 +13,7 @@ import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import FaqPage from "@/pages/FaqPage";
 import AuthPage from "@/pages/auth-page";
+import ResetPasswordPage from "@/pages/reset-password-page";
 import ProfilePage from "@/pages/ProfilePage";
 import FavoritesPage from "@/pages/FavoritesPage";
 import TermsPage from "@/pages/legal/TermsPage";
@@ -64,6 +65,7 @@ function Router() {
         <Route path="/contact" component={ContactPage} />
         <Route path="/faq" component={FaqPage} />
         <Route path="/auth" component={AuthPage} />
+        <Route path="/reset-password" component={ResetPasswordPage} />
         
         {/* Legal Pages */}
         <Route path="/terms" component={TermsPage} />
