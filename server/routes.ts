@@ -903,6 +903,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "משלוח לא נמצא" });
       }
       
+      // Also update the order's shipment status
+      // Find the order by the shipping's orderNumber
+      const order = await storage.getOrderByNumber(shipping.orderNumber);
+      if (order) {
+        await storage.updateOrderShipmentStatus(order.id, status);
+        
+        // If shipment status is "delivered", also update order status to "completed"
+        if (status === "delivered") {
+          await storage.updateOrderStatus(order.id, "completed");
+        }
+        // If shipment status is "cancelled", also update order status to "cancelled"
+        else if (status === "cancelled") {
+          await storage.updateOrderStatus(order.id, "cancelled");
+        }
+      }
+      
       res.json(shipping);
     } catch (err) {
       console.error("Error updating shipping status:", err);

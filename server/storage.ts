@@ -95,6 +95,7 @@ export interface IStorage {
   getShipping(id: number): Promise<Shipping | undefined>;
   getShippingByTrackingNumber(trackingNumber: string): Promise<Shipping | undefined>;
   getShippingByOrderNumber(orderNumber: string): Promise<Shipping | undefined>;
+  getShippingByOrderId(orderId: number): Promise<Shipping | undefined>;
   createShipping(shipping: InsertShipping): Promise<Shipping>;
   updateShipping(id: number, shipping: Partial<InsertShipping>): Promise<Shipping | undefined>;
   updateShippingStatus(id: number, status: string, locationInfo?: {
@@ -696,6 +697,16 @@ export class MemStorage implements IStorage {
   async getShippingByOrderNumber(orderNumber: string): Promise<Shipping | undefined> {
     return Array.from(this.shippings.values())
       .find(shipping => shipping.orderNumber === orderNumber);
+  }
+  
+  async getShippingByOrderId(orderId: number): Promise<Shipping | undefined> {
+    // First get the order to find its order number
+    const order = this.orders.get(orderId);
+    if (!order) return undefined;
+    
+    // Then find shipping by order number
+    return Array.from(this.shippings.values())
+      .find(shipping => shipping.orderNumber === order.orderNumber);
   }
   
   async createShipping(shipping: InsertShipping): Promise<Shipping> {
@@ -1343,6 +1354,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(shipping.orderNumber, orderNumber));
       
     return result;
+  }
+  
+  async getShippingByOrderId(orderId: number): Promise<Shipping | undefined> {
+    // First get the order to find its order number
+    const order = await this.getOrder(orderId);
+    if (!order) return undefined;
+    
+    // Then find shipping by order number
+    return this.getShippingByOrderNumber(order.orderNumber);
   }
   
   async createShipping(newShipping: InsertShipping): Promise<Shipping> {
