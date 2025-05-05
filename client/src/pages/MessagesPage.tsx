@@ -6,7 +6,7 @@ import { he } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
-import { createMessage as createFirebaseMessage, FirebaseMessage } from '@/lib/firebaseMessages';
+import { createMessage as createFirebaseMessage, FirebaseMessage, markMessageAsRead, getAllMessages, getOrderMessages } from '@/lib/firebaseMessages';
 
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +37,7 @@ export default function MessagesPage() {
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
   const websocketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -240,6 +241,19 @@ export default function MessagesPage() {
     };
   }, [user]);
   
+  // Effect to load Firebase messages
+  useEffect(() => {
+    if (!user) return;
+    
+    const unsubscribe = getAllMessages((messages) => {
+      setFirebaseMessages(messages);
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [user]);
+  
   // Effect to handle message selection
   useEffect(() => {
     if (!selectedMessage) return;
@@ -266,34 +280,76 @@ export default function MessagesPage() {
   // Handle message click
   const handleMessageClick = (message: Message) => {
     setSelectedMessage(message);
+    
+    // If the message has an orderId, mark any Firebase messages for this order as read
+    if (message.orderId) {
+      // Filter for unread Firebase messages from admin for this order
+      const unreadMessages = firebaseMessages.filter(msg => 
+        msg.orderId === message.orderId && msg.isAdmin && !msg.isRead
+      );
+      
+      // Use batch update to mark all unread messages as read at once
+      if (unreadMessages.length > 0) {
+        const messageIds = unreadMessages
+          .filter(msg => msg.id)
+          .map(msg => msg.id as string);
+        
+        if (messageIds.length > 0) {
+          markMessageAsRead(messageIds)
+            .catch(error => console.error("Error marking messages as read:", error));
+        }
+      }
+    }
   };
 
   // Handle reply submit
-  const handleReplySubmit = (e: React.FormEvent) => {
+  const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMessage) return;
-    if (!replyContent.trim()) {
+    if (!replyContent.trim() && !selectedImage) {
       toast({
         title: 'שגיאה',
-        description: 'יש להזין תוכן להודעה',
+        description: 'יש להזין תוכן להודעה או לבחור תמונה',
         variant: 'destructive'
       });
       return;
     }
     
-    // If WebSocket is connected, send the message through it
-    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN && selectedMessage.orderId) {
-      websocketRef.current.send(JSON.stringify({
-        type: 'message',
-        content: replyContent,
-        orderId: selectedMessage.orderId,
-        parentId: selectedMessage.id
-      }));
-      
-      setReplyContent('');
-    } else {
-      // Fallback to REST API if WebSocket is not connected
-      replyMutation.mutate({ messageId: selectedMessage.id, content: replyContent });
+    try {
+      // Send message through Firebase
+      if (user && selectedMessage.orderId) {
+        await createFirebaseMessage({
+          content: replyContent,
+          orderId: selectedMessage.orderId,
+          userId: user.id,
+          isAdmin: false,
+          isRead: false,
+          imageUrl: selectedImage || undefined
+        });
+        
+        setReplyContent('');
+        setSelectedImage(null);
+        
+        toast({
+          title: 'הודעה נשלחה',
+          description: 'ההודעה שלך נשלחה בהצלחה'
+        });
+        
+        // Scroll to the bottom of the messages
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        // Fallback to REST API if Firebase is not available or no order ID
+        replyMutation.mutate({ messageId: selectedMessage.id, content: replyContent });
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן לשלוח את ההודעה',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -459,6 +515,58 @@ export default function MessagesPage() {
                                         <span className="mx-1">•</span>
                                         <span>{senderName}</span>
                                         {!isAdmin && reply.isRead && (
+                                          <CheckCheck className="ml-1 h-3 w-3" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            
+                            {/* Firebase messages for this order */}
+                            {selectedMessage.orderId && firebaseMessages
+                              .filter(msg => msg.orderId === selectedMessage.orderId)
+                              .sort((a, b) => {
+                                const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+                                const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+                                return dateA.getTime() - dateB.getTime();
+                              })
+                              .map((message) => {
+                                const isAdmin = message.isAdmin;
+                                const senderName = isAdmin ? "צוות אור מיה" : "אני";
+                                const date = message.createdAt?.toDate ? message.createdAt.toDate() : new Date(message.createdAt);
+                                
+                                return (
+                                  <div
+                                    key={message.id}
+                                    className={`flex ${isAdmin ? 'justify-start' : 'justify-end'} mb-3`}
+                                  >
+                                    <div
+                                      className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                                        isAdmin 
+                                          ? 'bg-gray-100 text-gray-800 rounded-tl-none' 
+                                          : 'bg-blue-500 text-white rounded-tr-none'
+                                      }`}
+                                    >
+                                      {message.content && message.content.trim() !== "" && (
+                                        <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                                      )}
+                                      
+                                      {message.imageUrl && (
+                                        <div className="mt-2">
+                                          <img 
+                                            src={message.imageUrl} 
+                                            alt="תמונה שצורפה" 
+                                            className="max-w-full rounded-lg max-h-40 object-contain" 
+                                          />
+                                        </div>
+                                      )}
+                                      
+                                      <div className={`flex items-center text-xs mt-1 ${isAdmin ? 'text-gray-500' : 'text-blue-100'}`}>
+                                        <span>{format(date, 'HH:mm', { locale: he })}</span>
+                                        <span className="mx-1">•</span>
+                                        <span>{senderName}</span>
+                                        {!isAdmin && message.isRead && (
                                           <CheckCheck className="ml-1 h-3 w-3" />
                                         )}
                                       </div>
