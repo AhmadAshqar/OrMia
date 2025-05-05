@@ -47,18 +47,20 @@ const ProductsPage = () => {
 
   return (
     <MainLayout>
-      <div className="bg-gray-50 py-6">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-serif mb-2">{pageTitle}</h1>
-          <p className="text-foreground/70">{pageDescription}</p>
+      <div className="pt-16 md:pt-20">
+        <div className="bg-gray-50 py-6">
+          <div className="container mx-auto px-4">
+            <h1 className="text-3xl md:text-4xl font-serif mb-2">{pageTitle}</h1>
+            <p className="text-foreground/70">{pageDescription}</p>
+          </div>
         </div>
+        
+        <section className="py-12">
+          <div className="container mx-auto px-4">
+            <ProductGrid category={category} />
+          </div>
+        </section>
       </div>
-      
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <ProductGrid category={category} />
-        </div>
-      </section>
     </MainLayout>
   );
 };

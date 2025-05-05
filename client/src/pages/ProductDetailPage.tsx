@@ -153,8 +153,9 @@ const ProductDetailPage = () => {
   
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className="pt-16 md:pt-20">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Product Images */}
           <div>
             <div className="mb-4 bg-gray-50 overflow-hidden">
@@ -437,7 +438,8 @@ const ProductDetailPage = () => {
           <FeaturedProducts />
         </div>
       </div>
-    </MainLayout>
+    </div>
+  </MainLayout>
   );
 };
 
