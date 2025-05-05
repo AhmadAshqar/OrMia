@@ -1042,27 +1042,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const { productId } = req.body;
       
-      if (!productId || typeof productId !== 'number') {
+      console.log("Adding favorite - Request body:", req.body);
+      console.log("Product ID type:", typeof productId);
+      
+      if (!productId) {
+        console.log("Product ID missing");
         return res.status(400).json({ message: "מזהה מוצר נדרש" });
       }
       
+      // Convert to number if it's a string
+      const productIdNum = typeof productId === 'string' ? parseInt(productId) : productId;
+      
+      if (isNaN(productIdNum)) {
+        console.log("Product ID is not a valid number");
+        return res.status(400).json({ message: "מזהה מוצר לא תקין" });
+      }
+      
       // Check if product exists
-      const product = await storage.getProduct(productId);
+      const product = await storage.getProduct(productIdNum);
+      console.log("Product exists:", !!product);
+      
       if (!product) {
         return res.status(404).json({ message: "מוצר לא נמצא" });
       }
       
       // Check if already in favorites
-      const existing = await storage.getFavoriteByUserAndProduct(userId, productId);
+      const existing = await storage.getFavoriteByUserAndProduct(userId, productIdNum);
+      console.log("Already in favorites:", !!existing);
+      
       if (existing) {
         return res.status(409).json({ message: "המוצר כבר במועדפים" });
       }
       
       const favoriteData = insertFavoriteSchema.parse({
         userId,
-        productId
+        productId: productIdNum
       });
+      
+      console.log("Creating favorite with data:", favoriteData);
       const favorite = await storage.createFavorite(favoriteData);
+      console.log("Favorite created:", favorite);
       
       res.status(201).json(favorite);
     } catch (err) {

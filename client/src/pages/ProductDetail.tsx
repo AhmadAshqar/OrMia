@@ -73,7 +73,10 @@ export default function ProductDetail() {
     if (!product) return;
     
     try {
-      await apiRequest('POST', '/api/favorites', { productId: product.id });
+      console.log("Detail page - Adding to favorites, product ID:", product.id);
+      const response = await apiRequest('POST', '/api/favorites', { productId: Number(product.id) });
+      console.log("Detail page - Favorites API response:", response);
+      
       queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
       
       toast({
@@ -81,6 +84,8 @@ export default function ProductDetail() {
         description: `${product.name} נוסף למועדפים בהצלחה.`,
       });
     } catch (error: any) {
+      console.error("Detail page - Error adding to favorites:", error);
+      
       if (error.status === 401) {
         toast({
           title: "שגיאה",

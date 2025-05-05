@@ -36,13 +36,18 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToWishlist = async () => {
     try {
-      await apiRequest('POST', '/api/favorites', { productId: product.id });
+      console.log("Adding to favorites, product ID:", product.id);
+      const response = await apiRequest('POST', '/api/favorites', { productId: Number(product.id) });
+      console.log("Favorites API response:", response);
+      
       queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
       toast({
         title: "נוסף למועדפים",
         description: `${product.name} נוסף למועדפים בהצלחה.`,
       });
     } catch (error: any) {
+      console.error("Error adding to favorites:", error);
+      
       if (error.status === 401) {
         toast({
           title: "שגיאה",
