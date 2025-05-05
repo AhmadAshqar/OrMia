@@ -135,10 +135,154 @@ export default function AdminMessagesPage() {
     }
   });
 
+  // Effect to handle WebSocket connection
+  useEffect(() => {
+    if (!user) return;
+    
+    // Create WebSocket connection
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(wsUrl);
+    websocketRef.current = socket;
+    
+    // Connection opened
+    socket.addEventListener("open", () => {
+      console.log("WebSocket connection established");
+      setIsConnected(true);
+      
+      // Authenticate with the server
+      socket.send(JSON.stringify({
+        type: 'auth',
+        userId: user.id,
+        isAdmin: true
+      }));
+    });
+    
+    // Listen for messages
+    socket.addEventListener("message", (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("WebSocket message received:", data);
+        
+        if (data.type === 'welcome') {
+          console.log(data.message);
+        }
+        else if (data.type === 'auth_response') {
+          if (data.success) {
+            console.log("WebSocket authentication successful");
+            
+            // If we have a selected message, subscribe to its updates
+            if (selectedMessage?.orderId) {
+              socket.send(JSON.stringify({
+                type: 'subscribe',
+                orderId: selectedMessage.orderId
+              }));
+            }
+          } else {
+            console.error("WebSocket authentication failed:", data.message);
+            toast({
+              title: "שגיאה",
+              description: "נכשלה ההתחברות לשרת הצ'אט",
+              variant: "destructive"
+            });
+          }
+        }
+        else if (data.type === 'history') {
+          // Update the selected message with the latest messages
+          if (selectedMessage && selectedMessage.orderId === data.orderId) {
+            queryClient.invalidateQueries({ queryKey: ['/api/admin/messages'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/admin/messages/unread'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedMessage.orderId, 'messages'] });
+          }
+        }
+        else if (data.type === 'new_message') {
+          // Update the selected message with the new message
+          if (selectedMessage && selectedMessage.orderId === data.message.orderId) {
+            queryClient.invalidateQueries({ queryKey: ['/api/admin/messages'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/admin/messages/unread'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedMessage.orderId, 'messages'] });
+            
+            // Scroll to the bottom of the messages
+            if (messagesEndRef.current) {
+              messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+        }
+        else if (data.type === 'message_read') {
+          // Update the message read status
+          queryClient.invalidateQueries({ queryKey: ['/api/admin/messages'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/admin/messages/unread'] });
+          if (selectedMessage?.orderId) {
+            queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedMessage.orderId, 'messages'] });
+          }
+        }
+        else if (data.type === 'error') {
+          console.error("WebSocket error:", data.message);
+          toast({
+            title: "שגיאה",
+            description: data.message,
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
+      }
+    });
+    
+    // Connection closed
+    socket.addEventListener("close", (event) => {
+      console.log("WebSocket connection closed:", event);
+      setIsConnected(false);
+      
+      // Try to reconnect after a delay
+      setTimeout(() => {
+        if (websocketRef.current === socket) {
+          websocketRef.current = null;
+        }
+      }, 3000);
+    });
+    
+    // Connection error
+    socket.addEventListener("error", (error) => {
+      console.error("WebSocket error:", error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בהתחברות לשרת הצ'אט",
+        variant: "destructive"
+      });
+    });
+    
+    // Clean up the WebSocket connection when the component unmounts
+    return () => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+      if (websocketRef.current === socket) {
+        websocketRef.current = null;
+      }
+    };
+  }, [user]);
+  
   // Effect to handle message selection
   useEffect(() => {
-    if (selectedMessage && !selectedMessage.isRead) {
+    if (!selectedMessage) return;
+    
+    // Mark the message as read
+    if (!selectedMessage.isRead) {
       markAsReadMutation.mutate(selectedMessage.id);
+    }
+    
+    // Subscribe to the order's messages via WebSocket
+    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN && selectedMessage.orderId) {
+      websocketRef.current.send(JSON.stringify({
+        type: 'subscribe',
+        orderId: selectedMessage.orderId
+      }));
+    }
+    
+    // Scroll to the bottom of the messages
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [selectedMessage]);
 
@@ -159,7 +303,23 @@ export default function AdminMessagesPage() {
       });
       return;
     }
-    replyMutation.mutate({ messageId: selectedMessage.id, content: replyContent });
+    
+    // If WebSocket is connected, send the message through it
+    if (websocketRef.current && 
+        websocketRef.current.readyState === WebSocket.OPEN && 
+        selectedMessage.orderId) {
+      websocketRef.current.send(JSON.stringify({
+        type: 'message',
+        content: replyContent,
+        orderId: selectedMessage.orderId,
+        parentId: selectedMessage.id
+      }));
+      
+      setReplyContent('');
+    } else {
+      // Fallback to REST API if WebSocket is not connected
+      replyMutation.mutate({ messageId: selectedMessage.id, content: replyContent });
+    }
   };
 
   // Filter messages for search
@@ -310,6 +470,7 @@ export default function AdminMessagesPage() {
                             messages={getMessagesForSelectedUser(allMessages)}
                             currentUserId={0} // Admin is always 0 in chat view
                           />
+                          <div ref={messagesEndRef} />
                         </div>
                         <div className="p-4 border-t bg-white">
                           <form onSubmit={handleReplySubmit} className="flex">
