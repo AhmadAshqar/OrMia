@@ -199,6 +199,24 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   usedAt: timestamp("used_at"),
 });
 
+// Define Promo Codes Schema
+export const promoCodes = pgTable("promo_codes", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  description: text("description"),
+  discountType: text("discount_type").notNull(), // percentage, fixed
+  discountAmount: integer("discount_amount").notNull(),
+  minOrderAmount: integer("min_order_amount").default(0),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  createdBy: integer("created_by").references(() => admins.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Define Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ 
   id: true,
@@ -257,6 +275,13 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
   createdAt: true
 });
 
+export const insertPromoCodeSchema = createInsertSchema(promoCodes).omit({
+  id: true,
+  usedCount: true,
+  createdAt: true,
+  updatedAt: true
+});
+
 // Define Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -305,6 +330,11 @@ export type Favorite = typeof favorites.$inferSelect & {
   product?: Product;
 };
 
+export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>;
+export type PromoCode = typeof promoCodes.$inferSelect & {
+  createdByAdmin?: Admin;
+};
+
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens);
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
@@ -347,6 +377,13 @@ export const shippingRelations = relations(shipping, ({ one }) => ({
   order: one(orders, {
     fields: [shipping.orderId],
     references: [orders.id],
+  }),
+}));
+
+export const promoCodesRelations = relations(promoCodes, ({ one }) => ({
+  admin: one(admins, {
+    fields: [promoCodes.createdBy],
+    references: [admins.id],
   }),
 }));
 

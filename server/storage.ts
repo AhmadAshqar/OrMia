@@ -10,7 +10,8 @@ import {
   orders, type Order, type InsertOrder,
   shipping, type Shipping, type InsertShipping,
   favorites, type Favorite, type InsertFavorite,
-  passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken
+  passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken,
+  promoCodes, type PromoCode, type InsertPromoCode
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
@@ -114,6 +115,17 @@ export interface IStorage {
   getPasswordResetTokenByToken(token: string): Promise<PasswordResetToken | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   markPasswordResetTokenAsUsed(id: number): Promise<boolean>;
+  
+  // Promo code methods
+  getPromoCodes(): Promise<PromoCode[]>;
+  getActivePromoCodes(): Promise<PromoCode[]>;
+  getPromoCode(id: number): Promise<PromoCode | undefined>;
+  getPromoCodeByCode(code: string): Promise<PromoCode | undefined>;
+  createPromoCode(promoCode: InsertPromoCode): Promise<PromoCode>;
+  updatePromoCode(id: number, promoCode: Partial<InsertPromoCode>): Promise<PromoCode | undefined>;
+  incrementPromoCodeUsage(id: number): Promise<boolean>;
+  togglePromoCodeActive(id: number, isActive: boolean): Promise<boolean>;
+  deletePromoCode(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
