@@ -70,7 +70,7 @@ const HomePage = () => {
             <p className="max-w-2xl mx-auto text-lg text-foreground/80">{t("collections_description")}</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="group relative overflow-hidden rounded-sm slide-in">
               <img 
                 src="https://images.unsplash.com/photo-1574158622682-e40e69881006?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
@@ -121,6 +121,25 @@ const HomePage = () => {
                 <p className="text-white/80 mb-4">{t("luxury_earrings_desc")}</p>
                 <Link 
                   href="/products/earrings" 
+                  className="inline-block py-2 px-4 bg-primary/90 hover:bg-primary text-black font-medium transition-all duration-300"
+                >
+                  {t("view_collection")}
+                </Link>
+              </div>
+            </div>
+            
+            <div className="group relative overflow-hidden rounded-sm slide-in">
+              <img 
+                src="https://images.unsplash.com/photo-1631982690223-8aa6f588343d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1769&q=80" 
+                alt={t("bracelets_footer")} 
+                className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
+              <div className="absolute bottom-0 w-full p-6">
+                <h3 className="text-2xl font-serif text-white mb-3">{t("bracelets_footer")}</h3>
+                <p className="text-white/80 mb-4">צמידי מויסנייט יוקרתיים בעיצובים ייחודיים</p>
+                <Link 
+                  href="/products/bracelets" 
                   className="inline-block py-2 px-4 bg-primary/90 hover:bg-primary text-black font-medium transition-all duration-300"
                 >
                   {t("view_collection")}

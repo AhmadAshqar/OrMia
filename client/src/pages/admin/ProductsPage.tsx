@@ -562,10 +562,11 @@ export default function ProductsPage() {
                         <SelectContent>
                           <SelectItem value="placeholder">בחר קטגוריה</SelectItem>
                           {categories?.filter(category => 
-                            // Filter for only main categories: Rings, Necklaces, Earrings
+                            // Filter for only main categories: Rings, Necklaces, Earrings, Bracelets
                             category.slug === 'rings' || 
                             category.slug === 'necklaces' || 
-                            category.slug === 'earrings'
+                            category.slug === 'earrings' ||
+                            category.slug === 'bracelets'
                           ).map((category) => (
                             <SelectItem key={category.id} value={category.id.toString()}>
                               {category.name}
