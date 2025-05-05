@@ -318,9 +318,9 @@ export default function AdminMessagesPage() {
                             <Button 
                               type="submit" 
                               className="ms-2 self-end"
-                              disabled={isReplying || !replyContent.trim()}
+                              disabled={replyMutation.isPending || !replyContent.trim()}
                             >
-                              {isReplying ? (
+                              {replyMutation.isPending ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 'שלח'
@@ -732,27 +732,24 @@ function MessageDetails({
               </div>
             )}
           </div>
-          <div className="p-4 border-t bg-card">
-            <form onSubmit={handleReplySubmit} className="flex flex-col">
+          <div className="p-4 border-t bg-white">
+            <form onSubmit={handleReplySubmit} className="flex">
               <Textarea
+                className="flex-1 resize-none"
+                placeholder="כתוב הודעה..."
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="הקלד את תשובתך כאן..."
-                className="min-h-[100px] mb-2"
                 dir="rtl"
               />
-              <Button
-                type="submit"
-                className="self-start"
-                disabled={isReplying}
+              <Button 
+                type="submit" 
+                className="ms-2 self-end"
+                disabled={isReplying || !replyContent.trim()}
               >
                 {isReplying ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    שולח...
-                  </>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'שלח תשובה'
+                  'שלח'
                 )}
               </Button>
             </form>
