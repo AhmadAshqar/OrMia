@@ -72,9 +72,9 @@ const AboutPage = () => {
             </div>
             <div className="slide-in order-1 md:order-2">
               <img 
-                src="https://images.unsplash.com/photo-1554188248-986adbb73be4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80" 
-                alt="חנות תכשיטים יוקרתית" 
-                className="w-full rounded-md shadow-lg"
+                src="/ormia-logo.png" 
+                alt="אור מיה תכשיטים - מויסנייט" 
+                className="w-full rounded-md shadow-lg bg-black p-8"
               />
             </div>
           </div>
@@ -188,7 +188,7 @@ const AboutPage = () => {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-serif mb-6">הצטרפו למשפחת לוקס מויסנייט</h2>
+            <h2 className="text-3xl md:text-4xl font-serif mb-6">הצטרפו למשפחת אור מיה</h2>
             <p className="text-lg mb-8">
               הרשמו לניוזלטר שלנו לקבלת עדכונים על מבצעים, קולקציות חדשות ומידע שימושי על מויסנייט.
             </p>
