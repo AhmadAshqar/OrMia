@@ -1216,6 +1216,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate a unique order number
       const orderNumber = `OM-${Date.now()}-${randomUUID().substring(0, 4)}`;
       
+      // Debug the values being passed
+      console.log("Checkout values before conversion:", {
+        total,
+        subtotal,
+        shippingCost,
+        tax,
+        discount,
+        itemPrices: items.map(item => ({
+          id: item.product.id,
+          price: item.product.salePrice || item.product.price,
+          salePrice: item.product.salePrice,
+          regularPrice: item.product.price
+        }))
+      });
+      
       // Create the order with the enhanced data
       // Convert all money values to integers (cents) for database storage
       const orderData = {
@@ -1224,11 +1239,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "confirmed",
         paymentStatus: paymentMethod === 'credit-card' || paymentMethod === 'cash' ? "paid" : "pending",
         shipmentStatus: "processing",
-        total: Math.round(total * 100), // Convert to cents
-        subtotal: Math.round(subtotal * 100), // Convert to cents
-        shippingCost: Math.round((shippingCost || 0) * 100), // Convert to cents
-        tax: Math.round((tax || 0) * 100), // Convert to cents
-        discount: Math.round((discount || 0) * 100), // Convert to cents
+        total: Math.round(parseFloat(total) * 100), // Convert to cents, ensure it's a number
+        subtotal: Math.round(parseFloat(subtotal) * 100), // Convert to cents, ensure it's a number
+        shippingCost: Math.round(parseFloat(shippingCost || 0) * 100), // Convert to cents, ensure it's a number
+        tax: Math.round(parseFloat(tax || 0) * 100), // Convert to cents, ensure it's a number
+        discount: Math.round(parseFloat(discount || 0) * 100), // Convert to cents, ensure it's a number
         promoCode: promoCode || null,
         items: items.map(item => ({
           productId: item.product.id,
@@ -1275,7 +1290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timestamp: new Date().toISOString(),
           notes: "ההזמנה התקבלה ובתהליך עיבוד"
         }],
-        shippingCost: Math.round((shippingCost || 0) * 100) // Convert to cents
+        shippingCost: Math.round(parseFloat(shippingCost || 0) * 100) // Convert to cents, ensure it's a number
       };
       
       const shippingRecord = await storage.createShipping(shippingData);
@@ -1641,7 +1656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let discountAmount = 0;
       if (promoCode.discountType === 'percentage') {
         // For percentage discounts, apply the percentage to the original total
-        discountAmount = Math.round(total * (promoCode.discountAmount / 100));
+        discountAmount = Math.round(parseFloat(total) * (promoCode.discountAmount / 100));
         console.log(`Applied percentage discount: ${promoCode.discountAmount}%, amount: ${discountAmount}`);
       } else { // fixed amount
         // For fixed amount discounts, use the fixed value directly
