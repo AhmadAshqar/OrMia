@@ -251,18 +251,22 @@ const CheckoutPage = () => {
         body: JSON.stringify(requestBody),
       });
       
+      const promoData = await response.json();
+      console.log("Response from server:", promoData);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'קוד הקופון אינו תקף');
+        throw new Error(promoData.error || promoData.message || 'קוד הקופון אינו תקף');
       }
       
-      const promoData = await response.json();
+      if (!promoData.valid) {
+        throw new Error(promoData.message || 'קוד הקופון אינו תקף');
+      }
       
       // Check if the promo has a minimum order requirement
-      if (promoData.minOrder > 0 && subtotal < promoData.minOrder) {
+      if (promoData.minOrderAmount && subtotal < promoData.minOrderAmount) {
         toast({
           title: "סכום הזמנה מינימלי",
-          description: `קוד הקופון תקף להזמנות מעל ${formatPrice(promoData.minOrder)}`,
+          description: `קוד הקופון תקף להזמנות מעל ${formatPrice(promoData.minOrderAmount)}`,
           variant: "destructive"
         });
         return;
@@ -271,25 +275,34 @@ const CheckoutPage = () => {
       // Calculate discount based on type
       let discountAmount = 0;
       
-      if (promoData.discountType === 'percent') {
+      if (promoData.discountType === 'percentage') {
         // Percentage discount
-        discountAmount = subtotal * (promoData.discount / 100);
-      } else if (promoData.discountType === 'fixed') {
+        discountAmount = Math.round(subtotal * (promoData.discountAmount / 100));
+        console.log(`Applied percentage discount: ${promoData.discountAmount}%, amount: ${discountAmount}`);
+      } else {
         // Fixed amount discount
-        discountAmount = promoData.discount;
-      } else if (promoData.discountType === 'shipping' && shippingMethod !== 'express') {
-        // Free standard shipping
-        discountAmount = 0;
-        // We'll handle this separately in the shipping cost calculation
+        discountAmount = promoData.discountAmount;
+        console.log(`Applied fixed discount: ${discountAmount}`);
+      }
+      
+      // If the server already calculated the discount, use that value
+      if (promoData.calculatedDiscount) {
+        discountAmount = promoData.calculatedDiscount;
       }
       
       setDiscount(discountAmount);
       setPromoApplied(true);
-      setPromoData(promoData);
+      setPromoData({
+        ...promoData,
+        code: promoData.code,
+        discountType: promoData.discountType,
+        discountAmount: discountAmount,
+        description: promoData.description || ""
+      });
       
       toast({
         title: "קוד קופון הופעל!",
-        description: promoData.message,
+        description: promoData.description || "ההנחה הופעלה בהצלחה",
         variant: "default"
       });
     } catch (error) {

@@ -1550,11 +1550,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPromoCodeByCode(code: string): Promise<PromoCode | undefined> {
-    const [promoCode] = await db.select()
-      .from(promoCodes)
-      .where(eq(promoCodes.code, code));
-    
-    return promoCode;
+    try {
+      // Get the promo code with case-insensitive search
+      const promoCodes = await this.getPromoCodes();
+      
+      // Try to find a promo code matching the code (case insensitive)
+      const promoCode = promoCodes.find(
+        p => p.code.toLowerCase() === code.toLowerCase()
+      );
+      
+      console.log("Searching for promo code:", code);
+      console.log("Found promo code:", promoCode || "none");
+      
+      return promoCode;
+    } catch (error) {
+      console.error("Error in getPromoCodeByCode:", error);
+      return undefined;
+    }
   }
 
   async createPromoCode(promoCode: InsertPromoCode): Promise<PromoCode> {
