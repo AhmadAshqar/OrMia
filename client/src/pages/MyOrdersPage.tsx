@@ -221,7 +221,13 @@ const MyOrdersPage = () => {
         const error = await response.json();
         throw new Error(error.message || "שגיאה בטעינת ההזמנות");
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Orders data:", data);
+      if (data && data.length > 0) {
+        console.log("First order shipmentStatus:", data[0].shipmentStatus);
+        console.log("ShippingStatusMap keys:", Object.keys(shippingStatusMap));
+      }
+      return data;
     },
     enabled: !!user, // Only run query if user is logged in
     staleTime: 0, // Always consider data stale
@@ -372,7 +378,7 @@ const MyOrdersPage = () => {
             <div className="space-y-4">
               {orders
                 .filter((order: any) => 
-                  ["pending", "processing", "shipped"].includes(order.shipmentStatus))
+                  (order.shipmentStatus && ["pending", "processing", "shipped"].includes(order.shipmentStatus)))
                 .map((order: any) => (
                   <Card key={order.id} className="overflow-hidden transition-all">
                     <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
@@ -438,7 +444,7 @@ const MyOrdersPage = () => {
                   </Card>
                 ))}
                 {orders.filter((order: any) => 
-                  ["pending", "processing", "shipped"].includes(order.shipmentStatus)).length === 0 && (
+                  (order.shipmentStatus && ["pending", "processing", "shipped"].includes(order.shipmentStatus))).length === 0 && (
                   <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
                     <CheckCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h2 className="text-xl font-semibold mb-2">אין הזמנות פעילות</h2>
@@ -518,7 +524,7 @@ const MyOrdersPage = () => {
                   </Card>
                 ))}
                 {orders.filter((order: any) => 
-                  ["delivered", "cancelled"].includes(order.shipmentStatus)).length === 0 && (
+                  (order.shipmentStatus && ["delivered", "cancelled"].includes(order.shipmentStatus))).length === 0 && (
                   <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
                     <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h2 className="text-xl font-semibold mb-2">אין הזמנות שהושלמו</h2>
