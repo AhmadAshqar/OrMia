@@ -206,3 +206,25 @@
     @apply border border-yellow-400/30;
   }
 }
+
+/* RTL support for inputs in forms */
+input, 
+textarea,
+select,
+.form-input {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Specific RTL styles for checkout page */
+.dir-rtl {
+  direction: rtl;
+}
+
+/* Make sure child elements maintain RTL in forms */
+.dir-rtl input,
+.dir-rtl textarea,
+.dir-rtl select {
+  text-align: right;
+  direction: rtl;
+}

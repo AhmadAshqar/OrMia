@@ -428,15 +428,15 @@ const CheckoutPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 dir-rtl">
             <div className="lg:col-span-2">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  <Card>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 dir-rtl">
+                  <Card className="dir-rtl">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <Home className="ml-2 h-5 w-5" />
                         {t("billing_details")}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="grid gap-6">
+                    <CardContent className="grid gap-6 dir-rtl">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -665,7 +665,7 @@ const CheckoutPage = () => {
                   </Card>
                   
                   {/* Shipping Method */}
-                  <Card id="shipping-method">
+                  <Card id="shipping-method" className="dir-rtl">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <Truck className="ml-2 h-5 w-5" />
@@ -675,7 +675,7 @@ const CheckoutPage = () => {
                         בחר את שיטת המשלוח המועדפת עליך
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="dir-rtl">
                       <FormField
                         control={form.control}
                         name="shippingMethod"
@@ -725,14 +725,14 @@ const CheckoutPage = () => {
                   </Card>
                   
                   {/* Promo Code */}
-                  <Card id="promo-code">
+                  <Card id="promo-code" className="dir-rtl">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <Sparkles className="ml-2 h-5 w-5" />
                         קוד קופון
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="dir-rtl">
                       <div className="flex items-end gap-4">
                         <FormField
                           control={form.control}
@@ -786,7 +786,7 @@ const CheckoutPage = () => {
                   </Card>
                   
                   {/* Payment options */}
-                  <Card id="payment-options">
+                  <Card id="payment-options" className="dir-rtl">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <CreditCard className="ml-2 h-5 w-5" />
@@ -796,7 +796,7 @@ const CheckoutPage = () => {
                         בחר את אמצעי התשלום המועדף עליך
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="dir-rtl">
                       <Tabs defaultValue="credit-card" className="w-full" onValueChange={setPaymentMethod}>
                         <TabsList className="grid w-full grid-cols-3">
                           <TabsTrigger value="credit-card">{t("credit_card")}</TabsTrigger>
@@ -920,12 +920,12 @@ const CheckoutPage = () => {
             
             <div className="lg:col-span-1">
               <div className="sticky top-24">
-                <Card className="mb-6">
+                <Card className="mb-6 dir-rtl">
                   <CardHeader>
                     <CardTitle>{t("order_summary")}</CardTitle>
                     <CardDescription>סיכום ההזמנה שלך</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 dir-rtl">
                     {/* Product list with details */}
                     <div className="max-h-80 overflow-y-auto space-y-3 pl-1 text-right">
                       {items.map(({ product, quantity }) => (
