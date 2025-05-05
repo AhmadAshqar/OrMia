@@ -48,10 +48,20 @@ const shippingStatusMap: Record<string, { color: string; icon: React.ReactNode; 
     icon: <CheckCircle className="h-4 w-4 mr-1" />,
     text: "נמסר"
   },
+  new: {
+    color: "bg-blue-50 text-blue-600 border-blue-200",
+    icon: <ShoppingBag className="h-4 w-4 mr-1" />,
+    text: "חדש"
+  },
   cancelled: {
     color: "bg-red-100 text-red-800 border-red-300",
     icon: <XCircle className="h-4 w-4 mr-1" />,
     text: "בוטל"
+  },
+  failed: {
+    color: "bg-red-100 text-red-800 border-red-300", 
+    icon: <XCircle className="h-4 w-4 mr-1" />,
+    text: "נכשל"
   },
   default: {
     color: "bg-gray-100 text-gray-800 border-gray-300",
