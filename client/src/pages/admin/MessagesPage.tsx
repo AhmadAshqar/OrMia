@@ -413,56 +413,54 @@ export default function AdminMessagesPage() {
               </TabsContent>
               
               <TabsContent value="chat">
-                <div className="mb-4">
-                  <Select
-                    value={selectedUserId?.toString() || 'all'}
-                    onValueChange={(value) => setSelectedUserId(value === 'all' ? null : parseInt(value))}
-                  >
-                    <SelectTrigger className="w-full md:w-80">
-                      <SelectValue placeholder="בחר משתמש" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">כל המשתמשים</SelectItem>
-                      {!isLoadingUsers && users && users.map((user: any) => (
-                        <SelectItem key={user.id} value={user.id.toString()}>
-                          {user.username || user.email} {user.firstName && user.lastName ? `(${user.firstName} ${user.lastName})` : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-[600px]">
-                    {isLoadingAllMessages ? (
-                      <div className="flex justify-center items-center h-full">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      </div>
-                    ) : !selectedUserId ? (
-                      <div className="flex justify-center items-center h-full">
-                        <p className="text-muted-foreground">יש לבחור משתמש לצפייה בהודעות</p>
-                      </div>
-                    ) : allMessages && allMessages.length > 0 ? (
-                      <div className="h-full flex flex-col">
-                        <div className="p-3 border-b">
-                          <h3 className="text-lg font-semibold">
-                            {users?.find((u: any) => u.id === selectedUserId)?.username || "משתמש"}
-                          </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
+                  {/* Left panel - Users and messages list */}
+                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
+                    <div className="p-3 border-b">
+                      <Select
+                        value={selectedUserId?.toString() || 'all'}
+                        onValueChange={(value) => setSelectedUserId(value === 'all' ? null : parseInt(value))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="בחר משתמש" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">כל המשתמשים</SelectItem>
+                          {!isLoadingUsers && users && users.map((user: any) => (
+                            <SelectItem key={user.id} value={user.id.toString()}>
+                              {user.username || user.email} {user.firstName && user.lastName ? `(${user.firstName} ${user.lastName})` : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="flex-1 overflow-auto">
+                      {isLoadingAllMessages ? (
+                        <div className="flex justify-center items-center h-full">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                        <div className="flex-1 overflow-auto">
+                      ) : !selectedUserId ? (
+                        <div className="flex justify-center items-center h-full">
+                          <p className="text-muted-foreground">יש לבחור משתמש לצפייה בהודעות</p>
+                        </div>
+                      ) : allMessages && allMessages.length > 0 ? (
+                        <div className="h-full">
                           <MessageThread 
                             messages={getMessagesForSelectedUser(allMessages)}
                             onMessageClick={handleMessageClick}
                           />
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex justify-center items-center h-full">
-                        <p className="text-muted-foreground">אין הודעות למשתמש זה</p>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex justify-center items-center h-full">
+                          <p className="text-muted-foreground">אין הודעות למשתמש זה</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="md:col-span-2 border rounded-lg overflow-hidden h-[600px]">
+                  
+                  {/* Right panel - Chat view */}
+                  <div className="md:col-span-2 border rounded-lg overflow-hidden h-full">
                     {selectedMessage ? (
                       <div className="h-full flex flex-col">
                         <div className="flex-1 overflow-auto p-4 bg-gray-50">
