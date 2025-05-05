@@ -23,7 +23,7 @@ export default function AdminMessagesPage() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | string | null>(null);
 
   // Query to fetch all unread messages
   const { data: unreadMessages, isLoading: isLoadingUnread } = useQuery({
@@ -94,7 +94,7 @@ export default function AdminMessagesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/messages/unread'] });
-      if (selectedOrderId) {
+      if (selectedOrderId && selectedOrderId !== 'all') {
         queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedOrderId, 'messages'] });
       }
       setReplyContent('');
@@ -264,14 +264,14 @@ export default function AdminMessagesPage() {
               <TabsContent value="orders">
                 <div className="mb-4">
                   <Select
-                    value={selectedOrderId?.toString() || ''}
-                    onValueChange={(value) => setSelectedOrderId(value ? parseInt(value) : null)}
+                    value={selectedOrderId?.toString() || 'all'}
+                    onValueChange={(value) => setSelectedOrderId(value === 'all' ? null : isNaN(parseInt(value)) ? value : parseInt(value))}
                   >
                     <SelectTrigger className="w-full md:w-80">
                       <SelectValue placeholder="בחר הזמנה" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">כל ההזמנות</SelectItem>
+                      <SelectItem value="all">כל ההזמנות</SelectItem>
                       {!isLoadingOrders && orders && orders.map((order: any) => (
                         <SelectItem key={order.id} value={order.id.toString()}>
                           הזמנה #{order.orderNumber} - {order.customerName}
