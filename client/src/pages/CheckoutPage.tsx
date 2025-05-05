@@ -423,7 +423,7 @@ const CheckoutPage = () => {
         </div>
       </div>
       
-      <section className="py-12 dir-rtl">
+      <section className="py-12 dir-rtl" dir="rtl">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 dir-rtl">
             <div className="lg:col-span-2">
@@ -1013,21 +1013,21 @@ const CheckoutPage = () => {
                 <Card className="mb-6">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center">
-                      <ShieldCheck className="mr-2 h-5 w-5" />
+                      <ShieldCheck className="ml-2 h-5 w-5" />
                       אבטחה ותשלומים
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center text-sm">
-                      <Lock className="mr-2 h-4 w-4 text-green-600" />
+                      <Lock className="ml-2 h-4 w-4 text-green-600" />
                       <p>כל העסקאות מאובטחות ומוצפנות SSL</p>
                     </div>
                     <div className="flex items-center text-sm">
-                      <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                      <CheckCircle className="ml-2 h-4 w-4 text-green-600" />
                       <p>הגנת לקוח מלאה בכל רכישה</p>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Package2 className="mr-2 h-4 w-4 text-green-600" />
+                      <Package2 className="ml-2 h-4 w-4 text-green-600" />
                       <p>משלוחים מהירים לכל הארץ</p>
                     </div>
                   </CardContent>
