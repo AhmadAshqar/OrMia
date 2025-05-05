@@ -995,7 +995,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/profile", ensureAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
-      const allowedFields = ["firstName", "lastName", "email", "phone", "profileImage"];
+      const allowedFields = ["firstName", "lastName", "email", "phone", "profileImage",
+                           "address", "apartment", "city", "postalCode", "country"];
       
       // Filter out non-allowed fields
       const updateData = Object.fromEntries(
@@ -1023,7 +1024,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/user/profile", ensureAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
-      const allowedFields = ["firstName", "lastName", "email", "phone", "profileImage"];
+      const allowedFields = ["firstName", "lastName", "email", "phone", "profileImage", 
+                           "address", "apartment", "city", "postalCode", "country"];
       
       // Filter out non-allowed fields
       const updateData = Object.fromEntries(

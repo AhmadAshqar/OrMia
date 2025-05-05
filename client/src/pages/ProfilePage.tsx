@@ -34,6 +34,12 @@ const profileSchema = z.object({
   firstName: z.string().min(2, { message: "שם פרטי חייב להכיל לפחות 2 תווים" }).nullable().optional(),
   lastName: z.string().min(2, { message: "שם משפחה חייב להכיל לפחות 2 תווים" }).nullable().optional(),
   email: z.string().email({ message: "כתובת אימייל לא תקינה" }),
+  phone: z.string().min(9, { message: "מספר טלפון לא תקין" }).max(10).nullable().optional(),
+  address: z.string().min(2, { message: "כתובת חייבת להכיל לפחות 2 תווים" }).nullable().optional(),
+  apartment: z.string().nullable().optional(),
+  city: z.string().min(2, { message: "עיר חייבת להכיל לפחות 2 תווים" }).nullable().optional(),
+  postalCode: z.string().nullable().optional(),
+  country: z.string().default("ישראל").nullable().optional(),
 });
 
 // Password form schema
@@ -62,6 +68,12 @@ export default function ProfilePage() {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       email: user?.email || "",
+      phone: user?.phone || "",
+      address: user?.address || "",
+      apartment: user?.apartment || "",
+      city: user?.city || "",
+      postalCode: user?.postalCode || "",
+      country: user?.country || "ישראל",
     },
   });
 
@@ -240,6 +252,90 @@ export default function ProfilePage() {
                           </FormItem>
                         )}
                       />
+                      <FormField
+                        control={profileForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>טלפון</FormLabel>
+                            <FormControl>
+                              <Input dir="ltr" placeholder="טלפון" {...field} value={field.value || ""} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="pt-6 border-t">
+                        <h3 className="text-md font-semibold mb-4">פרטי משלוח</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={profileForm.control}
+                            name="address"
+                            render={({ field }) => (
+                              <FormItem className="md:col-span-2">
+                                <FormLabel>כתובת</FormLabel>
+                                <FormControl>
+                                  <Input dir="rtl" placeholder="רחוב ומספר בית" {...field} value={field.value || ""} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={profileForm.control}
+                            name="apartment"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>דירה/קומה (אופציונלי)</FormLabel>
+                                <FormControl>
+                                  <Input dir="rtl" placeholder="דירה או קומה" {...field} value={field.value || ""} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={profileForm.control}
+                            name="city"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>עיר</FormLabel>
+                                <FormControl>
+                                  <Input dir="rtl" placeholder="עיר" {...field} value={field.value || ""} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={profileForm.control}
+                            name="postalCode"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>מיקוד</FormLabel>
+                                <FormControl>
+                                  <Input dir="ltr" placeholder="מיקוד" {...field} value={field.value || ""} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={profileForm.control}
+                            name="country"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>מדינה</FormLabel>
+                                <FormControl>
+                                  <Input dir="rtl" placeholder="מדינה" {...field} value={field.value || ""} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
                     </CardContent>
                     <CardFooter className="flex justify-start border-t p-4">
                       <Button 

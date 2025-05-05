@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   phone: text("phone"),
   address: text("address"),
+  apartment: text("apartment"),
   city: text("city"),
   postalCode: text("postal_code"),
   country: text("country").default("ישראל"),
