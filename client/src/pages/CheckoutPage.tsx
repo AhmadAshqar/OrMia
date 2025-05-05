@@ -110,7 +110,10 @@ const CheckoutPage = () => {
   const { t } = useTranslation();
   const cartContext = useContext(CartContext);
   const items = cartContext?.items || [];
-  const subtotal = cartContext?.subtotal || 0;
+  // This is the original subtotal from the cart, before any discounts
+  const originalSubtotal = cartContext?.subtotal || 0;
+  // We'll use this for all discount calculations
+  const subtotal = originalSubtotal;
   const total = cartContext?.total || 0;
   const clearCart = cartContext?.clearCart;
   const { toast } = useToast();
@@ -153,7 +156,9 @@ const CheckoutPage = () => {
   })();
   
   // Calculate discounted subtotal and total
+  // The original subtotal is the sum of all items before any discounts
   const discountedSubtotal = subtotal - discount;
+  // The final total is the discounted subtotal plus shipping
   const finalTotal = discountedSubtotal + shippingCost;
   
   // Calculate tax (included in price, 17% VAT in Israel)
