@@ -92,9 +92,9 @@ const HomePage = () => {
             
             <div className="group relative overflow-hidden rounded-sm slide-in">
               <img 
-                src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1587&q=80" 
+                src="/necklace.webp" 
                 alt={t("diamond_necklaces")} 
-                className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-96 object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
               <div className="absolute bottom-0 w-full p-6">
@@ -111,9 +111,9 @@ const HomePage = () => {
             
             <div className="group relative overflow-hidden rounded-sm slide-in">
               <img 
-                src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80" 
+                src="/earrings.webp" 
                 alt={t("luxury_earrings")} 
-                className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-96 object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
               <div className="absolute bottom-0 w-full p-6">
@@ -130,9 +130,9 @@ const HomePage = () => {
             
             <div className="group relative overflow-hidden rounded-sm slide-in">
               <img 
-                src="https://images.unsplash.com/photo-1631982690223-8aa6f588343d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1769&q=80" 
+                src="/bracelet.webp" 
                 alt={t("luxury_bracelets")} 
-                className="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-96 object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
               <div className="absolute bottom-0 w-full p-6">
