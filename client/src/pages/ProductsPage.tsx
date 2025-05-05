@@ -31,6 +31,10 @@ const ProductsPage = () => {
           setPageTitle(t("earrings"));
           setPageDescription("עגילי מויסנייט מרהיבים שמשלבים יופי וברק יוצא דופן, מושלמים לכל אישה שאוהבת תכשיטים איכותיים.");
           break;
+        case "bracelets":
+          setPageTitle(t("bracelets"));
+          setPageDescription("צמידי מויסנייט יוקרתיים בעיצובים ייחודיים, המשלבים זוהר ויופי לכל אירוע מיוחד.");
+          break;
         case "engagement-rings":
           setPageTitle(t("engagement_rings"));
           setPageDescription("טבעות אירוסין מויסנייט בעיצוב ייחודי, מושלמות לרגע המיוחד ביותר בחיים ולשנים רבות לאחר מכן.");

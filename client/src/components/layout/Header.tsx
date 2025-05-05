@@ -40,6 +40,7 @@ const Header = () => {
     { name: "טבעות", path: "/products/rings" },
     { name: "שרשראות", path: "/products/necklaces" },
     { name: "עגילים", path: "/products/earrings" },
+    { name: "צמידים", path: "/products/bracelets" },
     { name: "אודות", path: "/about" },
   ];
 
