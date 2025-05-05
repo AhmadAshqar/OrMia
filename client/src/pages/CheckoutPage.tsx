@@ -443,7 +443,7 @@ const CheckoutPage = () => {
                           name="firstName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t("first_name")}</FormLabel>
+                              <FormLabel className="block text-right">{t("first_name")}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -456,7 +456,7 @@ const CheckoutPage = () => {
                           name="lastName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t("last_name")}</FormLabel>
+                              <FormLabel className="block text-right">{t("last_name")}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -472,7 +472,7 @@ const CheckoutPage = () => {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t("email")}</FormLabel>
+                              <FormLabel className="block text-right">{t("email")}</FormLabel>
                               <FormControl>
                                 <Input {...field} type="email" />
                               </FormControl>
@@ -485,7 +485,7 @@ const CheckoutPage = () => {
                           name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t("phone")}</FormLabel>
+                              <FormLabel className="block text-right">{t("phone")}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -500,7 +500,7 @@ const CheckoutPage = () => {
                         name="address"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t("address")}</FormLabel>
+                            <FormLabel className="block text-right">{t("address")}</FormLabel>
                             <FormControl>
                               <Input {...field} />
                             </FormControl>

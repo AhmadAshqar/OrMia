@@ -224,7 +224,9 @@ select,
 /* Make sure child elements maintain RTL in forms */
 .dir-rtl input,
 .dir-rtl textarea,
-.dir-rtl select {
+.dir-rtl select,
+.dir-rtl label,
+.dir-rtl .form-label {
   text-align: right;
   direction: rtl;
 }
