@@ -735,7 +735,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "סטטוס הזמנה נדרש" });
       }
       
-      // Update both the main status and shipment status to keep them in sync
+      // Update the order status
       const order = await storage.updateOrderStatus(id, status);
       if (!order) {
         return res.status(404).json({ message: "הזמנה לא נמצאה" });
@@ -744,8 +744,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Also update the shipment status to match
       await storage.updateOrderShipmentStatus(id, status);
       
-      // Add the status update to shipping history if it exists
-      const shipping = await storage.getShippingByOrderId(id);
+      // Find the associated shipping record by order number
+      const shippingRecords = await storage.getShippings();
+      const shipping = shippingRecords.find(s => s.orderNumber === order.orderNumber);
+      
+      // If shipping record exists, update its status too
       if (shipping) {
         await storage.updateShippingStatus(shipping.id, status, {
           location: "מחסן OrMia Jewelry",
@@ -898,24 +901,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: notes || undefined
       };
       
+      // Get the shipping record first to get order info
+      const existingShipping = await storage.getShipping(id);
+      if (!existingShipping) {
+        return res.status(404).json({ message: "משלוח לא נמצא" });
+      }
+      
+      // Update shipping status
       const shipping = await storage.updateShippingStatus(id, status, locationInfo);
       if (!shipping) {
         return res.status(404).json({ message: "משלוח לא נמצא" });
       }
       
-      // Also update the order's shipment status
-      // Find the order by the shipping's orderNumber
-      const order = await storage.getOrderByNumber(shipping.orderNumber);
-      if (order) {
-        await storage.updateOrderShipmentStatus(order.id, status);
-        
-        // If shipment status is "delivered", also update order status to "completed"
-        if (status === "delivered") {
-          await storage.updateOrderStatus(order.id, "completed");
-        }
-        // If shipment status is "cancelled", also update order status to "cancelled"
-        else if (status === "cancelled") {
-          await storage.updateOrderStatus(order.id, "cancelled");
+      // Find the corresponding order by order number (stored in shipping record)
+      if (shipping.orderNumber) {
+        const order = await storage.getOrderByNumber(shipping.orderNumber);
+        if (order) {
+          // Update the order's shipment status to match the shipping status
+          await storage.updateOrderShipmentStatus(order.id, status);
+          
+          // If shipment status is "delivered", also update order status to "completed"
+          if (status === "delivered") {
+            await storage.updateOrderStatus(order.id, "completed");
+          }
+          // If shipment status is "cancelled", also update order status to "cancelled"
+          else if (status === "cancelled") {
+            await storage.updateOrderStatus(order.id, "cancelled");
+          }
         }
       }
       
