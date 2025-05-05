@@ -48,6 +48,8 @@ const resources = {
       'diamond_necklaces_desc': 'אלגנטיות ונוצצות לכל אירוע.',
       'luxury_earrings': 'עגילי יוקרה',
       'luxury_earrings_desc': 'נוצצים ומרהיבים בכל סגנון.',
+      'luxury_bracelets': 'צמידי יוקרה',
+      'luxury_bracelets_desc': 'צמידי מויסנייט יוקרתיים בעיצובים ייחודיים.',
       
       // Featured Products
       'featured_products': 'מוצרים מובילים',

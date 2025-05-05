@@ -120,6 +120,22 @@ async function seed() {
         reviewCount: 36
       },
       {
+        name: "צמיד בנגל מויסנייט",
+        description: "צמיד בנגל אלגנטי משובץ באבני מויסנייט מרהיבות",
+        longDescription: "צמיד בנגל יוקרתי משובץ באבני מויסנייט נוצצות בעיצוב מודרני. הצמיד מיוצר מחומרים איכותיים, עמיד לאורך זמן ומתאים לשימוש יומיומי. זהו תכשיט שמוסיף נגיעה של יוקרה לכל הופעה ומתאים לכל אירוע.",
+        price: 2899,
+        salePrice: null,
+        mainImage: "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1769&q=80",
+        images: "https://images.unsplash.com/photo-1611591634533-191fe1cfdeeb,https://images.unsplash.com/photo-1593178281299-4d8b3331102c",
+        categoryId: categoryMap.get("bracelets") || 0,
+        sku: "BRAC-MS-002",
+        inStock: true,
+        isNew: true,
+        isFeatured: false,
+        rating: 4.8,
+        reviewCount: 22
+      },
+      {
         name: "טבעת אירוסין מויסנייט סוליטר",
         description: "טבעת אירוסין קלאסית עם אבן מויסנייט סוליטר עגולה 1.5 קראט",
         longDescription: "טבעת אירוסין בעיצוב קלאסי ונצחי עם אבן מויסנייט מרכזית במשקל 1.5 קראט וחישוקים עדינים. הטבעת מושלמת להצעת נישואין רומנטית, עם נצנוץ דומה ליהלום אך במחיר נגיש יותר. כל טבעת מגיעה בקופסת מתנה יוקרתית.",
