@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { 
   Search, 
   FileText, 
@@ -43,7 +59,8 @@ import {
   X,
   AlertTriangle,
   Eye,
-  Printer
+  Printer,
+  FilterIcon
 } from "lucide-react";
 
 // Order status types for the UI
@@ -74,8 +91,11 @@ interface Order {
 export default function OrdersPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 10; // Number of orders to display per page
 
   // Fetch orders from API
   const { data: orders = [], isLoading, isError } = useQuery({
@@ -89,8 +109,14 @@ export default function OrdersPage() {
     }
   });
 
-  // Filter orders based on search term
+  // Filter orders based on search term and status
   const filteredOrders = orders.filter((order: Order) => {
+    // First filter by status if a specific status is selected
+    if (statusFilter !== "all" && order.status !== statusFilter) {
+      return false;
+    }
+    
+    // Then filter by search term
     if (!searchTerm) return true;
     
     const searchLower = searchTerm.toLowerCase();
@@ -100,6 +126,25 @@ export default function OrdersPage() {
       order.customerEmail.toLowerCase().includes(searchLower)
     );
   });
+  
+  // Calculate pagination
+  const totalOrders = filteredOrders.length;
+  const totalPages = Math.ceil(totalOrders / ordersPerPage);
+  
+  // Get current orders for the page
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+  
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -209,14 +254,34 @@ export default function OrdersPage() {
 
       <Card className="mb-6">
         <CardContent className="p-6">
-          <div className="flex items-center border rounded-lg px-3 py-2 max-w-md">
-            <Search className="h-5 w-5 text-muted-foreground ml-2" />
-            <Input 
-              placeholder="חפש לפי מספר הזמנה, שם לקוח או אימייל"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex items-center border rounded-lg px-3 py-2 md:max-w-sm flex-1">
+              <Search className="h-5 w-5 text-muted-foreground ml-2" />
+              <Input 
+                placeholder="חפש לפי מספר הזמנה, שם לקוח או אימייל"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <FilterIcon className="h-5 w-5 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="סנן לפי סטטוס" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">כל הסטטוסים</SelectItem>
+                  <SelectItem value="new">חדש</SelectItem>
+                  <SelectItem value="pending">ממתין לאישור</SelectItem>
+                  <SelectItem value="processing">בטיפול</SelectItem>
+                  <SelectItem value="shipped">נשלח</SelectItem>
+                  <SelectItem value="delivered">נמסר</SelectItem>
+                  <SelectItem value="cancelled">בוטל</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -239,8 +304,8 @@ export default function OrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order: Order) => (
+                {currentOrders.length > 0 ? (
+                  currentOrders.map((order: Order) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-medium">{order.orderNumber}</TableCell>
                       <TableCell>
@@ -275,12 +340,76 @@ export default function OrdersPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                      {searchTerm ? 'לא נמצאו תוצאות לחיפוש' : 'לא נמצאו הזמנות'}
+                      {searchTerm || statusFilter !== 'all' ? 'לא נמצאו תוצאות לחיפוש' : 'לא נמצאו הזמנות'}
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
+          </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }).map((_, index) => {
+                    const pageNum = index + 1;
+                    // Show first page, last page, and pages around current page
+                    if (
+                      pageNum === 1 || 
+                      pageNum === totalPages || 
+                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            isActive={currentPage === pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+                    
+                    // Show ellipsis for breaks in sequence
+                    if (
+                      (pageNum === 2 && currentPage > 3) || 
+                      (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    
+                    return null;
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+          
+          {/* Order stats */}
+          <div className="mt-4 text-sm text-muted-foreground text-center">
+            מציג {currentOrders.length > 0 ? `${indexOfFirstOrder + 1}-${Math.min(indexOfLastOrder, totalOrders)}` : '0'} מתוך {totalOrders} הזמנות
+            {statusFilter !== 'all' && ` • מסונן לפי סטטוס: ${getStatusText(statusFilter as OrderStatus)}`}
           </div>
         </CardContent>
       </Card>
