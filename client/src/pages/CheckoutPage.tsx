@@ -515,7 +515,7 @@ const CheckoutPage = () => {
                           name="city"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t("city")}</FormLabel>
+                              <FormLabel className="block text-right">{t("city")}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -528,7 +528,7 @@ const CheckoutPage = () => {
                           name="postalCode"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t("postal_code")}</FormLabel>
+                              <FormLabel className="block text-right">{t("postal_code")}</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -550,7 +550,7 @@ const CheckoutPage = () => {
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel>{t("same_as_billing")}</FormLabel>
+                              <FormLabel className="block text-right">{t("same_as_billing")}</FormLabel>
                             </div>
                           </FormItem>
                         )}
@@ -739,7 +739,7 @@ const CheckoutPage = () => {
                           name="promoCode"
                           render={({ field }) => (
                             <FormItem className="flex-1">
-                              <FormLabel>יש לך קוד קופון?</FormLabel>
+                              <FormLabel className="block text-right">יש לך קוד קופון?</FormLabel>
                               <FormControl>
                                 <Input 
                                   {...field} 
@@ -809,7 +809,7 @@ const CheckoutPage = () => {
                             name="cardNumber"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>מספר כרטיס</FormLabel>
+                                <FormLabel className="block text-right">מספר כרטיס</FormLabel>
                                 <FormControl>
                                   <Input {...field} placeholder="1234 5678 9012 3456" />
                                 </FormControl>
