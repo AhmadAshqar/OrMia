@@ -123,10 +123,30 @@ const ProductGrid = ({ category }: ProductGridProps) => {
 
   const filterByPrice = (products: Product[] | undefined) => {
     if (!products) return [];
-    return products.filter(product => {
-      const productPrice = product.salePrice || product.price;
-      return productPrice >= priceRange[0] && productPrice <= priceRange[1];
+    
+    console.log("Filtering products:", products.length);
+    console.log("Price range:", priceRange);
+    
+    // Check each product price against the price range
+    const filtered = products.filter(product => {
+      const productPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
+      
+      // Handle NaN cases or invalid prices
+      if (isNaN(productPrice) || productPrice === null) {
+        return false;
+      }
+      
+      const withinRange = productPrice >= priceRange[0] && productPrice <= priceRange[1];
+      
+      if (!withinRange) {
+        console.log("Filtered out product:", product.id, product.name, "Price:", productPrice);
+      }
+      
+      return withinRange;
     });
+    
+    console.log("Filtered products:", filtered.length);
+    return filtered;
   };
 
   const displayedProducts = filterByPrice(sortProducts(products));
@@ -180,17 +200,6 @@ const ProductGrid = ({ category }: ProductGridProps) => {
                 <div className="py-4">
                   <div className="flex flex-row gap-4 mb-4 items-center">
                     <div className="flex-1">
-                      <label className="text-sm mb-1 block">עד</label>
-                      <input 
-                        type="number" 
-                        min={priceRange[0]} 
-                        max="10000"
-                        value={priceRange[1]} 
-                        onChange={(e) => handlePriceChange([priceRange[0], Number(e.target.value)])}
-                        className="w-full p-2 border rounded-md text-right"
-                      />
-                    </div>
-                    <div className="flex-1">
                       <label className="text-sm mb-1 block">מ</label>
                       <input 
                         type="number" 
@@ -198,6 +207,17 @@ const ProductGrid = ({ category }: ProductGridProps) => {
                         max={priceRange[1]}
                         value={priceRange[0]} 
                         onChange={(e) => handlePriceChange([Number(e.target.value), priceRange[1]])}
+                        className="w-full p-2 border rounded-md text-right"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-sm mb-1 block">עד</label>
+                      <input 
+                        type="number" 
+                        min={priceRange[0]} 
+                        max="10000"
+                        value={priceRange[1]} 
+                        onChange={(e) => handlePriceChange([priceRange[0], Number(e.target.value)])}
                         className="w-full p-2 border rounded-md text-right"
                       />
                     </div>
