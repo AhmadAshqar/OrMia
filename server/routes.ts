@@ -735,12 +735,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "סטטוס הזמנה נדרש" });
       }
       
+      // Update both the main status and shipment status to keep them in sync
       const order = await storage.updateOrderStatus(id, status);
       if (!order) {
         return res.status(404).json({ message: "הזמנה לא נמצאה" });
       }
       
-      res.json(order);
+      // Also update the shipment status to match
+      await storage.updateOrderShipmentStatus(id, status);
+      
+      // Add the status update to shipping history if it exists
+      const shipping = await storage.getShippingByOrderId(id);
+      if (shipping) {
+        await storage.updateShippingStatus(shipping.id, status, {
+          location: "מחסן OrMia Jewelry",
+          notes: `סטטוס הזמנה עודכן ל-${status}`
+        });
+      }
+      
+      // Get the updated order to include all changes
+      const updatedOrder = await storage.getOrder(id);
+      
+      res.json(updatedOrder);
     } catch (err) {
       console.error("Error updating order status:", err);
       res.status(500).json({ message: "שגיאה בעדכון סטטוס ההזמנה" });
