@@ -664,66 +664,6 @@ const CheckoutPage = () => {
                     </CardContent>
                   </Card>
                   
-                  {/* Shipping Method */}
-                  <Card id="shipping-method" className="dir-rtl">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Truck className="ml-2 h-5 w-5" />
-                        שיטת משלוח
-                      </CardTitle>
-                      <CardDescription>
-                        בחר את שיטת המשלוח המועדפת עליך
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="dir-rtl">
-                      <FormField
-                        control={form.control}
-                        name="shippingMethod"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex flex-col space-y-3"
-                              >
-                                <FormItem className="flex items-center space-x-3 space-x-reverse space-y-0 rounded-md border p-4">
-                                  <FormControl>
-                                    <RadioGroupItem value="standard" />
-                                  </FormControl>
-                                  <div className="flex-1">
-                                    <FormLabel className="text-base">
-                                      משלוח רגיל {subtotal >= 250 ? 
-                                        <Badge className="mr-2 bg-green-600">חינם</Badge> : 
-                                        <span className="font-medium">{formatPrice(35)}</span>}
-                                    </FormLabel>
-                                    <FormDescription>
-                                      משלוח תוך 5-7 ימי עסקים
-                                    </FormDescription>
-                                  </div>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-3 space-x-reverse space-y-0 rounded-md border p-4">
-                                  <FormControl>
-                                    <RadioGroupItem value="express" />
-                                  </FormControl>
-                                  <div className="flex-1">
-                                    <FormLabel className="text-base">
-                                      משלוח מהיר <span className="font-medium">{formatPrice(50)}</span>
-                                    </FormLabel>
-                                    <FormDescription>
-                                      משלוח מהיר תוך 1-3 ימי עסקים
-                                    </FormDescription>
-                                  </div>
-                                </FormItem>
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                  
                   {/* Promo Code */}
                   <Card id="promo-code" className="dir-rtl">
                     <CardHeader>
