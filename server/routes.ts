@@ -17,6 +17,7 @@ import {
 import { setupAuth, ensureAuthenticated, ensureAdmin, hashPassword } from "./auth";
 import { generatePasswordResetToken, sendPasswordResetEmail } from "./email";
 import { z } from "zod";
+import { WebSocketServer, WebSocket } from 'ws';
 
 import { randomUUID } from "crypto";
 
@@ -2200,5 +2201,178 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Set up WebSocket server for real-time messaging
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Track connected clients with their auth info
+  const clients = new Map();
+  
+  // Handle WebSocket connections
+  wss.on('connection', (ws, req) => {
+    console.log('WebSocket client connected');
+    
+    // Generate a unique client ID
+    const clientId = randomUUID();
+    
+    // Store client connection in the map
+    clients.set(clientId, {
+      ws,
+      userId: null,
+      isAdmin: false,
+      orderId: null
+    });
+    
+    // Handle client messages
+    ws.on('message', async (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('Received message:', data);
+        
+        // Handle authentication
+        if (data.type === 'auth') {
+          const { userId, token, isAdmin } = data;
+          
+          // TODO: Add proper token validation
+          // For now, we'll trust the client and just store the info
+          
+          // Update client info
+          clients.set(clientId, {
+            ...clients.get(clientId),
+            userId,
+            isAdmin: isAdmin === true
+          });
+          
+          // Send success response
+          ws.send(JSON.stringify({
+            type: 'auth_response',
+            success: true
+          }));
+        }
+        
+        // Handle chat room subscription
+        else if (data.type === 'subscribe') {
+          const { orderId } = data;
+          
+          if (!orderId) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Order ID is required'
+            }));
+            return;
+          }
+          
+          // Store order ID in client info
+          clients.set(clientId, {
+            ...clients.get(clientId),
+            orderId
+          });
+          
+          // Send past messages
+          const messages = await storage.getOrderMessages(orderId);
+          
+          ws.send(JSON.stringify({
+            type: 'history',
+            orderId,
+            messages
+          }));
+        }
+        
+        // Handle new message
+        else if (data.type === 'message') {
+          const client = clients.get(clientId);
+          
+          if (!client || !client.userId) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'You must be authenticated to send messages'
+            }));
+            return;
+          }
+          
+          const { content, orderId, parentId } = data;
+          
+          if (!content || !orderId) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Message content and order ID are required'
+            }));
+            return;
+          }
+          
+          // Create the message
+          const message = await storage.createMessage({
+            userId: client.userId,
+            orderId,
+            subject: 'הודעה בנוגע להזמנה',
+            content,
+            isFromAdmin: client.isAdmin,
+            parentId
+          });
+          
+          // Broadcast to all connected clients for this order
+          broadcastToOrder(orderId, {
+            type: 'new_message',
+            message
+          });
+        }
+        
+        // Handle read status update
+        else if (data.type === 'mark_read') {
+          const { messageId } = data;
+          
+          if (!messageId) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Message ID is required'
+            }));
+            return;
+          }
+          
+          // Update message read status
+          await storage.markMessageAsRead(messageId);
+          
+          // Get the updated message for its orderId
+          const message = await storage.getMessage(messageId);
+          
+          if (message && message.orderId) {
+            // Broadcast read status to all connected clients for this order
+            broadcastToOrder(message.orderId, {
+              type: 'message_read',
+              messageId
+            });
+          }
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Failed to process message'
+        }));
+      }
+    });
+    
+    // Handle client disconnection
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      // Remove client from the map
+      clients.delete(clientId);
+    });
+    
+    // Send welcome message
+    ws.send(JSON.stringify({
+      type: 'welcome',
+      message: 'Connected to OrMia chat server'
+    }));
+  });
+  
+  // Function to broadcast a message to all clients subscribed to an order
+  function broadcastToOrder(orderId, message) {
+    for (const [id, client] of clients.entries()) {
+      if (client.orderId === orderId && client.ws.readyState === WebSocket.OPEN) {
+        client.ws.send(JSON.stringify(message));
+      }
+    }
+  }
+  
   return httpServer;
 }
