@@ -35,6 +35,23 @@ export default function AuthPage() {
   const [isFormReady, setIsFormReady] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
+  // Get URL parameters for reset token and mode
+  const searchParams = new URLSearchParams(window.location.search);
+  const mode = searchParams.get("mode");
+  const resetToken = searchParams.get("reset");
+  const defaultTab = mode === "register" ? "register" : "login";
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(!!resetToken);
+
+  const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      token: resetToken || "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+  
+  // Effect to handle form initialization
   useEffect(() => {
     // Delay form initialization to improve initial page load
     const timer = setTimeout(() => {
@@ -43,6 +60,14 @@ export default function AuthPage() {
     
     return () => clearTimeout(timer);
   }, []);
+  
+  // Effect to handle reset token
+  useEffect(() => {
+    if (resetToken) {
+      resetPasswordForm.setValue("token", resetToken);
+      setIsResetPasswordOpen(true);
+    }
+  }, [resetToken, resetPasswordForm]);
   
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -66,6 +91,13 @@ export default function AuthPage() {
     },
   });
 
+  const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordSchema>>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
   async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
     try {
       await loginMutation.mutateAsync(values);
@@ -82,13 +114,6 @@ export default function AuthPage() {
     }
   }
   
-  const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordSchema>>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
-  
   async function onForgotPasswordSubmit(values: z.infer<typeof forgotPasswordSchema>) {
     try {
       await forgotPasswordMutation.mutateAsync(values);
@@ -98,27 +123,6 @@ export default function AuthPage() {
       console.error("Password reset request failed:", error);
     }
   }
-
-  if (user && !isLoading) {
-    return <Redirect to="/" />;
-  }
-
-  const searchParams = new URLSearchParams(window.location.search);
-  const mode = searchParams.get("mode");
-  const resetToken = searchParams.get("reset");
-  const defaultTab = mode === "register" ? "register" : "login";
-  
-  // If we have a reset token, show the reset password form
-  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(!!resetToken);
-  
-  const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      token: resetToken || "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
   
   async function onResetPasswordSubmit(values: z.infer<typeof resetPasswordSchema>) {
     try {
@@ -129,14 +133,10 @@ export default function AuthPage() {
       console.error("Password reset failed:", error);
     }
   }
-  
-  // Add an effect to open the reset dialog and set the token if it exists in URL
-  useEffect(() => {
-    if (resetToken) {
-      resetPasswordForm.setValue("token", resetToken);
-      setIsResetPasswordOpen(true);
-    }
-  }, [resetToken, resetPasswordForm]);
+
+  if (user && !isLoading) {
+    return <Redirect to="/" />;
+  }
 
   return (
     <>
