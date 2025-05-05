@@ -566,23 +566,11 @@ export default function ProductsPage() {
                             category.slug === 'rings' || 
                             category.slug === 'necklaces' || 
                             category.slug === 'earrings'
-                          ).map((category) => {
-                            // Add English translation
-                            let translatedName = category.name;
-                            if (category.slug === 'rings') {
-                              translatedName = "טבעות (Rings)";
-                            } else if (category.slug === 'necklaces') {
-                              translatedName = "שרשרות (Necklaces)";
-                            } else if (category.slug === 'earrings') {
-                              translatedName = "עגילים (Earrings)";
-                            }
-                            
-                            return (
-                              <SelectItem key={category.id} value={category.id.toString()}>
-                                {translatedName}
-                              </SelectItem>
-                            );
-                          })}
+                          ).map((category) => (
+                            <SelectItem key={category.id} value={category.id.toString()}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

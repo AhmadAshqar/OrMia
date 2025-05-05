@@ -134,9 +134,10 @@ const ProductGrid = ({ category }: ProductGridProps) => {
   const categories = [
     { value: "all", label: t("all") },
     { value: "new", label: "NEW" },
-    { value: "rings", label: "טבעות" },
-    { value: "necklaces", label: "שרשרות" },
-    { value: "earrings", label: "עגילים" },
+    { value: "rings", label: t("rings") },
+    { value: "necklaces", label: t("necklaces") },
+    { value: "earrings", label: t("earrings") },
+    { value: "bracelets", label: t("bracelets") },
   ];
 
   const handlePriceChange = (values: number[]) => {
