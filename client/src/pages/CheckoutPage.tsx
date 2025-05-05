@@ -803,7 +803,7 @@ const CheckoutPage = () => {
                           <TabsTrigger value="paypal">{t("paypal")}</TabsTrigger>
                           <TabsTrigger value="bit">{t("bit")}</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="credit-card" className="space-y-4 pt-4">
+                        <TabsContent value="credit-card" className="space-y-4 pt-4 dir-rtl text-right">
                           <FormField
                             control={form.control}
                             name="cardNumber"
@@ -861,20 +861,20 @@ const CheckoutPage = () => {
                             />
                           </div>
                         </TabsContent>
-                        <TabsContent value="paypal" className="py-4 text-center">
+                        <TabsContent value="paypal" className="py-4 text-center dir-rtl">
                           <p>לחץ על "בצע הזמנה" כדי להמשיך לאתר PayPal לתשלום.</p>
                         </TabsContent>
-                        <TabsContent value="bit" className="py-4 text-center">
+                        <TabsContent value="bit" className="py-4 text-center dir-rtl">
                           <p>לחץ על "בצע הזמנה" כדי לקבל הנחיות לתשלום באמצעות Bit.</p>
                         </TabsContent>
                       </Tabs>
                     </CardContent>
-                    <CardContent className="mt-4 border-t pt-4">
+                    <CardContent className="mt-4 border-t pt-4 dir-rtl">
                       <FormField
                         control={form.control}
                         name="acceptTerms"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-x-reverse space-y-0 rounded-md border p-4">
+                          <FormItem className="flex flex-row items-start space-x-3 space-x-reverse space-y-0 rounded-md border p-4 text-right">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
@@ -894,15 +894,15 @@ const CheckoutPage = () => {
                         )}
                       />
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="dir-rtl">
                       <Button 
                         type="submit" 
-                        className="w-full bg-primary hover:bg-primary/80 text-black"
+                        className="w-full bg-primary hover:bg-primary/80 text-black dir-rtl"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? (
                           <span className="flex items-center">
-                            <svg className="animate-spin -mr-1 ml-3 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
@@ -1010,14 +1010,14 @@ const CheckoutPage = () => {
                 </Card>
                 
                 {/* Payment security and customer support */}
-                <Card className="mb-6">
+                <Card className="mb-6 dir-rtl">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center">
                       <ShieldCheck className="ml-2 h-5 w-5" />
                       אבטחה ותשלומים
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-3 dir-rtl">
                     <div className="flex items-center text-sm">
                       <Lock className="ml-2 h-4 w-4 text-green-600" />
                       <p>כל העסקאות מאובטחות ומוצפנות SSL</p>
@@ -1034,11 +1034,11 @@ const CheckoutPage = () => {
                 </Card>
                 
                 {/* Customer support info */}
-                <Card>
+                <Card className="dir-rtl">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base">שירות לקוחות</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
+                  <CardContent className="space-y-2 text-sm dir-rtl">
                     <p className="flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 ml-2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
