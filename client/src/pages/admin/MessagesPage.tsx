@@ -6,7 +6,7 @@ import { he } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
-import { createMessage as createFirebaseMessage, FirebaseMessage, getAllMessages, markMessageAsRead } from '@/lib/firebaseMessages';
+import { createMessage as createFirebaseMessage, FirebaseMessage, getAllMessages, markMessageAsRead, uploadMessageImage } from '@/lib/firebaseMessages';
 
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -355,6 +355,19 @@ export default function AdminMessagesPage() {
           await markMessageAsRead(selectedMessage.id.toString());
         }
         
+        // Also mark any unread Firebase messages for this order as read
+        if (selectedMessage.orderId) {
+          const unreadUserMessages = firebaseMessages.filter(msg => 
+            msg.orderId === selectedMessage.orderId && !msg.isAdmin && !msg.isRead
+          );
+          
+          for (const msg of unreadUserMessages) {
+            if (msg.id) {
+              await markMessageAsRead(msg.id);
+            }
+          }
+        }
+        
         setReplyContent('');
         setSelectedImage(null);
         
@@ -373,6 +386,16 @@ export default function AdminMessagesPage() {
     }
   };
 
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: string) => {
+    setReplyContent(prev => prev + emoji);
+  };
+  
+  // Handle image upload
+  const handleImageUploaded = async (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+  
   // Filter messages for search
   const filteredMessages = allMessages ? allMessages.filter((message: Message) => {
     if (!searchQuery) return true;
@@ -522,25 +545,52 @@ export default function AdminMessagesPage() {
                           <div ref={messagesEndRef} />
                         </div>
                         <div className="p-4 border-t bg-white">
-                          <form onSubmit={handleReplySubmit} className="flex">
-                            <Textarea
-                              className="flex-1 resize-none"
-                              placeholder="כתוב הודעה..."
-                              value={replyContent}
-                              onChange={(e) => setReplyContent(e.target.value)}
-                              dir="rtl"
-                            />
-                            <Button 
-                              type="submit" 
-                              className="ms-2 self-end"
-                              disabled={replyMutation.isPending || !replyContent.trim()}
-                            >
-                              {replyMutation.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                'שלח'
-                              )}
-                            </Button>
+                          <form onSubmit={handleReplySubmit} className="flex flex-col gap-2">
+                            {/* Image preview if selected */}
+                            {selectedImage && (
+                              <div className="flex justify-start mb-2">
+                                <div className="relative">
+                                  <img src={selectedImage} alt="Selected" className="max-w-[200px] max-h-[150px] rounded-lg" />
+                                  <button
+                                    type="button"
+                                    className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-70"
+                                    onClick={() => setSelectedImage(null)}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-end">
+                              <div className="relative flex-1">
+                                <Textarea
+                                  className="flex-1 resize-none pr-20"
+                                  placeholder="כתוב הודעה..."
+                                  value={replyContent}
+                                  onChange={(e) => setReplyContent(e.target.value)}
+                                  dir="rtl"
+                                />
+                                <div className="absolute right-2 bottom-2 flex gap-2">
+                                  <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                                  <ImageUploader onImageUploaded={handleImageUploaded} />
+                                </div>
+                              </div>
+                              <Button 
+                                type="submit" 
+                                className="ms-2 self-end"
+                                disabled={replyMutation.isPending || (!replyContent.trim() && !selectedImage)}
+                              >
+                                {replyMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  'שלח'
+                                )}
+                              </Button>
+                            </div>
                           </form>
                         </div>
                       </div>
