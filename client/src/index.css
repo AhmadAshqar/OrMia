@@ -79,12 +79,10 @@
     @apply border-border;
   }
 
-  html,
   body {
     @apply font-sans antialiased bg-background text-foreground;
     direction: rtl;
     letter-spacing: 0.01em;
-    text-align: right;
   }
 
   h1,
@@ -95,14 +93,6 @@
   h6 {
     font-family: 'Playfair Display', 'Heebo', serif;
     letter-spacing: 0.02em;
-    text-align: right;
-  }
-
-  button, 
-  [type='button'], 
-  [type='reset'], 
-  [type='submit'] {
-    text-align: center;
   }
 
   .text-gold-gradient {
@@ -240,55 +230,3 @@ select,
   text-align: right;
   direction: rtl;
 }
-
-/* Comprehensive RTL utility classes */
-.rtl-grid {
-  display: grid;
-  direction: rtl;
-}
-
-.rtl-flex {
-  display: flex;
-  flex-direction: row-reverse;
-}
-
-.rtl-text {
-  text-align: right;
-  direction: rtl;
-}
-
-/* RTL adjustments for specific components */
-.card-content-rtl > * {
-  text-align: right;
-}
-
-.form-layout-rtl {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.form-layout-rtl label {
-  align-self: flex-start;
-  text-align: right;
-}
-
-/* Fix some spacing issues in RTL layout */
-.ml-1, .ml-2, .ml-3, .ml-4 {
-  margin-left: 0 !important;
-}
-
-.mr-1, .mr-2, .mr-3, .mr-4 {
-  margin-right: 0 !important;
-}
-
-/* Swap margin directions for RTL */
-.me-1 { margin-left: 0.25rem !important; margin-right: 0 !important; }
-.me-2 { margin-left: 0.5rem !important; margin-right: 0 !important; }
-.me-3 { margin-left: 0.75rem !important; margin-right: 0 !important; }
-.me-4 { margin-left: 1rem !important; margin-right: 0 !important; }
-
-.ms-1 { margin-right: 0.25rem !important; margin-left: 0 !important; }
-.ms-2 { margin-right: 0.5rem !important; margin-left: 0 !important; }
-.ms-3 { margin-right: 0.75rem !important; margin-left: 0 !important; }
-.ms-4 { margin-right: 1rem !important; margin-left: 0 !important; }

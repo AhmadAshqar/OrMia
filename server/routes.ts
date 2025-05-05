@@ -1213,9 +1213,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Generate a simple numeric order number
-      const timestamp = Date.now().toString().substring(6); // Use only the last part of the timestamp
-      const orderNumber = timestamp;
+      // Generate a unique order number
+      const orderNumber = `OM-${Date.now()}-${randomUUID().substring(0, 4)}`;
       
       // Debug the values being passed
       console.log("Checkout values before conversion:", {
@@ -1267,9 +1266,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create shipping record with enhanced details
       const trackingNumber = `TN-${Date.now()}-${randomUUID().substring(0, 6)}`;
       
-      // Set estimated delivery to be 30 days from order date
+      // Calculate estimated delivery based on shipping method
+      const deliveryDays = shippingMethod === 'express' ? 3 : 7; // Express: 3 days, Standard: 7 days
       const estimatedDelivery = new Date();
-      estimatedDelivery.setDate(estimatedDelivery.getDate() + 30); // 30 business days for delivery
+      estimatedDelivery.setDate(estimatedDelivery.getDate() + deliveryDays);
       
       const shippingData = {
         orderId: order.id,

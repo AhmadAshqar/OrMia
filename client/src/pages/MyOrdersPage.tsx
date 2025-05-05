@@ -95,7 +95,8 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
     queryFn: async () => {
       const response = await fetch(`/api/user/orders/${orderId}`);
       if (!response.ok) {
-        throw new Error("נכשל בטעינת פרטי ההזמנה");
+        const error = await response.json();
+        throw new Error(error.message || "שגיאה בטעינת פרטי ההזמנה");
       }
       return response.json();
     }
@@ -103,240 +104,182 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-full" />
         <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-40 w-full" />
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="text-center py-4">
-        <AlertCircle className="h-8 w-8 mx-auto text-red-500 mb-2" />
-        <p className="text-red-600">אירעה שגיאה בטעינת פרטי ההזמנה</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="mt-2"
-          onClick={() => toast({
-            title: "שגיאה",
-            description: error instanceof Error ? error.message : "שגיאה לא ידועה",
-            variant: "destructive"
-          })}
-        >
-          הצג פרטי שגיאה
-        </Button>
-      </div>
-    );
+    toast({
+      variant: "destructive",
+      title: "שגיאה בטעינת פרטי ההזמנה",
+      description: error instanceof Error ? error.message : "אירעה שגיאה. אנא נסה שוב מאוחר יותר."
+    });
+    return <div className="text-red-500 p-4 text-center">שגיאה בטעינת פרטי ההזמנה</div>;
   }
 
-  if (!order) {
-    return (
-      <div className="text-center py-4">
-        <AlertCircle className="h-8 w-8 mx-auto text-amber-500 mb-2" />
-        <p className="text-amber-600">לא נמצאו פרטים להזמנה זו</p>
-      </div>
-    );
-  }
-
-  // Get estimated delivery date if available
-  const estimatedDeliveryDate = order.shipping?.estimatedDelivery 
-    ? formatDate(order.shipping.estimatedDelivery) 
-    : "לא ידוע";
+  const shipping = order.shipping && order.shipping.length > 0 ? order.shipping[0] : null;
 
   return (
-    <div className="space-y-6 pt-2 dir-rtl">
-      {/* Order items list */}
-      <div className="space-y-2">
-        <h3 className="text-md font-medium text-right">פריטים בהזמנה</h3>
-        <div className="rounded-md overflow-hidden border border-gray-200">
-          {order.items?.map((item: any, index: number) => (
-            <div key={index} className="flex items-center p-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
-              <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                <img 
-                  src={item.imageUrl || '/placeholder-product.png'} 
-                  alt={item.productName}
-                  className="w-full h-full object-cover"
-                />
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h3 className="text-xl font-semibold mb-4 text-right">פרטי המשלוח</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
+          <div>
+            <p className="text-gray-500 mb-1">מספר מעקב:</p>
+            <p className="font-medium">{shipping?.trackingNumber || "לא זמין"}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 mb-1">חברת שליחות:</p>
+            <p className="font-medium">{shipping?.carrierName || "לא צוין"}</p>
+          </div>
+          {shipping?.estimatedDelivery && (
+            <div>
+              <p className="text-gray-500 mb-1">תאריך אספקה משוער:</p>
+              <p className="font-medium">{formatDate(shipping.estimatedDelivery)}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-gray-500 mb-1">סטטוס משלוח:</p>
+            <Badge 
+              className={`${shippingStatusMap[shipping?.status || "default"].color} flex items-center justify-center h-7 px-3`}
+              variant="outline"
+            >
+              {shippingStatusMap[shipping?.status || "default"].icon}
+              {shippingStatusMap[shipping?.status || "default"].text}
+            </Badge>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <h3 className="text-xl font-semibold mb-4 text-right">מוצרים בהזמנה</h3>
+        <div className="space-y-4">
+          {order.items && order.items.map((item: any, index: number) => (
+            <div key={index} className="flex justify-between items-center border-b pb-4 last:border-0 last:pb-0">
+              <div className="flex items-center space-x-4 space-x-reverse flex-row-reverse">
+                {item.imageUrl && (
+                  <div className="h-12 w-12 rounded-md overflow-hidden">
+                    <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />
+                  </div>
+                )}
+                <div className="text-right">
+                  <p className="font-medium">{item.productName}</p>
+                  <p className="text-sm text-gray-500">כמות: {item.quantity}</p>
+                </div>
               </div>
-              <div className="flex-grow px-3 text-right">
-                <div className="font-medium">{item.productName}</div>
-                <div className="text-sm text-gray-500">כמות: {item.quantity}</div>
-              </div>
-              <div className="font-medium text-right">
-                ₪{(item.price / 100).toLocaleString()}
-              </div>
+              <div className="font-medium">₪{(item.price / 100).toLocaleString()}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Order summary - price breakdown */}
-      <div className="rounded-md border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 p-3 border-b">
-          <h3 className="font-medium text-right">סיכום הזמנה</h3>
+      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <button className="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+            <Calendar className="h-4 w-4 ml-1" />
+            הוסף ליומן
+          </button>
+          <h3 className="text-xl font-semibold text-right">היסטוריית משלוח</h3>
         </div>
-        <div className="p-3 space-y-2">
-          <div className="flex justify-between">
-            <span className="font-medium">₪{(order.subtotal / 100).toLocaleString()}</span>
-            <span className="text-gray-600">סכום ביניים</span>
-          </div>
-          
-          {order.discount > 0 && (
-            <div className="flex justify-between text-green-600">
-              <span>-₪{(order.discount / 100).toLocaleString()}</span>
-              <span>הנחה</span>
-            </div>
-          )}
-          
-          {order.shipping && (
-            <div className="flex justify-between">
-              <span>₪{(order.shipping.shippingCost / 100).toLocaleString()}</span>
-              <span className="text-gray-600">דמי משלוח</span>
-            </div>
-          )}
-          
-          <div className="flex justify-between font-bold pt-2 border-t">
-            <span>₪{(order.total / 100).toLocaleString()}</span>
-            <span>סה״כ</span>
-          </div>
-        </div>
+        <ShippingHistory history={shipping?.history} />
       </div>
-
-      {/* Shipping info and tracking */}
-      {order.shipping && (
-        <div className="rounded-md border border-gray-200 overflow-hidden">
-          <div className="bg-gray-50 p-3 border-b">
-            <h3 className="font-medium text-right">פרטי משלוח</h3>
-          </div>
-          <div className="p-3 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">{order.shipping.carrier}</span>
-              <span className="text-gray-600">חברת שילוח:</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span>{order.shipping.trackingNumber}</span>
-              <span className="text-gray-600">מס׳ מעקב:</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span>{estimatedDeliveryDate}</span>
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 ml-1" />
-                <span className="text-gray-600">תאריך אספקה משוער:</span>
-              </div>
-            </div>
-            
-            <div className="pt-2">
-              <div className="text-gray-600 text-right mb-2">כתובת למשלוח:</div>
-              <div className="text-right bg-gray-50 p-2 rounded">
-                <p>{order.shipping.address.street}, {order.shipping.address.city}</p>
-                <p>{order.shipping.address.zipCode}</p>
-                <p>טלפון: {order.shipping.address.phone}</p>
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <div className="text-gray-600 text-right mb-2">סטטוס משלוח:</div>
-              <ShippingHistory history={order.shipping.history} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-const MyOrdersPage: React.FC = () => {
+// Main MyOrdersPage component
+const MyOrdersPage = () => {
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { user, isLoading: isLoadingUser } = useAuth();
+  const { toast } = useToast();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-  
-  const {
-    data: orders,
-    isLoading,
-    error,
-  } = useQuery({
+
+  const { data: orders, isLoading, error } = useQuery({
     queryKey: ["/api/user/orders"],
     queryFn: async () => {
       const response = await fetch("/api/user/orders");
       if (!response.ok) {
-        throw new Error("נכשל בטעינת ההזמנות");
+        const error = await response.json();
+        throw new Error(error.message || "שגיאה בטעינת ההזמנות");
       }
       return response.json();
     },
-    enabled: !!user,
+    enabled: !!user // Only run query if user is logged in
   });
 
-  let content;
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!user && !isLoading) {
+      setLocation("/auth");
+    }
+  }, [user, isLoading, setLocation]);
 
-  if (isLoadingUser || isLoading) {
+  if (!user) {
+    return null; // Render nothing while redirecting
+  }
+
+  let content;
+  
+  if (isLoading) {
     content = (
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="text-right mb-6">
-          <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
-          <p className="text-gray-600">עקוב אחר ההזמנות וסטטוס המשלוחים שלך</p>
-        </div>
-        <div className="space-y-4 mt-8">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
         </div>
       </div>
     );
   } else if (error) {
+    toast({
+      variant: "destructive",
+      title: "שגיאה בטעינת ההזמנות",
+      description: error instanceof Error ? error.message : "אירעה שגיאה. אנא נסה שוב מאוחר יותר."
+    });
+    
     content = (
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
+        <div className="text-center py-12">
           <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">שגיאה בטעינת ההזמנות</h2>
-          <p className="text-gray-600 mb-4">{error instanceof Error ? error.message : "אירעה שגיאה, אנא נסה שוב מאוחר יותר"}</p>
-          <Button onClick={() => setLocation("/")}>חזרה לעמוד הבית</Button>
+          <h2 className="text-2xl font-semibold mb-2">לא ניתן לטעון את ההזמנות שלך</h2>
+          <p className="text-gray-600 mb-6">אירעה שגיאה בטעינת ההזמנות שלך. אנא נסה שוב מאוחר יותר.</p>
+          <Button onClick={() => window.location.reload()}>נסה שוב</Button>
         </div>
       </div>
     );
-  } else if (!user) {
+  } else if (orders?.length === 0) {
     content = (
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
-          <AlertCircle className="h-12 w-12 mx-auto text-amber-500 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">יש להתחבר כדי לצפות בהזמנות</h2>
-          <p className="text-gray-600 mb-4">אנא התחבר כדי לראות את היסטוריית ההזמנות שלך</p>
-          <Button onClick={() => setLocation("/auth")}>התחברות</Button>
-        </div>
-      </div>
-    );
-  } else if (!orders || orders.length === 0) {
-    content = (
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="text-right mb-6">
-          <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
-          <p className="text-gray-600">עקוב אחר ההזמנות וסטטוס המשלוחים שלך</p>
-        </div>
-        <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
-          <ShoppingBag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">אין לך הזמנות עדיין</h2>
-          <p className="text-gray-600 mb-4">לא ביצעת הזמנות עדיין. למה לא לגלות את המוצרים שלנו?</p>
-          <Button onClick={() => setLocation("/products")}>עבור לחנות</Button>
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
+        <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <ShoppingBag className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">אין לך הזמנות עדיין</h2>
+          <p className="text-gray-600 mb-6">התחל לקנות כדי לראות את ההזמנות שלך כאן</p>
+          <Button asChild>
+            <Link href="/">המשך לקנות</Link>
+          </Button>
         </div>
       </div>
     );
   } else {
     content = (
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="text-right mb-6">
-          <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
-          <p className="text-gray-600">עקוב אחר ההזמנות וסטטוס המשלוחים שלך</p>
-        </div>
-
-        <Tabs defaultValue="all" className="w-full tabs-gold">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="all">כל ההזמנות</TabsTrigger>
-            <TabsTrigger value="active">הזמנות פעילות</TabsTrigger>
-            <TabsTrigger value="completed">הזמנות שהושלמו</TabsTrigger>
-          </TabsList>
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <h1 className="text-3xl font-bold mb-8 text-right">ההזמנות שלי</h1>
+        
+        <Tabs defaultValue="all" className="w-full">
+          <div className="flex justify-end mb-4">
+            <TabsList>
+              <TabsTrigger value="all">כל ההזמנות</TabsTrigger>
+              <TabsTrigger value="active">בתהליך</TabsTrigger>
+              <TabsTrigger value="completed">הושלמו</TabsTrigger>
+            </TabsList>
+          </div>
           
           <TabsContent value="all" className="mt-0">
             <div className="space-y-4">
@@ -344,7 +287,7 @@ const MyOrdersPage: React.FC = () => {
                 <Card key={order.id} className="overflow-hidden transition-all">
                   <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
                     <div className="text-right">
-                      <CardTitle className="text-lg">הזמנה #{order.orderNumber.split('-').pop()}</CardTitle>
+                      <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
                       <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                     </div>
                     <Badge 
@@ -416,7 +359,7 @@ const MyOrdersPage: React.FC = () => {
                   <Card key={order.id} className="overflow-hidden transition-all">
                     <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
                       <div className="text-right">
-                        <CardTitle className="text-lg">הזמנה #{order.orderNumber.split('-').pop()}</CardTitle>
+                        <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
                         <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                       </div>
                       <Badge 
@@ -496,7 +439,7 @@ const MyOrdersPage: React.FC = () => {
                   <Card key={order.id} className="overflow-hidden transition-all">
                     <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
                       <div className="text-right">
-                        <CardTitle className="text-lg">הזמנה #{order.orderNumber.split('-').pop()}</CardTitle>
+                        <CardTitle className="text-lg">הזמנה #{order.orderNumber}</CardTitle>
                         <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                       </div>
                       <Badge 
