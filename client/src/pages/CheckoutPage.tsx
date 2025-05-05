@@ -126,14 +126,31 @@ const CheckoutPage = () => {
   // Promo code state
   const [promoApplied, setPromoApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [promoData, setPromoData] = useState<any>(null);
   
   // Shipping method state
   const [shippingMethod, setShippingMethod] = useState<"standard" | "express">("standard");
   
-  // Calculate shipping costs based on method and subtotal
-  const shippingCost = shippingMethod === "express" 
-    ? 50 
-    : (subtotal >= 250 ? 0 : 35);
+  // Calculate shipping costs based on method, subtotal, and promo code
+  const shippingCost = (() => {
+    // Free shipping for express delivery
+    if (shippingMethod === "express") {
+      return 50;
+    }
+    
+    // Free shipping from promo code (only for standard shipping)
+    if (promoApplied && promoData && promoData.discountType === 'shipping') {
+      return 0;
+    }
+    
+    // Free shipping for orders above threshold
+    if (subtotal >= 250) {
+      return 0;
+    }
+    
+    // Standard shipping rate
+    return 35;
+  })();
   
   // Calculate discounted subtotal and total
   const discountedSubtotal = subtotal - discount;
@@ -201,8 +218,8 @@ const CheckoutPage = () => {
     }
   }, [user, form]);
   
-  // Function to apply promo code
-  const applyPromoCode = () => {
+  // Function to apply promo code using the API
+  const applyPromoCode = async () => {
     const code = form.getValues("promoCode");
     
     if (!code) {
@@ -214,29 +231,62 @@ const CheckoutPage = () => {
       return;
     }
     
-    // Check if promo code is valid (example codes)
-    if (code === "WELCOME10") {
-      const discountAmount = subtotal * 0.1; // 10% discount
+    try {
+      // Call the promo code validation API
+      const response = await fetch('/api/validate-promo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'קוד הקופון אינו תקף');
+      }
+      
+      const promoData = await response.json();
+      
+      // Check if the promo has a minimum order requirement
+      if (promoData.minOrder > 0 && subtotal < promoData.minOrder) {
+        toast({
+          title: "סכום הזמנה מינימלי",
+          description: `קוד הקופון תקף להזמנות מעל ${formatPrice(promoData.minOrder)}`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Calculate discount based on type
+      let discountAmount = 0;
+      
+      if (promoData.discountType === 'percent') {
+        // Percentage discount
+        discountAmount = subtotal * (promoData.discount / 100);
+      } else if (promoData.discountType === 'fixed') {
+        // Fixed amount discount
+        discountAmount = promoData.discount;
+      } else if (promoData.discountType === 'shipping' && shippingMethod !== 'express') {
+        // Free standard shipping
+        discountAmount = 0;
+        // We'll handle this separately in the shipping cost calculation
+      }
+      
       setDiscount(discountAmount);
       setPromoApplied(true);
+      setPromoData(promoData);
+      
       toast({
         title: "קוד קופון הופעל!",
-        description: "קיבלת 10% הנחה על ההזמנה",
+        description: promoData.message,
         variant: "default"
       });
-    } else if (code === "ORMIA20") {
-      const discountAmount = subtotal * 0.2; // 20% discount
-      setDiscount(discountAmount);
-      setPromoApplied(true);
-      toast({
-        title: "קוד קופון הופעל!",
-        description: "קיבלת 20% הנחה על ההזמנה",
-        variant: "default"
-      });
-    } else {
+    } catch (error) {
+      console.error('Error validating promo code:', error);
       toast({
         title: "קוד קופון לא תקין",
-        description: "קוד הקופון שהזנת אינו תקף",
+        description: error instanceof Error ? error.message : "קוד הקופון שהזנת אינו תקף",
         variant: "destructive"
       });
     }
@@ -246,6 +296,7 @@ const CheckoutPage = () => {
   const resetPromoCode = () => {
     setPromoApplied(false);
     setDiscount(0);
+    setPromoData(null);
     form.setValue("promoCode", "");
     toast({
       title: "קוד קופון בוטל",
