@@ -1290,9 +1290,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orderData = {
         userId: orderUserId,
         orderNumber,
-        status: "confirmed",
+        status: "new",
         paymentStatus: paymentMethod === 'credit-card' || paymentMethod === 'cash' ? "paid" : "pending",
-        shipmentStatus: "processing",
+        shipmentStatus: "new",
         total: Math.round(parseFloat(total) * 100), // Convert to cents, ensure it's a number
         subtotal: Math.round(parseFloat(subtotal) * 100), // Convert to cents, ensure it's a number
         shippingCost: Math.round(parseFloat(shippingCost || 0) * 100), // Convert to cents, ensure it's a number
@@ -1332,17 +1332,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerName: order.customerName,
         customerEmail: email,
         customerPhone: shippingAddress.phone,
-        status: "processing",
+        status: "new",
         address: shippingAddress,
         shippingMethod,
         carrier: "דואר שליחים",
         estimatedDelivery,
         insurance: true,
         history: [{
-          status: "processing",
+          status: "new",
           location: "מרכז שילוח",
           timestamp: new Date().toISOString(),
-          notes: "ההזמנה התקבלה ובתהליך עיבוד"
+          notes: "ההזמנה התקבלה ומחכה לעיבוד"
         }],
         shippingCost: Math.round(parseFloat(shippingCost || 0) * 100) // Convert to cents, ensure it's a number
       };
