@@ -1620,7 +1620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Customer-facing promo code validation route
-  app.post("/api/validate-promo-code", async (req, res) => {
+  app.post("/api/validate-promo", async (req, res) => {
     try {
       const { code, orderTotal } = req.body;
       

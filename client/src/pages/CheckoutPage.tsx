@@ -238,7 +238,10 @@ const CheckoutPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ 
+          code,
+          orderTotal: subtotal // Send the subtotal as orderTotal
+        }),
       });
       
       if (!response.ok) {
