@@ -26,22 +26,6 @@ const formatDate = (dateString: string) => {
   return `${day}/${month}/${year}`;
 };
 
-// Helper function to safely get shipping status styling
-const getShippingStatus = (status: string | undefined | null) => {
-  if (!status || !shippingStatusMap[status]) {
-    return {
-      color: shippingStatusMap.default.color,
-      icon: shippingStatusMap.default.icon,
-      text: shippingStatusMap.default.text
-    };
-  }
-  return {
-    color: shippingStatusMap[status].color,
-    icon: shippingStatusMap[status].icon,
-    text: shippingStatusMap[status].text
-  };
-};
-
 // Status mapping for displaying the current shipping status
 const shippingStatusMap: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
   pending: {
@@ -86,6 +70,22 @@ const shippingStatusMap: Record<string, { color: string; icon: React.ReactNode; 
   }
 };
 
+// Helper function to safely get shipping status styling
+const getShippingStatus = (status: string | undefined | null) => {
+  if (!status || !shippingStatusMap[status]) {
+    return {
+      color: shippingStatusMap.default.color,
+      icon: shippingStatusMap.default.icon,
+      text: shippingStatusMap.default.text
+    };
+  }
+  return {
+    color: shippingStatusMap[status].color,
+    icon: shippingStatusMap[status].icon,
+    text: shippingStatusMap[status].text
+  };
+};
+
 // Component to display shipping history
 const ShippingHistory = ({ history }: { history?: { status: string; location: string; timestamp: string; notes?: string }[] }) => {
   if (!history || history.length === 0) {
@@ -102,8 +102,8 @@ const ShippingHistory = ({ history }: { history?: { status: string; location: st
           />
           <p className="text-sm text-gray-500 font-medium">{formatDate(entry.timestamp)}</p>
           <div className="flex flex-row-reverse items-center">
-            {shippingStatusMap[entry.status]?.icon || shippingStatusMap.default.icon}
-            <span className="font-medium mr-1">{shippingStatusMap[entry.status]?.text || entry.status}</span>
+            {getShippingStatus(entry.status).icon}
+            <span className="font-medium mr-1">{getShippingStatus(entry.status).text}</span>
           </div>
           <p className="text-gray-700">מיקום: {entry.location}</p>
           {entry.notes && <p className="text-gray-500 text-sm">{entry.notes}</p>}
@@ -175,11 +175,11 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
           <div>
             <p className="text-gray-500 mb-1">סטטוס משלוח:</p>
             <Badge 
-              className={`${shippingStatusMap[shipping?.status || "default"].color} flex items-center justify-center h-7 px-3`}
+              className={`${getShippingStatus(shipping?.status).color} flex items-center justify-center h-7 px-3`}
               variant="outline"
             >
-              {shippingStatusMap[shipping?.status || "default"].icon}
-              {shippingStatusMap[shipping?.status || "default"].text}
+              {getShippingStatus(shipping?.status).icon}
+              {getShippingStatus(shipping?.status).text}
             </Badge>
           </div>
         </div>
@@ -331,11 +331,11 @@ const MyOrdersPage = () => {
                       <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                     </div>
                     <Badge 
-                      className={`${shippingStatusMap[order.shipmentStatus] ? shippingStatusMap[order.shipmentStatus].color : shippingStatusMap.default.color} flex items-center justify-center h-7 px-3`}
+                      className={`${getShippingStatus(order.shipmentStatus).color} flex items-center justify-center h-7 px-3`}
                       variant="outline"
                     >
-                      {shippingStatusMap[order.shipmentStatus] ? shippingStatusMap[order.shipmentStatus].icon : shippingStatusMap.default.icon}
-                      {shippingStatusMap[order.shipmentStatus] ? shippingStatusMap[order.shipmentStatus].text : shippingStatusMap.default.text}
+                      {getShippingStatus(order.shipmentStatus).icon}
+                      {getShippingStatus(order.shipmentStatus).text}
                     </Badge>
                   </CardHeader>
                   <CardContent className="p-5 pt-0">
@@ -394,7 +394,7 @@ const MyOrdersPage = () => {
             <div className="space-y-4">
               {orders
                 .filter((order: any) => 
-                  (order.shipmentStatus && ["pending", "processing", "shipped"].includes(order.shipmentStatus)))
+                  (order.shipmentStatus && ["pending", "processing", "shipped", "new"].includes(order.shipmentStatus)))
                 .map((order: any) => (
                   <Card key={order.id} className="overflow-hidden transition-all">
                     <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
@@ -403,11 +403,11 @@ const MyOrdersPage = () => {
                         <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                       </div>
                       <Badge 
-                        className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                        className={`${getShippingStatus(order.shipmentStatus).color} flex items-center justify-center h-7 px-3`}
                         variant="outline"
                       >
-                        {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                        {shippingStatusMap[order.shipmentStatus || "default"].text}
+                        {getShippingStatus(order.shipmentStatus).icon}
+                        {getShippingStatus(order.shipmentStatus).text}
                       </Badge>
                     </CardHeader>
                     <CardContent className="p-5 pt-0">
@@ -460,7 +460,7 @@ const MyOrdersPage = () => {
                   </Card>
                 ))}
                 {orders.filter((order: any) => 
-                  (order.shipmentStatus && ["pending", "processing", "shipped"].includes(order.shipmentStatus))).length === 0 && (
+                  (order.shipmentStatus && ["pending", "processing", "shipped", "new"].includes(order.shipmentStatus))).length === 0 && (
                   <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
                     <CheckCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h2 className="text-xl font-semibold mb-2">אין הזמנות פעילות</h2>
@@ -474,7 +474,7 @@ const MyOrdersPage = () => {
             <div className="space-y-4">
               {orders
                 .filter((order: any) => 
-                  ["delivered", "cancelled"].includes(order.shipmentStatus))
+                  ["delivered", "cancelled", "failed"].includes(order.shipmentStatus))
                 .map((order: any) => (
                   <Card key={order.id} className="overflow-hidden transition-all">
                     <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
@@ -483,11 +483,11 @@ const MyOrdersPage = () => {
                         <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                       </div>
                       <Badge 
-                        className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                        className={`${getShippingStatus(order.shipmentStatus).color} flex items-center justify-center h-7 px-3`}
                         variant="outline"
                       >
-                        {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                        {shippingStatusMap[order.shipmentStatus || "default"].text}
+                        {getShippingStatus(order.shipmentStatus).icon}
+                        {getShippingStatus(order.shipmentStatus).text}
                       </Badge>
                     </CardHeader>
                     <CardContent className="p-5 pt-0">
@@ -540,7 +540,7 @@ const MyOrdersPage = () => {
                   </Card>
                 ))}
                 {orders.filter((order: any) => 
-                  (order.shipmentStatus && ["delivered", "cancelled"].includes(order.shipmentStatus))).length === 0 && (
+                  (order.shipmentStatus && ["delivered", "cancelled", "failed"].includes(order.shipmentStatus))).length === 0 && (
                   <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
                     <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h2 className="text-xl font-semibold mb-2">אין הזמנות שהושלמו</h2>
