@@ -220,6 +220,14 @@ const CheckoutPage = () => {
       form.setValue("email", user.email);
       if (user.firstName) form.setValue("firstName", user.firstName);
       if (user.lastName) form.setValue("lastName", user.lastName);
+      if (user.phone) form.setValue("phone", user.phone);
+      
+      // Fill in the address fields if available
+      if (user.address) form.setValue("address", user.address);
+      if (user.apartment) form.setValue("apartment", user.apartment);
+      if (user.city) form.setValue("city", user.city);
+      if (user.postalCode) form.setValue("postalCode", user.postalCode);
+      if (user.country) form.setValue("country", user.country);
     }
   }, [user, form]);
   
