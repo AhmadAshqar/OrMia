@@ -56,7 +56,7 @@ const Header = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center">
-              <img src="/ormia-logo.png" alt="OrMia Jewelry" className="h-14" />
+              <img src="/ormia-gold-logo.png" alt="אור מיה תכשיטים" className="h-14 p-1" />
             </Link>
 
             <nav className="hidden md:flex gap-8">
@@ -176,7 +176,7 @@ const Header = () => {
               <SheetContent side="right" className="flex flex-col min-h-screen">
                 <div className="flex justify-between items-center">
                   <Link href="/" className="flex items-center">
-                    <img src="/ormia-logo.png" alt="OrMia Jewelry" className="h-12" />
+                    <img src="/ormia-gold-logo.png" alt="אור מיה תכשיטים" className="h-12 p-1" />
                   </Link>
                   <SheetTrigger asChild>
                     <button className="hover:text-primary transition-colors">

@@ -72,9 +72,9 @@ const AboutPage = () => {
             </div>
             <div className="slide-in order-1 md:order-2">
               <img 
-                src="/ormia-logo.png" 
+                src="/ormia-gold-logo.png" 
                 alt="אור מיה תכשיטים - מויסנייט" 
-                className="w-full rounded-md shadow-lg p-4"
+                className="w-full rounded-md p-4"
               />
             </div>
           </div>
