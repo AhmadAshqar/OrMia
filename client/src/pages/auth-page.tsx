@@ -23,19 +23,20 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Redirect, useLocation, Link } from "wouter";
+import { Redirect, useLocation, Link, useParams } from "wouter";
 import { Loader2 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useState, useEffect } from "react";
 
-export default function AuthPage() {
+export default function AuthPage({ isPasswordReset }: { isPasswordReset?: boolean }) {
   const { user, isLoading, loginMutation, registerMutation, forgotPasswordMutation, resetPasswordMutation } = useAuth();
+  const params = useParams<{ token: string }>();
   const [_, navigate] = useLocation();
   const [isFormReady, setIsFormReady] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
-  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(isPasswordReset || false);
   const [resetToken, setResetToken] = useState<string | null>(null);
   const [defaultTab, setDefaultTab] = useState("login");
   
@@ -43,11 +44,21 @@ export default function AuthPage() {
   const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      token: "",
+      token: params?.token || "",
       password: "",
       confirmPassword: "",
     },
   });
+  
+  // Effect for direct reset password route
+  useEffect(() => {
+    if (isPasswordReset && params?.token) {
+      console.log("Direct password reset route with token:", params.token);
+      setResetToken(params.token);
+      resetPasswordForm.setValue("token", params.token);
+      setIsResetPasswordOpen(true);
+    }
+  }, [isPasswordReset, params]);
   
   // Effect to handle URL parameters and form initialization
   useEffect(() => {
@@ -68,9 +79,9 @@ export default function AuthPage() {
         setDefaultTab("register");
       }
       
-      // Handle reset token if present
+      // Handle reset token if present in URL query params
       if (resetTokenParam) {
-        console.log("Setting reset token and opening dialog");
+        console.log("Setting reset token from query params and opening dialog");
         setResetToken(resetTokenParam);
         resetPasswordForm.setValue("token", resetTokenParam);
         setIsResetPasswordOpen(true);

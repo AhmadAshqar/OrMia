@@ -64,6 +64,7 @@ function Router() {
         <Route path="/contact" component={ContactPage} />
         <Route path="/faq" component={FaqPage} />
         <Route path="/auth" component={AuthPage} />
+        <Route path="/reset-password/:token" component={() => <AuthPage isPasswordReset={true} />} />
         
         {/* Legal Pages */}
         <Route path="/terms" component={TermsPage} />
