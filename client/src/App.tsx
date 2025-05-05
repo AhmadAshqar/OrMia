@@ -45,13 +45,20 @@ function Router() {
       prevLocationRef.current = location;
     }
   }, [location]);
+  
+  console.log("Current router location:", location);
 
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-      </div>
-    }>
+  // Since we're having issues with exact path matching, let's use a simpler approach
+  // to determine which component to render
+  const renderBasedOnPath = () => {
+    // Exact path matching for reset-password
+    if (location.startsWith("/reset-password")) {
+      console.log("Rendering ResetPasswordPage");
+      return <ResetPasswordPage />;
+    }
+    
+    // Then handle all other routes
+    return (
       <Switch>
         <Route path="/" component={HomePage} />
         <Route path="/products" component={ProductsPage} />
@@ -65,7 +72,6 @@ function Router() {
         <Route path="/contact" component={ContactPage} />
         <Route path="/faq" component={FaqPage} />
         <Route path="/auth" component={AuthPage} />
-        <Route path="/reset-password" component={ResetPasswordPage} />
         
         {/* Legal Pages */}
         <Route path="/terms" component={TermsPage} />
@@ -82,6 +88,16 @@ function Router() {
         
         <Route component={NotFound} />
       </Switch>
+    );
+  };
+
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+      </div>
+    }>
+      {renderBasedOnPath()}
     </Suspense>
   );
 }
