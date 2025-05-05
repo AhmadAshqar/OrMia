@@ -23,15 +23,14 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Redirect, useLocation, Link, useParams } from "wouter";
+import { Redirect, useLocation, Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useState, useEffect } from "react";
 
-export default function AuthPage({ isPasswordReset }: { isPasswordReset?: boolean }) {
+export default function AuthPage({ isPasswordReset, token }: { isPasswordReset?: boolean, token?: string }) {
   const { user, isLoading, loginMutation, registerMutation, forgotPasswordMutation, resetPasswordMutation } = useAuth();
-  const params = useParams<{ token: string }>();
   const [_, navigate] = useLocation();
   const [isFormReady, setIsFormReady] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
@@ -44,7 +43,7 @@ export default function AuthPage({ isPasswordReset }: { isPasswordReset?: boolea
   const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      token: params?.token || "",
+      token: token || "",
       password: "",
       confirmPassword: "",
     },
@@ -52,13 +51,13 @@ export default function AuthPage({ isPasswordReset }: { isPasswordReset?: boolea
   
   // Effect for direct reset password route
   useEffect(() => {
-    if (isPasswordReset && params?.token) {
-      console.log("Direct password reset route with token:", params.token);
-      setResetToken(params.token);
-      resetPasswordForm.setValue("token", params.token);
+    if (isPasswordReset && token) {
+      console.log("Direct password reset route with token:", token);
+      setResetToken(token);
+      resetPasswordForm.setValue("token", token);
       setIsResetPasswordOpen(true);
     }
-  }, [isPasswordReset, params]);
+  }, [isPasswordReset, token, resetPasswordForm]);
   
   // Effect to handle URL parameters and form initialization
   useEffect(() => {
@@ -89,7 +88,7 @@ export default function AuthPage({ isPasswordReset }: { isPasswordReset?: boolea
     }, 100);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [resetPasswordForm]);
   
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
