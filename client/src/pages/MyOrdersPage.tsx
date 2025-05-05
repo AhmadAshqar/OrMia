@@ -26,6 +26,20 @@ const formatDate = (dateString: string) => {
   });
 };
 
+// Function to add 30 business days to a date (skipping weekends)
+const addBusinessDays = (date: Date, days: number): Date => {
+  let result = new Date(date);
+  let count = 0;
+  while (count < days) {
+    result.setDate(result.getDate() + 1);
+    // Skip Saturday (6) and Sunday (0)
+    if (result.getDay() !== 6 && result.getDay() !== 0) {
+      count++;
+    }
+  }
+  return result;
+};
+
 // Status mapping for displaying the current shipping status
 const shippingStatusMap: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
   pending: {
@@ -136,12 +150,13 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
             <p className="text-gray-500 mb-1">חברת שליחות:</p>
             <p className="font-medium">{shipping?.carrierName || "לא צוין"}</p>
           </div>
-          {shipping?.estimatedDelivery && (
-            <div>
-              <p className="text-gray-500 mb-1">תאריך אספקה משוער:</p>
-              <p className="font-medium">{formatDate(shipping.estimatedDelivery)}</p>
-            </div>
-          )}
+          <div>
+            <p className="text-gray-500 mb-1">תאריך אספקה משוער:</p>
+            <p className="font-medium">
+              {order.createdAt ? formatDate(addBusinessDays(new Date(order.createdAt), 30).toISOString()) : 'לא זמין'}
+              <span className="block text-xs text-gray-500 mt-1">30 יום עסקים מיום ביצוע ההזמנה</span>
+            </p>
+          </div>
           <div>
             <p className="text-gray-500 mb-1">סטטוס משלוח:</p>
             <Badge 
