@@ -1,23 +1,29 @@
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { FacebookIcon, InstagramIcon } from "lucide-react";
+import { 
+  FacebookIcon, 
+  InstagramIcon, 
+  MapPinIcon, 
+  PhoneIcon, 
+  ClockIcon, 
+  MailIcon,
+} from "lucide-react";
 
 const Footer = () => {
   const { t } = useTranslation();
-  const [location] = useLocation();
-  
-  const navLinks = [
-    { name: "דף הבית", path: "/" },
-    { name: "NEW", path: "/products/new", isHighlighted: true },
-    { name: "טבעות", path: "/products/rings" },
-    { name: "שרשראות", path: "/products/necklaces" },
-    { name: "עגילים", path: "/products/earrings" },
-    { name: "צמידים", path: "/products/bracelets" },
-    { name: "אודות", path: "/about" },
+
+  const categories = [
+    { name: t("engagement_rings_footer"), path: "/products/rings" },
+    { name: t("wedding_rings"), path: "/products/rings" },
+    { name: t("necklaces_footer"), path: "/products/necklaces" },
+    { name: t("bracelets_footer"), path: "/products/bracelets" },
+    { name: t("earrings_footer"), path: "/products/earrings" },
+    { name: t("special_collections"), path: "/products/collections" },
   ];
 
   const information = [
+    { name: t("about_footer"), path: "/about" },
     { name: t("shipping_returns"), path: "/shipping-policy" },
     { name: t("disclosure"), path: "/disclosure" },
     { name: t("faq_footer"), path: "/faq" },
@@ -26,61 +32,91 @@ const Footer = () => {
     { name: t("contact_footer"), path: "/contact" },
   ];
 
+
+
   return (
     <footer className="bg-black text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center">
-          <div className="mb-8">
-            <img src="/ormia-gold-logo.png" alt="אור מיה תכשיטים" className="h-16" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div>
+            <div className="mb-6">
+              <img src="/ormia-gold-logo.png" alt="אור מיה תכשיטים" className="h-16" />
+            </div>
+            <p className="text-white/70 mb-6">{t("footer_desc")}</p>
+            <div className="flex gap-4">
+              <a 
+                href="#" 
+                className="text-white hover:text-primary transition-colors"
+                aria-label="Facebook"
+              >
+                <FacebookIcon className="h-5 w-5" />
+              </a>
+              <a 
+                href="#" 
+                className="text-white hover:text-primary transition-colors"
+                aria-label="Instagram"
+              >
+                <InstagramIcon className="h-5 w-5" />
+              </a>
+            </div>
           </div>
           
-          <nav className="flex flex-wrap justify-center gap-8 mb-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                href={link.path}
-                className={cn(
-                  "font-medium transition-colors text-white hover:text-primary",
-                  location === link.path ? "text-primary" : "",
-                  link.isHighlighted ? "font-bold text-[#FFD700]" : ""
-                )}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
-          
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            {information.map((item, index) => (
-              <Link 
-                key={index}
-                href={item.path} 
-                className="text-white/70 hover:text-primary transition-colors text-sm"
-              >
-                {item.name}
-              </Link>
-            ))}
+          <div>
+            <h4 className="text-lg font-medium mb-6">{t("categories")}</h4>
+            <ul className="space-y-3">
+              {categories.map((category, index) => (
+                <li key={index}>
+                  <Link 
+                    href={category.path} 
+                    className="text-white/70 hover:text-primary transition-colors"
+                  >
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
           
-          <div className="flex gap-4 mb-8">
-            <a 
-              href="#" 
-              className="text-white hover:text-primary transition-colors"
-              aria-label="Facebook"
-            >
-              <FacebookIcon className="h-5 w-5" />
-            </a>
-            <a 
-              href="#" 
-              className="text-white hover:text-primary transition-colors"
-              aria-label="Instagram"
-            >
-              <InstagramIcon className="h-5 w-5" />
-            </a>
+          <div>
+            <h4 className="text-lg font-medium mb-6">{t("information")}</h4>
+            <ul className="space-y-3">
+              {information.map((item, index) => (
+                <li key={index}>
+                  <Link 
+                    href={item.path} 
+                    className="text-white/70 hover:text-primary transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="text-lg font-medium mb-6">{t("contact_info")}</h4>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <MapPinIcon className="h-5 w-5 text-primary mt-1 ml-3" />
+                <span className="text-white/70">{t("address")}</span>
+              </li>
+              <li className="flex items-start">
+                <PhoneIcon className="h-5 w-5 text-primary mt-1 ml-3" />
+                <span className="text-white/70">{t("phone")}</span>
+              </li>
+              <li className="flex items-start">
+                <MailIcon className="h-5 w-5 text-primary mt-1 ml-3" />
+                <span className="text-white/70">{t("email")}</span>
+              </li>
+              <li className="flex items-start">
+                <ClockIcon className="h-5 w-5 text-primary mt-1 ml-3" />
+                <span className="text-white/70">{t("hours")}</span>
+              </li>
+            </ul>
           </div>
         </div>
         
-        <div className="border-t border-white/10 mt-6 pt-8 flex justify-center">
+        <div className="border-t border-white/10 mt-12 pt-8 flex justify-center">
           <p className="text-white/50 text-sm">{t("copyright")}</p>
         </div>
       </div>
