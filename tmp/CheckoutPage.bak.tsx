@@ -1,10 +1,9 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useAuth } from "@/hooks/use-auth";
 
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -39,66 +38,27 @@ import {
   CreditCard, 
   Package2, 
   Home, 
-  CheckCircle,
-  Truck,
-  ShieldCheck,
-  Lock,
-  AlertTriangle,
-  BellRing,
-  Sparkles
+  CheckCircle 
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { SiVisa, SiMastercard, SiAmericanexpress, SiPaypal, SiApple } from "react-icons/si";
 
 const checkoutFormSchema = z.object({
-  // Personal information
   firstName: z.string().min(2, { message: "שם פרטי חייב להכיל לפחות 2 תווים" }),
   lastName: z.string().min(2, { message: "שם משפחה חייב להכיל לפחות 2 תווים" }),
   email: z.string().email({ message: "נא להזין כתובת דוא\"ל תקינה" }),
   phone: z.string().min(9, { message: "מספר טלפון חייב להכיל לפחות 9 ספרות" }),
-  
-  // Address information
   address: z.string().min(5, { message: "כתובת חייבת להכיל לפחות 5 תווים" }),
-  apartment: z.string().optional(),
   city: z.string().min(2, { message: "עיר חייבת להכיל לפחות 2 תווים" }),
   postalCode: z.string().min(5, { message: "מיקוד חייב להכיל לפחות 5 ספרות" }),
-  country: z.string().default("ישראל"),
-  
-  // Shipping options
   sameAsShipping: z.boolean().default(true),
-  
-  // Separate shipping address (if not same as billing)
-  billingFirstName: z.string().optional(),
-  billingLastName: z.string().optional(),
-  billingAddress: z.string().optional(),
-  billingApartment: z.string().optional(),
-  billingCity: z.string().optional(),
-  billingPostalCode: z.string().optional(),
-  billingCountry: z.string().optional(),
-  billingPhone: z.string().optional(),
-  
-  // Shipping method
-  shippingMethod: z.enum(["standard", "express"]).default("standard"),
-  
-  // Payment information
-  paymentMethod: z.enum(["credit-card", "paypal", "bit"]).default("credit-card"),
+  shippingAddress: z.string().optional(),
+  shippingCity: z.string().optional(),
+  shippingPostalCode: z.string().optional(),
   cardNumber: z.string().optional(),
   cardName: z.string().optional(),
   cardExpiry: z.string().optional(),
   cardCvv: z.string().optional(),
-  
-  // Promo code
-  promoCode: z.string().optional(),
-  
-  // Create account (for guests)
-  createAccount: z.boolean().default(false),
-  password: z.string().min(8, { message: "סיסמה חייבת להכיל לפחות 8 תווים" }).optional(),
-  
-  // Terms acceptance
   acceptTerms: z.boolean().refine(val => val === true, {
     message: "יש לאשר את תנאי השימוש ומדיניות הפרטיות כדי להמשיך"
   })
@@ -113,146 +73,34 @@ const CheckoutPage = () => {
   const subtotal = cartContext?.subtotal || 0;
   const total = cartContext?.total || 0;
   const clearCart = cartContext?.clearCart;
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [, setLocation] = useLocation();
-  
-  // Form and submission state
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Payment method state
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
-  
-  // Promo code state
-  const [promoApplied, setPromoApplied] = useState(false);
-  const [discount, setDiscount] = useState(0);
-  
-  // Shipping method state
-  const [shippingMethod, setShippingMethod] = useState<"standard" | "express">("standard");
-  
-  // Calculate shipping costs based on method and subtotal
-  const shippingCost = shippingMethod === "express" 
-    ? 50 
-    : (subtotal >= 250 ? 0 : 35);
-  
-  // Calculate discounted subtotal and total
-  const discountedSubtotal = subtotal - discount;
-  const finalTotal = discountedSubtotal + shippingCost;
-  
-  // Calculate tax (included in price, 17% VAT in Israel)
-  const tax = parseFloat((discountedSubtotal * 0.17).toFixed(2));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
-      // Personal details
       firstName: "",
       lastName: "",
       email: "",
       phone: "",
-      
-      // Address
       address: "",
-      apartment: "",
       city: "",
       postalCode: "",
-      country: "ישראל",
-      
-      // Shipping options
       sameAsShipping: true,
-      
-      // Payment
-      paymentMethod: "credit-card",
+      shippingAddress: "",
+      shippingCity: "",
+      shippingPostalCode: "",
       cardNumber: "",
       cardName: "",
       cardExpiry: "",
       cardCvv: "",
-      
-      // Shipping method
-      shippingMethod: "standard",
-      
-      // Promo code
-      promoCode: "",
-      
-      // Account creation
-      createAccount: false,
-      
-      // Terms
       acceptTerms: false
     }
   });
 
-  // Watch for form value changes
   const watchSameAsShipping = form.watch("sameAsShipping");
-  const watchShippingMethod = form.watch("shippingMethod");
-  const watchCreateAccount = form.watch("createAccount");
-  
-  // Update shipping method when form value changes
-  useEffect(() => {
-    setShippingMethod(watchShippingMethod as "standard" | "express");
-  }, [watchShippingMethod]);
-  
-  // Pre-fill form with user data if logged in
-  useEffect(() => {
-    if (user) {
-      form.setValue("email", user.email);
-      if (user.firstName) form.setValue("firstName", user.firstName);
-      if (user.lastName) form.setValue("lastName", user.lastName);
-    }
-  }, [user, form]);
-  
-  // Function to apply promo code
-  const applyPromoCode = () => {
-    const code = form.getValues("promoCode");
-    
-    if (!code) {
-      toast({
-        title: "שגיאה",
-        description: "נא להזין קוד קופון",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Check if promo code is valid (example codes)
-    if (code === "WELCOME10") {
-      const discountAmount = subtotal * 0.1; // 10% discount
-      setDiscount(discountAmount);
-      setPromoApplied(true);
-      toast({
-        title: "קוד קופון הופעל!",
-        description: "קיבלת 10% הנחה על ההזמנה",
-        variant: "default"
-      });
-    } else if (code === "ORMIA20") {
-      const discountAmount = subtotal * 0.2; // 20% discount
-      setDiscount(discountAmount);
-      setPromoApplied(true);
-      toast({
-        title: "קוד קופון הופעל!",
-        description: "קיבלת 20% הנחה על ההזמנה",
-        variant: "default"
-      });
-    } else {
-      toast({
-        title: "קוד קופון לא תקין",
-        description: "קוד הקופון שהזנת אינו תקף",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Reset promo code
-  const resetPromoCode = () => {
-    setPromoApplied(false);
-    setDiscount(0);
-    form.setValue("promoCode", "");
-    toast({
-      title: "קוד קופון בוטל",
-      description: "קוד הקופון הוסר מההזמנה",
-      variant: "default"
-    });
-  };
 
   const onSubmit = async (data: CheckoutFormValues) => {
     if (items.length === 0) {
@@ -271,9 +119,9 @@ const CheckoutPage = () => {
       firstName: data.firstName,
       lastName: data.lastName,
       address: data.address,
-      apartment: data.apartment || "",
+      apartment: data.apartment,
       city: data.city,
-      zipCode: data.postalCode,
+      zipCode: data.zipCode,
       country: data.country,
       phone: data.phone
     };
@@ -282,53 +130,36 @@ const CheckoutPage = () => {
     const billingAddress = data.sameAsShipping 
       ? shippingAddress 
       : {
-          firstName: data.billingFirstName || "",
-          lastName: data.billingLastName || "",
-          address: data.billingAddress || "",
-          apartment: data.billingApartment || "",
-          city: data.billingCity || "",
-          zipCode: data.billingPostalCode || "",
-          country: data.billingCountry || "ישראל",
-          phone: data.billingPhone || data.phone
+          firstName: data.billingFirstName,
+          lastName: data.billingLastName,
+          address: data.billingAddress,
+          apartment: data.billingApartment,
+          city: data.billingCity,
+          zipCode: data.billingZipCode,
+          country: data.billingCountry,
+          phone: data.billingPhone
         };
 
     try {
-      // Send checkout data to API including all relevant information
+      // Calculate total prices
+      const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const shippingCost = subtotal > 250 ? 0 : 30; // Free shipping above 250 ILS
+      const total = subtotal + shippingCost;
+
+      // Send checkout data to API
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          // Order items
           items,
-          
-          // Customer information
-          email: data.email,
-          
-          // Addresses
           shippingAddress,
           billingAddress,
-          
-          // Payment details
           paymentMethod: data.paymentMethod,
-          
-          // Shipping method
-          shippingMethod: data.shippingMethod,
-          
-          // Pricing information
-          subtotal: discountedSubtotal,
-          total: finalTotal,
-          shippingCost,
-          tax,
-          
-          // Discount information 
-          discount: discount,
-          promoCode: promoApplied ? form.getValues("promoCode") : null,
-          
-          // Account creation (for guests)
-          createAccount: data.createAccount,
-          password: data.createAccount ? data.password : undefined,
+          total,
+          subtotal,
+          shippingCost
         }),
       });
 
@@ -507,57 +338,13 @@ const CheckoutPage = () => {
                       
                       {!watchSameAsShipping && (
                         <div className="space-y-4 border-t pt-4">
-                          <h3 className="font-medium">פרטי משלוח</h3>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name="billingFirstName"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>שם פרטי</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="billingLastName"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>שם משפחה</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          
+                          <h3 className="font-medium">{t("shipping_details")}</h3>
                           <FormField
                             control={form.control}
-                            name="billingAddress"
+                            name="shippingAddress"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>כתובת</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="billingApartment"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>דירה / כניסה (אופציונלי)</FormLabel>
+                                <FormLabel>{t("address")}</FormLabel>
                                 <FormControl>
                                   <Input {...field} />
                                 </FormControl>
@@ -569,10 +356,10 @@ const CheckoutPage = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                               control={form.control}
-                              name="billingCity"
+                              name="shippingCity"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>עיר</FormLabel>
+                                  <FormLabel>{t("city")}</FormLabel>
                                   <FormControl>
                                     <Input {...field} />
                                   </FormControl>
@@ -582,10 +369,10 @@ const CheckoutPage = () => {
                             />
                             <FormField
                               control={form.control}
-                              name="billingPostalCode"
+                              name="shippingPostalCode"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>מיקוד</FormLabel>
+                                  <FormLabel>{t("postal_code")}</FormLabel>
                                   <FormControl>
                                     <Input {...field} />
                                   </FormControl>
@@ -594,148 +381,12 @@ const CheckoutPage = () => {
                               )}
                             />
                           </div>
-                          
-                          <FormField
-                            control={form.control}
-                            name="billingPhone"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>טלפון</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
                         </div>
                       )}
                     </CardContent>
                   </Card>
                   
-                  {/* Shipping Method */}
-                  <Card id="shipping-method">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Truck className="mr-2 h-5 w-5" />
-                        שיטת משלוח
-                      </CardTitle>
-                      <CardDescription>
-                        בחר את שיטת המשלוח המועדפת עליך
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <FormField
-                        control={form.control}
-                        name="shippingMethod"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex flex-col space-y-3"
-                              >
-                                <FormItem className="flex items-center space-x-3 space-x-reverse space-y-0 rounded-md border p-4">
-                                  <FormControl>
-                                    <RadioGroupItem value="standard" />
-                                  </FormControl>
-                                  <div className="flex-1">
-                                    <FormLabel className="text-base">
-                                      משלוח רגיל {subtotal >= 250 ? 
-                                        <Badge className="mr-2 bg-green-600">חינם</Badge> : 
-                                        <span className="font-medium">{formatPrice(35)}</span>}
-                                    </FormLabel>
-                                    <FormDescription>
-                                      משלוח תוך 5-7 ימי עסקים
-                                    </FormDescription>
-                                  </div>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-3 space-x-reverse space-y-0 rounded-md border p-4">
-                                  <FormControl>
-                                    <RadioGroupItem value="express" />
-                                  </FormControl>
-                                  <div className="flex-1">
-                                    <FormLabel className="text-base">
-                                      משלוח מהיר <span className="font-medium">{formatPrice(50)}</span>
-                                    </FormLabel>
-                                    <FormDescription>
-                                      משלוח מהיר תוך 1-3 ימי עסקים
-                                    </FormDescription>
-                                  </div>
-                                </FormItem>
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Promo Code */}
-                  <Card id="promo-code">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Sparkles className="mr-2 h-5 w-5" />
-                        קוד קופון
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-end gap-4">
-                        <FormField
-                          control={form.control}
-                          name="promoCode"
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel>יש לך קוד קופון?</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  {...field} 
-                                  placeholder="הכנס קוד קופון" 
-                                  disabled={promoApplied}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                קודי קופון לדוגמה: WELCOME10, ORMIA20
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        {promoApplied ? (
-                          <Button 
-                            type="button" 
-                            onClick={resetPromoCode} 
-                            variant="outline"
-                            className="mb-0.5"
-                          >
-                            בטל קופון
-                          </Button>
-                        ) : (
-                          <Button 
-                            type="button" 
-                            onClick={applyPromoCode} 
-                            className="mb-0.5"
-                          >
-                            החל קופון
-                          </Button>
-                        )}
-                      </div>
-                      
-                      {promoApplied && (
-                        <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm flex items-center">
-                          <BellRing className="mr-2 h-5 w-5" />
-                          <span>
-                            קוד קופון <strong>{form.getValues("promoCode")}</strong> הופעל! קיבלת הנחה של {formatPrice(discount)}
-                          </span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Payment options */}
-                  <Card id="payment-options">
+                  <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <CreditCard className="mr-2 h-5 w-5" />
