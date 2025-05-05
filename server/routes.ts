@@ -1624,44 +1624,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Validate promo request body:", req.body);
       
-      const { code, orderTotal } = req.body;
+      const { code, orderTotal, cartTotal } = req.body;
+      
+      // Use orderTotal or cartTotal (to support both formats)
+      const total = orderTotal || cartTotal || 0;
       
       if (!code) {
         console.log("No code provided in request");
         return res.status(400).json({ error: "נדרש קוד קופון" });
       }
       
-      console.log(`Validating promo code: ${code}, orderTotal: ${orderTotal}`);
+      console.log(`Validating promo code: ${code}, total amount: ${total}`);
       
-      if (typeof orderTotal !== 'number' || orderTotal < 0) {
-        console.log(`Invalid orderTotal: ${orderTotal}, type: ${typeof orderTotal}`);
+      if (typeof total !== 'number' || total < 0) {
+        console.log(`Invalid total amount: ${total}, type: ${typeof total}`);
         return res.status(400).json({ error: "סכום ההזמנה אינו תקין" });
       }
       
       const promoCode = await storage.getPromoCodeByCode(code);
       
       if (!promoCode) {
-        return res.status(404).json({ error: "קוד קופון לא תקין" });
+        console.log(`Promo code not found: ${code}`);
+        return res.status(404).json({ valid: false, message: "קוד הנחה אינו תקף" });
       }
       
       if (!promoCode.isActive) {
-        return res.status(400).json({ error: "קוד הקופון אינו פעיל יותר" });
+        console.log(`Promo code is inactive: ${code}`);
+        return res.status(400).json({ valid: false, message: "קוד הקופון אינו פעיל יותר" });
       }
       
       // Check expiration
-      if (promoCode.endDate && new Date(promoCode.endDate) < new Date()) {
-        return res.status(400).json({ error: "קוד הקופון פג תוקף" });
+      const now = new Date();
+      if (promoCode.startDate && new Date(promoCode.startDate) > now) {
+        console.log(`Promo code not yet valid: ${code}`);
+        return res.status(400).json({ valid: false, message: "קוד קופון עדיין לא תקף" });
+      }
+      
+      if (promoCode.endDate && new Date(promoCode.endDate) < now) {
+        console.log(`Promo code expired: ${code}`);
+        return res.status(400).json({ valid: false, message: "קוד הקופון פג תוקף" });
       }
       
       // Check if usage limit reached
       if (promoCode.maxUses && promoCode.usedCount >= promoCode.maxUses) {
-        return res.status(400).json({ error: "קוד הקופון כבר נוצל את מספר הפעמים המקסימלי" });
+        console.log(`Promo code max uses reached: ${code}`);
+        return res.status(400).json({ valid: false, message: "קוד הקופון כבר נוצל את מספר הפעמים המקסימלי" });
       }
       
       // Check minimum order amount
-      if (promoCode.minOrderAmount && orderTotal < promoCode.minOrderAmount) {
+      if (promoCode.minOrderAmount && total < promoCode.minOrderAmount) {
+        console.log(`Order total below minimum: ${total} < ${promoCode.minOrderAmount}`);
         return res.status(400).json({ 
-          error: `קוד הקופון תקף להזמנות מעל ${promoCode.minOrderAmount / 100} ₪`,
+          valid: false, 
+          message: `קוד הקופון תקף להזמנות מעל ${promoCode.minOrderAmount} ₪`,
           minOrderAmount: promoCode.minOrderAmount 
         });
       }
@@ -1669,10 +1684,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate discount
       let discountAmount = 0;
       if (promoCode.discountType === 'percentage') {
-        discountAmount = Math.round(orderTotal * (promoCode.discountAmount / 100));
+        discountAmount = Math.round(total * (promoCode.discountAmount / 100));
+        console.log(`Applied percentage discount: ${promoCode.discountAmount}%, amount: ${discountAmount}`);
       } else { // fixed amount
         discountAmount = promoCode.discountAmount;
+        console.log(`Applied fixed discount: ${discountAmount}`);
       }
+      
+      console.log("Promo code validated successfully:", {
+        code: promoCode.code,
+        discountType: promoCode.discountType,
+        discountAmount: discountAmount
+      });
       
       res.json({
         valid: true,
@@ -1906,67 +1929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Client promo code APIs
-  app.post("/api/validate-promo", async (req, res) => {
-    try {
-      const { code, cartTotal } = req.body;
-      
-      if (!code) {
-        return res.status(400).json({ error: "יש להזין קוד קופון" });
-      }
-      
-      // Get the promo code
-      const promoCode = await storage.getPromoCodeByCode(code);
-      
-      // Check if promo code exists and is active
-      if (!promoCode || !promoCode.isActive) {
-        return res.status(404).json({ error: "קוד קופון לא תקף" });
-      }
-      
-      // Check if promo code has expired
-      const now = new Date();
-      if (promoCode.startDate && new Date(promoCode.startDate) > now) {
-        return res.status(400).json({ error: "קוד קופון עדיין לא תקף" });
-      }
-      
-      if (promoCode.endDate && new Date(promoCode.endDate) < now) {
-        return res.status(400).json({ error: "קוד קופון פג תוקף" });
-      }
-      
-      // Check if promo code has reached max uses
-      if (promoCode.maxUses !== null && promoCode.usedCount >= promoCode.maxUses) {
-        return res.status(400).json({ error: "קוד הקופון מוצה במלואו" });
-      }
-      
-      // Check if cart total meets minimum order amount
-      if (promoCode.minOrderAmount !== null && cartTotal < promoCode.minOrderAmount) {
-        return res.status(400).json({ 
-          error: `יש להגיע לסכום הזמנה מינימלי של ₪${promoCode.minOrderAmount} לשימוש בקוד זה` 
-        });
-      }
-      
-      // Calculate discount
-      let discountAmount = 0;
-      if (promoCode.discountType === "percentage") {
-        discountAmount = (cartTotal * promoCode.discountAmount) / 100;
-      } else {
-        discountAmount = promoCode.discountAmount;
-      }
-      
-      // Return promo code details and discount amount
-      res.json({
-        success: true,
-        code: promoCode.code,
-        discountType: promoCode.discountType,
-        discountAmount: promoCode.discountAmount,
-        calculatedDiscount: discountAmount,
-        id: promoCode.id
-      });
-    } catch (error) {
-      console.error("Error validating promo code:", error);
-      res.status(500).json({ error: "שגיאה באימות קוד הקופון" });
-    }
-  });
+  // No duplicate routes needed - removed duplicate
 
   app.post("/api/apply-promo/:id", async (req, res) => {
     try {
