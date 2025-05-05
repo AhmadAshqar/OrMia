@@ -1149,18 +1149,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Checkout API endpoint
-  app.post("/api/checkout", ensureAuthenticated, async (req, res) => {
+  // Checkout API endpoint - works for both guest and authenticated users
+  app.post("/api/checkout", async (req, res) => {
     try {
-      const userId = req.user.id;
+      // Get user ID if authenticated, or null for guest checkout
+      const userId = req.isAuthenticated() ? req.user?.id : null;
+      
       const { 
         items, 
+        email,
         shippingAddress, 
         billingAddress,
         paymentMethod,
-        total,
+        shippingMethod,
         subtotal,
-        shippingCost 
+        total,
+        shippingCost,
+        tax,
+        discount,
+        promoCode,
+        createAccount,
+        password
       } = req.body;
       
       if (!items || !Array.isArray(items) || items.length === 0) {
@@ -1171,52 +1180,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "כתובת למשלוח נדרשת" });
       }
       
+      if (!email) {
+        return res.status(400).json({ message: "נדרשת כתובת אימייל" });
+      }
+      
+      // Create a user account if requested by guest
+      let orderUserId = userId;
+      if (!userId && createAccount && password) {
+        try {
+          // Check if user with this email already exists
+          const existingUser = await storage.getUserByEmail(email);
+          if (existingUser) {
+            return res.status(400).json({ message: "משתמש עם כתובת האימייל הזו כבר קיים" });
+          }
+          
+          // Create the new user
+          const hashedPassword = await hashPassword(password);
+          const newUser = await storage.createUser({
+            email,
+            username: email, // Use email as username
+            password: hashedPassword,
+            firstName: shippingAddress.firstName,
+            lastName: shippingAddress.lastName,
+            role: "customer"
+          });
+          
+          orderUserId = newUser.id;
+        } catch (err) {
+          console.error("Error creating user account during checkout:", err);
+          // Continue with checkout as guest if account creation fails
+        }
+      }
+      
       // Generate a unique order number
       const orderNumber = `OM-${Date.now()}-${randomUUID().substring(0, 4)}`;
       
-      // Create the order
+      // Create the order with the enhanced data
       const orderData = {
-        userId,
+        userId: orderUserId,
         orderNumber,
-        status: "pending",
+        status: "confirmed",
         paymentStatus: paymentMethod === 'credit-card' ? "paid" : "pending",
-        shipmentStatus: "pending",
+        shipmentStatus: "processing",
         total,
         subtotal,
         shippingCost: shippingCost || 0,
-        tax: 0, // No VAT as requested
-        discount: 0,
+        tax: tax || 0,
+        discount: discount || 0,
+        promoCode: promoCode || null,
         items: items.map(item => ({
-          productId: item.id,
-          productName: item.name,
+          productId: item.product.id,
+          productName: item.product.name,
           quantity: item.quantity,
-          price: item.price,
-          imageUrl: item.mainImage
+          price: item.product.salePrice || item.product.price,
+          imageUrl: item.product.mainImage
         })),
         shippingAddress,
+        billingAddress: billingAddress || shippingAddress,
         customerName: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
-        customerEmail: req.user.email,
-        customerPhone: shippingAddress.phone
+        customerEmail: email,
+        customerPhone: shippingAddress.phone,
+        paymentMethod,
+        notes: `שיטת משלוח: ${shippingMethod === 'express' ? 'משלוח מהיר' : 'משלוח רגיל'}`
       };
       
       const order = await storage.createOrder(orderData);
       
-      // Create shipping record
+      // Create shipping record with enhanced details
       const trackingNumber = `TN-${Date.now()}-${randomUUID().substring(0, 6)}`;
+      
+      // Calculate estimated delivery based on shipping method
+      const deliveryDays = shippingMethod === 'express' ? 3 : 7; // Express: 3 days, Standard: 7 days
+      const estimatedDelivery = new Date();
+      estimatedDelivery.setDate(estimatedDelivery.getDate() + deliveryDays);
+      
       const shippingData = {
         orderId: order.id,
         trackingNumber,
         orderNumber: order.orderNumber,
         customerName: order.customerName,
-        status: "pending",
+        customerEmail: email,
+        customerPhone: shippingAddress.phone,
+        status: "processing",
         address: shippingAddress,
-        shippingMethod: "standard",
-        estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        shippingMethod,
+        carrier: "דואר שליחים",
+        estimatedDelivery,
+        insurance: true,
         history: [{
-          status: "pending",
+          status: "processing",
           location: "מרכז שילוח",
           timestamp: new Date().toISOString(),
-          notes: "ההזמנה התקבלה"
+          notes: "ההזמנה התקבלה ובתהליך עיבוד"
         }],
         shippingCost: shippingCost || 0
       };
@@ -1225,7 +1280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update inventory and product stock levels
       for (const item of items) {
-        await storage.updateProductStockAfterOrder(item.id, item.quantity);
+        await storage.updateProductStockAfterOrder(item.product.id, item.quantity);
       }
       
       res.status(201).json({ 
@@ -1238,6 +1293,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Error processing checkout:", err);
       res.status(500).json({ message: "שגיאה בביצוע ההזמנה" });
+    }
+  });
+  
+  // Promo code validation endpoint
+  app.post("/api/validate-promo", async (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ 
+          valid: false, 
+          message: "קוד הנחה לא סופק" 
+        });
+      }
+      
+      // Check for valid promo codes
+      // In production, these would come from a database
+      if (code === 'WELCOME10') {
+        return res.json({
+          valid: true,
+          code: 'WELCOME10',
+          discount: 10,
+          discountType: 'percent',
+          message: "10% הנחה לחברים חדשים!",
+          minOrder: 0
+        });
+      } else if (code === 'ORMIA20') {
+        return res.json({
+          valid: true,
+          code: 'ORMIA20',
+          discount: 20,
+          discountType: 'percent',
+          message: "20% הנחה ללקוחות נאמנים!",
+          minOrder: 500 // Minimum order of 500 NIS
+        });
+      } else if (code === 'FREESHIP') {
+        return res.json({
+          valid: true,
+          code: 'FREESHIP',
+          discount: 100,
+          discountType: 'shipping',
+          message: "משלוח חינם!",
+          minOrder: 300 // Minimum order of 300 NIS for free shipping
+        });
+      }
+      
+      // Invalid promo code
+      return res.status(404).json({
+        valid: false,
+        message: "קוד הנחה אינו זמין או פג תוקף"
+      });
+      
+    } catch (err) {
+      console.error("Error validating promo code:", err);
+      res.status(500).json({ 
+        valid: false,
+        message: "שגיאה באימות קוד ההנחה" 
+      });
     }
   });
   
