@@ -278,20 +278,68 @@ const HomePage = () => {
             <p className="max-w-2xl mx-auto text-lg text-foreground/80">{t("instagram_desc")}</p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {/* Instagram Images - 6 of them */}
-            {Array.from({ length: 6 }).map((_, i) => (
-              <a href="#" key={i} className="block group relative overflow-hidden slide-in">
-                <img 
-                  src={`https://source.unsplash.com/random/300x300/?jewelry,diamond,${i}`}
-                  alt={t("instagram_image")}
-                  className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Instagram className="text-white text-3xl" />
-                </div>
-              </a>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {/* Instagram Images with our jewelry photos */}
+            <a href="#" className="block group relative overflow-hidden slide-in">
+              <img 
+                src="/assets/claire.webp"
+                alt={t("instagram_image")}
+                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Instagram className="text-white text-3xl" />
+              </div>
+            </a>
+            <a href="#" className="block group relative overflow-hidden slide-in">
+              <img 
+                src="/assets/images-0_1e280e03-b0bb-479b-863c-183f5d6821f2.webp"
+                alt={t("instagram_image")}
+                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Instagram className="text-white text-3xl" />
+              </div>
+            </a>
+            <a href="#" className="block group relative overflow-hidden slide-in">
+              <img 
+                src="/assets/images-1_8b23ddbb-cf59-4787-b3f9-1109208f7812.webp"
+                alt={t("instagram_image")}
+                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Instagram className="text-white text-3xl" />
+              </div>
+            </a>
+            <a href="#" className="block group relative overflow-hidden slide-in">
+              <img 
+                src="/assets/images-7_f688b062-882c-4502-88ea-55534a480589.webp"
+                alt={t("instagram_image")}
+                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Instagram className="text-white text-3xl" />
+              </div>
+            </a>
+            <a href="#" className="block group relative overflow-hidden slide-in">
+              <img 
+                src="/assets/Sbe37956e4558475d89b256bcc6e5d8a54.webp"
+                alt={t("instagram_image")}
+                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Instagram className="text-white text-3xl" />
+              </div>
+            </a>
+            <a href="#" className="block group relative overflow-hidden slide-in">
+              <img 
+                src="/assets/04d5a7e99691c5490bb1118ad9a6b502.png"
+                alt={t("instagram_image")}
+                className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Instagram className="text-white text-3xl" />
+              </div>
+            </a>
           </div>
           
           <div className="mt-8 text-center">
