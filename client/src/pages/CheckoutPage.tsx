@@ -278,19 +278,18 @@ const CheckoutPage = () => {
       let discountAmount = 0;
       
       if (promoData.discountType === 'percentage') {
-        // Percentage discount
-        discountAmount = Math.round(subtotal * (promoData.discountAmount / 100));
-        console.log(`Applied percentage discount: ${promoData.discountAmount}%, amount: ${discountAmount}`);
+        // Percentage discount - Always use the server-calculated value
+        // This ensures consistent calculation between client and server
+        discountAmount = promoData.discountAmount;
+        console.log(`Applied server-calculated percentage discount: ${discountAmount}`);
       } else {
-        // Fixed amount discount
+        // Fixed amount discount - Use the server-calculated value
         discountAmount = promoData.discountAmount;
         console.log(`Applied fixed discount: ${discountAmount}`);
       }
       
-      // If the server already calculated the discount, use that value
-      if (promoData.calculatedDiscount) {
-        discountAmount = promoData.calculatedDiscount;
-      }
+      // We're now using the server-calculated values directly
+      // so we don't need to calculate again
       
       setDiscount(discountAmount);
       setPromoApplied(true);

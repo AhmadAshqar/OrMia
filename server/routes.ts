@@ -1635,12 +1635,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Calculate discount
+      // Calculate discount based on the original total amount
+      // This ensures the discount is applied to the raw subtotal, not after other discounts
       let discountAmount = 0;
       if (promoCode.discountType === 'percentage') {
+        // For percentage discounts, apply the percentage to the original total
         discountAmount = Math.round(total * (promoCode.discountAmount / 100));
         console.log(`Applied percentage discount: ${promoCode.discountAmount}%, amount: ${discountAmount}`);
       } else { // fixed amount
+        // For fixed amount discounts, use the fixed value directly
         discountAmount = promoCode.discountAmount;
         console.log(`Applied fixed discount: ${discountAmount}`);
       }
