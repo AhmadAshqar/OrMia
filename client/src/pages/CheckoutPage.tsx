@@ -418,8 +418,8 @@ const CheckoutPage = () => {
       <Header />
       
       <div className="bg-gray-50 py-6">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-serif mb-2">{t("checkout")}</h1>
+        <div className="container mx-auto px-4" dir="rtl">
+          <h1 className="text-3xl md:text-4xl font-serif mb-2 text-right">{t("checkout")}</h1>
         </div>
       </div>
       
@@ -927,11 +927,11 @@ const CheckoutPage = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Product list with details */}
-                    <div className="max-h-80 overflow-y-auto space-y-3 pr-1">
+                    <div className="max-h-80 overflow-y-auto space-y-3 pl-1 text-right">
                       {items.map(({ product, quantity }) => (
                         <div key={product.id} className="flex items-start justify-between py-2 border-b border-gray-100">
                           <div className="flex">
-                            <div className="w-16 h-16 bg-gray-100 overflow-hidden rounded-sm mr-3 flex-shrink-0">
+                            <div className="w-16 h-16 bg-gray-100 overflow-hidden rounded-sm ml-3 flex-shrink-0">
                               <img 
                                 src={product.mainImage} 
                                 alt={product.name} 
