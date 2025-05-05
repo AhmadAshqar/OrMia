@@ -15,7 +15,7 @@ export default function InstagramFeed() {
           <h2 className="text-3xl md:text-4xl font-serif mb-3">עקבו אחרינו באינסטגרם</h2>
           <div className="w-24 h-1 bg-[hsl(var(--gold))] mx-auto mb-6"></div>
           <p className="max-w-2xl mx-auto text-lg text-[hsl(var(--black-light))]">
-            שתפו את התכשיטים שלכם עם התיוג #לוקסמויסנייט
+            שתפו את התכשיטים שלכם עם התיוג #אורמיה
           </p>
         </div>
         
