@@ -1267,9 +1267,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const trackingNumber = `TN-${Date.now()}-${randomUUID().substring(0, 6)}`;
       
       // Calculate estimated delivery based on shipping method
-      const deliveryDays = shippingMethod === 'express' ? 3 : 7; // Express: 3 days, Standard: 7 days
+      // Calculate delivery date as 30 days from order date
       const estimatedDelivery = new Date();
-      estimatedDelivery.setDate(estimatedDelivery.getDate() + deliveryDays);
+      estimatedDelivery.setDate(estimatedDelivery.getDate() + 30); // Always 30 days
       
       const shippingData = {
         orderId: order.id,
