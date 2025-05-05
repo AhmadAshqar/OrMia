@@ -232,16 +232,23 @@ const CheckoutPage = () => {
     }
     
     try {
+      console.log("Applying promo code:", code);
+      console.log("Current subtotal:", subtotal);
+      
       // Call the promo code validation API
+      const requestBody = { 
+        code,
+        orderTotal: subtotal // Send the subtotal as orderTotal
+      };
+      
+      console.log("Sending request to /api/validate-promo:", requestBody);
+      
       const response = await fetch('/api/validate-promo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          code,
-          orderTotal: subtotal // Send the subtotal as orderTotal
-        }),
+        body: JSON.stringify(requestBody),
       });
       
       if (!response.ok) {

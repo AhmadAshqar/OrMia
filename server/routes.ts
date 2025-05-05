@@ -1622,13 +1622,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer-facing promo code validation route
   app.post("/api/validate-promo", async (req, res) => {
     try {
+      console.log("Validate promo request body:", req.body);
+      
       const { code, orderTotal } = req.body;
       
       if (!code) {
+        console.log("No code provided in request");
         return res.status(400).json({ error: "נדרש קוד קופון" });
       }
       
+      console.log(`Validating promo code: ${code}, orderTotal: ${orderTotal}`);
+      
       if (typeof orderTotal !== 'number' || orderTotal < 0) {
+        console.log(`Invalid orderTotal: ${orderTotal}, type: ${typeof orderTotal}`);
         return res.status(400).json({ error: "סכום ההזמנה אינו תקין" });
       }
       
