@@ -104,7 +104,7 @@ const resources = {
       'phone': '03-1234567',
       'email': 'info@ormiajewelry.co.il',
       'hours': 'א\'-ה\': 9:00-19:00 ו\': 9:00-14:00',
-      'copyright': 'כל הזכויות שמורות ל eDigital-X 2024 Ⓒ',
+      'copyright': '© 2023 אור מיה. כל הזכויות שמורות.',
       
       // Cart
       'your_cart': 'סל הקניות שלך',
