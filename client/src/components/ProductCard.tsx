@@ -34,7 +34,15 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  const handleAddToWishlist = async () => {
+  const handleAddToWishlist = async (e?: React.MouseEvent) => {
+    // Prevent the event from bubbling up (important!)
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log("ProductCard - handleAddToWishlist called for product:", product.id);
+    
     try {
       console.log("Adding to favorites, product ID:", product.id);
       const response = await apiRequest('POST', '/api/favorites', { productId: Number(product.id) });
@@ -108,7 +116,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="relative overflow-hidden group">
         <Link href={`/product/${product.id}`}>
           <img 
-            src={product.images[0]} 
+            src={product.mainImage || (product.images ? product.images.split(',')[0] : '')} 
             alt={product.name} 
             className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
           />
@@ -118,7 +126,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <Badge className="absolute top-2 right-2 bg-[hsl(var(--gold))] text-black">חדש</Badge>
         )}
         
-        {product.discountPrice && (
+        {product.salePrice && (
           <Badge className="absolute top-2 right-2 bg-[hsl(var(--burgundy))] text-white">מבצע</Badge>
         )}
         
@@ -150,9 +158,13 @@ export default function ProductCard({ product }: ProductCardProps) {
         <h3 className="font-serif text-lg mb-1">{product.name}</h3>
         <div className="flex justify-between items-center mb-3">
           <div>
-            <p className="text-[hsl(var(--gold))] font-medium">₪{product.price.toLocaleString()}</p>
-            {product.discountPrice && (
-              <p className="text-gray-400 text-sm line-through">₪{product.discountPrice.toLocaleString()}</p>
+            {product.salePrice ? (
+              <>
+                <p className="text-[hsl(var(--gold))] font-medium">₪{product.salePrice.toLocaleString()}</p>
+                <p className="text-gray-400 text-sm line-through">₪{product.price.toLocaleString()}</p>
+              </>
+            ) : (
+              <p className="text-[hsl(var(--gold))] font-medium">₪{product.price.toLocaleString()}</p>
             )}
           </div>
           <div className="flex items-center">
