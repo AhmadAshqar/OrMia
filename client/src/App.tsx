@@ -17,6 +17,7 @@ import ResetPasswordPage from "@/pages/reset-password-page";
 import ProfilePage from "@/pages/ProfilePage";
 import FavoritesPage from "@/pages/FavoritesPage";
 import MyOrdersPage from "@/pages/MyOrdersPage";
+import MessagesPage from "@/pages/MessagesPage";
 import TermsPage from "@/pages/legal/TermsPage";
 import PrivacyPage from "@/pages/legal/PrivacyPage";
 import ShippingPage from "@/pages/legal/ShippingPage";
@@ -58,6 +59,7 @@ const UsersAdminPage = lazy(() => import("@/pages/admin/UsersPage"));
 const OrdersAdminPage = lazy(() => import("@/pages/admin/OrdersPage"));
 const ShippingAdminPage = lazy(() => import("@/pages/admin/ShippingPage"));
 const PromoCodesPage = lazy(() => import("@/pages/admin/PromoCodesPage"));
+const MessagesAdminPage = lazy(() => import("@/pages/admin/MessagesPage"));
 
 function Router() {
   const [location] = useLocation();
@@ -94,6 +96,7 @@ function Router() {
         <ProtectedRoute path="/profile" component={ProfilePage} />
         <ProtectedRoute path="/favorites" component={FavoritesPage} />
         <ProtectedRoute path="/orders" component={MyOrdersPage} />
+        <ProtectedRoute path="/messages" component={MessagesPage} />
         <Route path="/about" component={AboutPage} />
         <Route path="/contact" component={ContactPage} />
         <Route path="/faq" component={FaqPage} />
@@ -112,6 +115,7 @@ function Router() {
         <AdminRoute path="/admin/shipping" component={() => <ShippingAdminPage />} />
         <AdminRoute path="/admin/promo-codes" component={() => <PromoCodesPage />} />
         <AdminRoute path="/admin/users" component={() => <UsersAdminPage />} />
+        <AdminRoute path="/admin/messages" component={() => <MessagesAdminPage />} />
         
         <Route component={NotFound} />
       </Switch>

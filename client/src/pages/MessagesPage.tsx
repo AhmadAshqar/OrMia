@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Message } from '@shared/schema';
 import { Loader2 } from 'lucide-react';
-import { useNavigate, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 
 export default function MessagesPage() {
   const { user } = useAuth();
