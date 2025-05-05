@@ -397,6 +397,7 @@ export const messages = pgTable("messages", {
   content: text("content").notNull(),
   isRead: boolean("is_read").default(false).notNull(),
   isFromAdmin: boolean("is_from_admin").default(false).notNull(),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   parentId: integer("parent_id").references((): any => messages.id),
 });

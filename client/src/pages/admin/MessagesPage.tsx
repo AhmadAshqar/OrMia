@@ -872,7 +872,8 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
         content: message.content,
         createdAt: message.createdAt,
         isFromAdmin: message.isFromAdmin || false,
-        userId: message.userId
+        userId: message.userId,
+        imageUrl: message.imageUrl
       }
     ];
     
@@ -883,7 +884,8 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
           content: reply.content,
           createdAt: reply.createdAt,
           isFromAdmin: reply.isFromAdmin || false,
-          userId: reply.userId
+          userId: reply.userId,
+          imageUrl: reply.imageUrl
         });
       });
     }
@@ -927,6 +929,18 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
               }`}
             >
               <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+              
+              {/* Display image if any */}
+              {msg.imageUrl && (
+                <div className="mt-2">
+                  <img 
+                    src={msg.imageUrl} 
+                    alt="תמונה שצורפה" 
+                    className="max-w-full rounded-lg max-h-40" 
+                  />
+                </div>
+              )}
+              
               <div className={`flex items-center text-xs mt-1 ${alignRight ? 'text-blue-100' : 'text-gray-500'}`}>
                 <span>{format(new Date(msg.createdAt), 'HH:mm', { locale: he })}</span>
                 <span className="mx-1">•</span>
