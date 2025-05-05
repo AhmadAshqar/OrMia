@@ -1200,6 +1200,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
+  // Debug route for testing favorites manually
+  app.get("/api/debug/add-favorite", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const productId = parseInt(req.query.productId as string);
+
+      console.log("Debug route - Adding favorite manually");
+      console.log("User ID:", userId);
+      console.log("Product ID:", productId);
+
+      if (isNaN(productId)) {
+        return res.status(400).json({ message: "Invalid product ID" });
+      }
+      
+      // Check if product exists
+      const product = await storage.getProduct(productId);
+      console.log("Product exists:", !!product);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      // Check if already in favorites
+      const existing = await storage.getFavoriteByUserAndProduct(userId, productId);
+      console.log("Already in favorites:", !!existing);
+      
+      if (existing) {
+        return res.status(409).json({ message: "Product already in favorites" });
+      }
+      
+      const favoriteData = insertFavoriteSchema.parse({
+        userId,
+        productId
+      });
+      
+      console.log("Creating favorite with data:", favoriteData);
+      const favorite = await storage.createFavorite(favoriteData);
+      console.log("Favorite created:", favorite);
+      
+      return res.status(201).json(favorite);
+    } catch (err) {
+      console.error("Debug route error:", err);
+      return res.status(500).json({ message: "Error adding favorite", error: String(err) });
+    }
+  });
+
   // Add a server-side redirect for password reset
   app.get("/api/reset-redirect", (req, res) => {
     const token = req.query.token;

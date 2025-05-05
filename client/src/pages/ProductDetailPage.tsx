@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Product } from "@shared/schema";
 
 import Header from "@/components/layout/Header";
@@ -12,6 +12,7 @@ import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Heart, 
   Share2, 
@@ -55,6 +56,49 @@ const ProductDetailPage = () => {
         title: t("add_to_cart"),
         description: `${product.name} ${t("add_to_cart")}`,
       });
+    }
+  };
+  
+  // Add to favorites mutation
+  const addToFavoriteMutation = useMutation({
+    mutationFn: async (productId: number) => {
+      console.log("Adding to favorites, product ID:", productId);
+      await apiRequest("POST", "/api/favorites", { productId: Number(productId) });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      toast({
+        title: "נוסף למועדפים",
+        description: product ? `${product.name} נוסף למועדפים בהצלחה.` : "המוצר נוסף למועדפים",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error adding to favorites:", error);
+      
+      if (error.status === 401) {
+        toast({
+          title: "שגיאה",
+          description: "יש להתחבר תחילה כדי להוסיף מוצרים למועדפים.",
+          variant: "destructive",
+        });
+      } else if (error.status === 409) {
+        toast({
+          title: "מוצר כבר נמצא במועדפים",
+          description: product ? `${product.name} כבר נמצא במועדפים שלך.` : "המוצר כבר נמצא במועדפים",
+        });
+      } else {
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בהוספת המוצר למועדפים.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+  
+  const handleAddToFavorites = () => {
+    if (product) {
+      addToFavoriteMutation.mutate(product.id);
     }
   };
   
@@ -208,8 +252,13 @@ const ProductDetailPage = () => {
                   {t("add_to_cart")}
                 </Button>
                 
-                <Button variant="outline" className="w-12 h-12 p-0">
-                  <Heart className="h-5 w-5" />
+                <Button 
+                  variant="outline" 
+                  className="w-12 h-12 p-0"
+                  onClick={handleAddToFavorites}
+                  disabled={addToFavoriteMutation.isPending}
+                >
+                  <Heart className={`h-5 w-5 ${addToFavoriteMutation.isPending ? 'animate-pulse' : ''}`} />
                 </Button>
                 
                 <Button variant="outline" className="w-12 h-12 p-0">
