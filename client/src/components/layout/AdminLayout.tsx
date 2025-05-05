@@ -24,7 +24,7 @@ interface AdminLayoutProps {
   children: ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function AdminLayout({ children, title }: AdminLayoutProps & { title?: string }) {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
@@ -182,6 +182,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         
         {/* Main content */}
         <main className="flex flex-1 flex-col gap-4 p-4 md:p-8">
+          {title && <h1 className="text-2xl font-bold mb-6">{title}</h1>}
           {children}
         </main>
       </div>

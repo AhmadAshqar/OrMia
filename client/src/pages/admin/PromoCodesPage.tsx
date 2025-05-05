@@ -1,193 +1,105 @@
-import React, { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// import { DataTable } from "@/components/ui/data-table";
-import { useToast } from "@/hooks/use-toast";
-import { Switch } from "@/components/ui/switch";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { CalendarIcon, Pencil, Trash2 } from "lucide-react";
-import { Toggle } from "@/components/ui/toggle";
+import { CheckIcon, PencilIcon, Trash2Icon, PlusIcon, CalendarIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import AdminLayout from "@/components/layout/AdminLayout";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import AdminLayout from "@/components/layout/AdminLayout";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { he } from "date-fns/locale";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
-// Define promo code type
-type PromoCode = {
+// Define Zod schema for promo code
+const promoCodeSchema = z.object({
+  code: z.string().min(3, "קוד חייב להכיל לפחות 3 תווים").max(15, "קוד לא יכול להכיל יותר מ-15 תווים"),
+  description: z.string().min(3, "תיאור חייב להכיל לפחות 3 תווים"),
+  discountType: z.enum(["fixed", "percentage"], {
+    required_error: "יש לבחור סוג הנחה",
+  }),
+  discountAmount: z.coerce
+    .number()
+    .positive("סכום ההנחה חייב להיות מספר חיובי")
+    .min(1, "סכום ההנחה חייב להיות לפחות 1"),
+  minOrderAmount: z.coerce
+    .number()
+    .nonnegative("סכום ההזמנה המינימלי חייב להיות מספר אי-שלילי")
+    .optional()
+    .nullable(),
+  maxUses: z.coerce
+    .number()
+    .int("מספר השימושים המקסימלי חייב להיות מספר שלם")
+    .nonnegative("מספר השימושים המקסימלי חייב להיות מספר אי-שלילי")
+    .optional()
+    .nullable(),
+  isActive: z.boolean().default(true),
+  startDate: z.date().optional().nullable(),
+  endDate: z.date().optional().nullable(),
+});
+
+type PromoCodeFormValues = z.infer<typeof promoCodeSchema>;
+
+interface PromoCode {
   id: number;
   code: string;
   description: string;
-  discountType: "percentage" | "fixed";
+  discountType: "fixed" | "percentage";
   discountAmount: number;
   minOrderAmount: number | null;
   maxUses: number | null;
   usedCount: number;
   isActive: boolean;
-  startDate: string | null;
-  endDate: string | null;
+  createdAt: Date;
   createdBy: number;
-  createdAt: string;
-  updatedAt: string;
-  createdByAdmin?: {
-    id: number;
-    username: string;
-  };
-};
+  startDate: Date | null;
+  endDate: Date | null;
+}
 
-// Create a schema for promo code form validation
-const promoCodeSchema = z.object({
-  code: z.string().min(3, { message: "קוד חייב להכיל לפחות 3 תווים" }).max(20, { message: "קוד יכול להכיל עד 20 תווים" }),
-  description: z.string().min(3, { message: "יש להזין תיאור" }),
-  discountType: z.enum(["percentage", "fixed"], { required_error: "יש לבחור סוג הנחה" }),
-  discountAmount: z.coerce.number().min(1, { message: "ערך ההנחה חייב להיות חיובי" }),
-  minOrderAmount: z.coerce.number().nullable().optional(),
-  maxUses: z.coerce.number().nullable().optional(),
-  isActive: z.boolean().default(true),
-  startDate: z.date().nullable().optional(),
-  endDate: z.date().nullable().optional(),
-});
-
-type PromoCodeFormValues = z.infer<typeof promoCodeSchema>;
-
-const PromoCodesPage = () => {
+export default function PromoCodesPage() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingPromoCode, setEditingPromoCode] = useState<PromoCode | null>(null);
   const { toast } = useToast();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedPromoCode, setSelectedPromoCode] = useState<PromoCode | null>(null);
+  const queryClient = useQueryClient();
 
-  // Fetch promo codes
-  const { data: promoCodes, isLoading } = useQuery<PromoCode[]>({
-    queryKey: ["/api/admin/promo-codes"],
-    queryFn: async () => {
-      const response = await fetch("/api/admin/promo-codes");
-      if (!response.ok) {
-        throw new Error("Failed to fetch promo codes");
-      }
-      return response.json();
-    }
-  });
-
-  // Create promo code mutation
-  const createPromoCodeMutation = useMutation({
-    mutationFn: async (data: PromoCodeFormValues) => {
-      const response = await apiRequest("POST", "/api/admin/promo-codes", data);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create promo code");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "קוד קופון נוצר בהצלחה",
-        variant: "default",
-      });
-      setIsCreateDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
-      form.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "שגיאה ביצירת קוד קופון",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Update promo code mutation
-  const updatePromoCodeMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number, data: PromoCodeFormValues }) => {
-      const response = await apiRequest("PATCH", `/api/admin/promo-codes/${id}`, data);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update promo code");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "קוד קופון עודכן בהצלחה",
-        variant: "default",
-      });
-      setIsEditDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "שגיאה בעדכון קוד קופון",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Toggle promo code active status mutation
-  const toggleActiveStatusMutation = useMutation({
-    mutationFn: async ({ id, isActive }: { id: number, isActive: boolean }) => {
-      const response = await apiRequest("PATCH", `/api/admin/promo-codes/${id}/toggle`, { isActive });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to toggle promo code status");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
-      toast({
-        title: "סטטוס קוד קופון עודכן בהצלחה",
-        variant: "default",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "שגיאה בעדכון סטטוס קוד קופון",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Delete promo code mutation
-  const deletePromoCodeMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/admin/promo-codes/${id}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to delete promo code");
-      }
-      return true;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
-      toast({
-        title: "קוד קופון נמחק בהצלחה",
-        variant: "default",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "שגיאה במחיקת קוד קופון",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Create form
   const form = useForm<PromoCodeFormValues>({
     resolver: zodResolver(promoCodeSchema),
     defaultValues: {
@@ -203,34 +115,139 @@ const PromoCodesPage = () => {
     },
   });
 
-  // Edit form
-  const editForm = useForm<PromoCodeFormValues>({
-    resolver: zodResolver(promoCodeSchema),
-    defaultValues: {
-      code: "",
-      description: "",
-      discountType: "percentage",
-      discountAmount: 10,
-      minOrderAmount: null,
-      maxUses: null,
-      isActive: true,
-      startDate: null,
-      endDate: null,
+  const { data: promoCodes, isLoading } = useQuery<PromoCode[]>({
+    queryKey: ["/api/admin/promo-codes"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/promo-codes");
+      if (!res.ok) {
+        throw new Error("שגיאה בטעינת קודי הקופון");
+      }
+      return res.json();
     },
   });
 
-  const handleCreateSubmit = (data: PromoCodeFormValues) => {
-    createPromoCodeMutation.mutate(data);
+  const createPromoCode = useMutation({
+    mutationFn: async (data: PromoCodeFormValues) => {
+      const res = await apiRequest("POST", "/api/admin/promo-codes", data);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "שגיאה ביצירת קוד קופון");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "קוד קופון נוצר בהצלחה",
+        description: "קוד הקופון נוצר ונוסף למערכת בהצלחה",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
+      setIsOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "שגיאה ביצירת קוד קופון",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePromoCode = useMutation({
+    mutationFn: async (data: { id: number; promoCode: PromoCodeFormValues }) => {
+      const res = await apiRequest(
+        "PATCH",
+        `/api/admin/promo-codes/${data.id}`,
+        data.promoCode
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "שגיאה בעדכון קוד קופון");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "קוד קופון עודכן בהצלחה",
+        description: "קוד הקופון עודכן במערכת בהצלחה",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
+      setIsOpen(false);
+      setEditingPromoCode(null);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "שגיאה בעדכון קוד קופון",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const togglePromoStatus = useMutation({
+    mutationFn: async (data: { id: number; isActive: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/admin/promo-codes/${data.id}/toggle`, {
+        isActive: data.isActive,
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "שגיאה בשינוי סטטוס קוד הקופון");
+      }
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: "סטטוס קוד קופון עודכן",
+        description: `קוד הקופון ${variables.isActive ? "הופעל" : "הושבת"} בהצלחה`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "שגיאה בשינוי סטטוס קוד קופון",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePromoCode = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/promo-codes/${id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "שגיאה במחיקת קוד קופון");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "קוד קופון נמחק בהצלחה",
+        description: "קוד הקופון נמחק מהמערכת בהצלחה",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "שגיאה במחיקת קוד קופון",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: PromoCodeFormValues) => {
+    if (editingPromoCode) {
+      updatePromoCode.mutate({ id: editingPromoCode.id, promoCode: data });
+    } else {
+      createPromoCode.mutate(data);
+    }
   };
 
-  const handleEditSubmit = (data: PromoCodeFormValues) => {
-    if (!selectedPromoCode) return;
-    updatePromoCodeMutation.mutate({ id: selectedPromoCode.id, data });
-  };
-
-  const handleEditClick = (promoCode: PromoCode) => {
-    setSelectedPromoCode(promoCode);
-    editForm.reset({
+  const handleEditPromoCode = (promoCode: PromoCode) => {
+    setEditingPromoCode(promoCode);
+    form.reset({
       code: promoCode.code,
       description: promoCode.description,
       discountType: promoCode.discountType,
@@ -241,632 +258,414 @@ const PromoCodesPage = () => {
       startDate: promoCode.startDate ? new Date(promoCode.startDate) : null,
       endDate: promoCode.endDate ? new Date(promoCode.endDate) : null,
     });
-    setIsEditDialogOpen(true);
+    setIsOpen(true);
   };
 
-  const handleToggleActive = (promoCode: PromoCode) => {
-    toggleActiveStatusMutation.mutate({
-      id: promoCode.id,
-      isActive: !promoCode.isActive,
+  const handleNewPromoCode = () => {
+    setEditingPromoCode(null);
+    form.reset({
+      code: "",
+      description: "",
+      discountType: "percentage",
+      discountAmount: 10,
+      minOrderAmount: null,
+      maxUses: null,
+      isActive: true,
+      startDate: null,
+      endDate: null,
     });
+    setIsOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
-        </div>
-      </AdminLayout>
-    );
-  }
+  const formatDate = (date: Date | null | string): string => {
+    if (!date) return "-";
+    return format(new Date(date), "dd/MM/yyyy", { locale: he });
+  };
 
   return (
-    <AdminLayout>
-      <div className="container mx-auto p-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">ניהול קודי קופון</h1>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>יצירת קוד קופון חדש</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>יצירת קוד קופון חדש</DialogTitle>
-                <DialogDescription>
-                  הזן את פרטי קוד הקופון החדש. לחץ על כפתור השמירה כאשר תסיים.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleCreateSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>קוד קופון</FormLabel>
-                        <FormControl>
-                          <Input placeholder="WELCOME10" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          הקוד שלקוחות יזינו בעת הרכישה
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>תיאור</FormLabel>
-                        <FormControl>
-                          <Input placeholder="קופון 10% הנחה ללקוחות חדשים" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          תיאור פנימי של הקופון
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="discountType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>סוג הנחה</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="בחר סוג הנחה" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="percentage">אחוז (%)</SelectItem>
-                              <SelectItem value="fixed">סכום קבוע (₪)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="discountAmount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ערך ההנחה</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="minOrderAmount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>סכום הזמנה מינימלי (₪)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              {...field} 
-                              value={field.value === null ? "" : field.value}
-                              onChange={e => field.onChange(e.target.value === "" ? null : parseFloat(e.target.value))}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            השאר ריק אם אין מינימום
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="maxUses"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>מקסימום שימושים</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              {...field} 
-                              value={field.value === null ? "" : field.value}
-                              onChange={e => field.onChange(e.target.value === "" ? null : parseInt(e.target.value))}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            השאר ריק ללא הגבלה
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="startDate"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>תאריך התחלה</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "pl-3 text-right font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP")
-                                  ) : (
-                                    <span>בחר תאריך</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value || undefined}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                  date < new Date(new Date().setHours(0, 0, 0, 0))
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormDescription>
-                            השאר ריק לתחילה מיידית
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="endDate"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>תאריך סיום</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "pl-3 text-right font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP")
-                                  ) : (
-                                    <span>בחר תאריך</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value || undefined}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                  date < new Date(new Date().setHours(0, 0, 0, 0))
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormDescription>
-                            השאר ריק לתוקף ללא הגבלה
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>פעיל</FormLabel>
-                          <FormDescription>
-                            האם הקופון זמין לשימוש
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <Button 
-                      type="submit" 
-                      disabled={createPromoCodeMutation.isPending}
-                    >
-                      {createPromoCodeMutation.isPending ? "מעבד..." : "שמור קוד קופון"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+    <AdminLayout title="ניהול קודי קופון">
+      <div className="flex justify-between items-center mb-6">
+        <Button onClick={handleNewPromoCode} className="flex items-center gap-2">
+          <PlusIcon className="h-4 w-4" />
+          קוד קופון חדש
+        </Button>
+      </div>
 
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                <tr>
-                  <th className="py-3 px-6 text-right">קוד</th>
-                  <th className="py-3 px-6 text-right">תיאור</th>
-                  <th className="py-3 px-6 text-right">הנחה</th>
-                  <th className="py-3 px-6 text-right">תוקף</th>
-                  <th className="py-3 px-6 text-right">שימושים</th>
-                  <th className="py-3 px-6 text-right">סטטוס</th>
-                  <th className="py-3 px-6 text-right">פעולות</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-600 text-sm">
-                {promoCodes && promoCodes.length > 0 ? (
-                  promoCodes.map((promoCode) => (
-                    <tr key={promoCode.id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="py-3 px-6 text-right">
-                        <span className="font-medium">{promoCode.code}</span>
-                      </td>
-                      <td className="py-3 px-6 text-right">{promoCode.description}</td>
-                      <td className="py-3 px-6 text-right">
-                        {promoCode.discountType === "percentage" 
-                          ? `${promoCode.discountAmount}%` 
-                          : `₪${promoCode.discountAmount}`
-                        }
-                        {promoCode.minOrderAmount && (
-                          <span className="text-xs block text-gray-500">
-                            מינימום: ₪{promoCode.minOrderAmount}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-6 text-right">
-                        {promoCode.startDate || promoCode.endDate ? (
-                          <div className="text-xs">
-                            {promoCode.startDate && <div>מתחיל: {new Date(promoCode.startDate).toLocaleDateString("he-IL")}</div>}
-                            {promoCode.endDate && <div>מסתיים: {new Date(promoCode.endDate).toLocaleDateString("he-IL")}</div>}
-                          </div>
-                        ) : (
-                          <span className="text-xs">ללא הגבלה</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-6 text-right">
-                        {promoCode.maxUses ? (
-                          <span>{promoCode.usedCount} / {promoCode.maxUses}</span>
-                        ) : (
-                          <span>{promoCode.usedCount} / ∞</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-6 text-right">
-                        <Badge 
-                          variant={promoCode.isActive ? "default" : "secondary"} 
-                          className="cursor-pointer"
-                          onClick={() => handleToggleActive(promoCode)}
-                        >
-                          {promoCode.isActive ? "פעיל" : "לא פעיל"}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-6 text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditClick(promoCode)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  פעולה זו תמחק לצמיתות את קוד הקופון "{promoCode.code}".
-                                  לא ניתן לשחזר קוד קופון לאחר מחיקתו.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>ביטול</AlertDialogCancel>
-                                <AlertDialogAction
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  onClick={() => deletePromoCodeMutation.mutate(promoCode.id)}
-                                >
-                                  מחק קוד קופון
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-gray-500">
-                      לא נמצאו קודי קופון. לחץ על 'יצירת קוד קופון חדש' כדי להוסיף את הקוד הראשון.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+      <div className="bg-white p-6 rounded-md shadow">
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </div>
-        </div>
+        ) : (
+          <Table>
+            <TableCaption>רשימת קודי קופון פעילים במערכת</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-right">קוד</TableHead>
+                <TableHead className="text-right">תיאור</TableHead>
+                <TableHead className="text-right">סוג הנחה</TableHead>
+                <TableHead className="text-right">ערך הנחה</TableHead>
+                <TableHead className="text-right">הזמנה מינ׳</TableHead>
+                <TableHead className="text-right">מקס׳ שימושים</TableHead>
+                <TableHead className="text-right">שימושים</TableHead>
+                <TableHead className="text-right">תאריך התחלה</TableHead>
+                <TableHead className="text-right">תאריך סיום</TableHead>
+                <TableHead className="text-right">סטטוס</TableHead>
+                <TableHead className="text-right">פעולות</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {promoCodes?.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={11} className="text-center py-4">
+                    אין קודי קופון במערכת. צור קוד קופון חדש כדי להתחיל.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                promoCodes?.map((promoCode) => (
+                  <TableRow key={promoCode.id}>
+                    <TableCell className="font-medium">{promoCode.code}</TableCell>
+                    <TableCell>{promoCode.description}</TableCell>
+                    <TableCell>
+                      {promoCode.discountType === "percentage" ? "אחוזים" : "סכום קבוע"}
+                    </TableCell>
+                    <TableCell>
+                      {promoCode.discountType === "percentage"
+                        ? `${promoCode.discountAmount}%`
+                        : `₪${promoCode.discountAmount}`}
+                    </TableCell>
+                    <TableCell>
+                      {promoCode.minOrderAmount ? `₪${promoCode.minOrderAmount}` : "-"}
+                    </TableCell>
+                    <TableCell>{promoCode.maxUses || "ללא הגבלה"}</TableCell>
+                    <TableCell>{promoCode.usedCount}</TableCell>
+                    <TableCell>{formatDate(promoCode.startDate)}</TableCell>
+                    <TableCell>{formatDate(promoCode.endDate)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={promoCode.isActive}
+                          onCheckedChange={(isActive) =>
+                            togglePromoStatus.mutate({ id: promoCode.id, isActive })
+                          }
+                        />
+                        <span className="mr-2">
+                          {promoCode.isActive ? "פעיל" : "לא פעיל"}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEditPromoCode(promoCode)}
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                `האם אתה בטוח שברצונך למחוק את קוד הקופון "${promoCode.code}"?`
+                              )
+                            ) {
+                              deletePromoCode.mutate(promoCode.id);
+                            }
+                          }}
+                        >
+                          <Trash2Icon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
 
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>עריכת קוד קופון</DialogTitle>
-              <DialogDescription>
-                ערוך את פרטי קוד הקופון. לחץ על כפתור השמירה כאשר תסיים.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-4">
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingPromoCode ? "עריכת קוד קופון" : "הוספת קוד קופון חדש"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingPromoCode
+                ? "עדכן את פרטי קוד הקופון הקיים"
+                : "הזן את פרטי קוד הקופון החדש"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={editForm.control}
+                  control={form.control}
                   name="code"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>קוד קופון</FormLabel>
                       <FormControl>
-                        <Input placeholder="WELCOME10" {...field} />
+                        <Input {...field} placeholder="לדוגמה: WELCOME10" />
                       </FormControl>
+                      <FormDescription>
+                        קוד הקופון שהלקוחות יזינו בעגלת הקניות
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <FormField
-                  control={editForm.control}
+                  control={form.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>תיאור</FormLabel>
                       <FormControl>
-                        <Input placeholder="קופון 10% הנחה ללקוחות חדשים" {...field} />
+                        <Input {...field} placeholder="לדוגמה: 10% הנחה לחברים חדשים" />
                       </FormControl>
+                      <FormDescription>תיאור קצר להסבר מטרת הקופון</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="discountType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>סוג הנחה</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="בחר סוג הנחה" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="percentage">אחוז (%)</SelectItem>
-                            <SelectItem value="fixed">סכום קבוע (₪)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="discountAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ערך ההנחה</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="minOrderAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>סכום הזמנה מינימלי (₪)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            {...field} 
-                            value={field.value === null ? "" : field.value}
-                            onChange={e => field.onChange(e.target.value === "" ? null : parseFloat(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          השאר ריק אם אין מינימום
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="maxUses"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>מקסימום שימושים</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            {...field} 
-                            value={field.value === null ? "" : field.value}
-                            onChange={e => field.onChange(e.target.value === "" ? null : parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          השאר ריק ללא הגבלה
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>תאריך התחלה</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "pl-3 text-right font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>בחר תאריך</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value || undefined}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormDescription>
-                          השאר ריק לתחילה מיידית
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>תאריך סיום</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "pl-3 text-right font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>בחר תאריך</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value || undefined}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormDescription>
-                          השאר ריק לתוקף ללא הגבלה
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={editForm.control}
-                  name="isActive"
+                  control={form.control}
+                  name="discountType"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                      <div className="space-y-0.5">
-                        <FormLabel>פעיל</FormLabel>
-                        <FormDescription>
-                          האם הקופון זמין לשימוש
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
+                    <FormItem>
+                      <FormLabel>סוג הנחה</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="בחר סוג הנחה" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="percentage">אחוזים (%)</SelectItem>
+                          <SelectItem value="fixed">סכום קבוע (₪)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>הנחה באחוזים או בסכום קבוע</FormDescription>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
-                <DialogFooter>
-                  <Button 
-                    type="submit" 
-                    disabled={updatePromoCodeMutation.isPending}
-                  >
-                    {updatePromoCodeMutation.isPending ? "מעבד..." : "שמור שינויים"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
+
+                <FormField
+                  control={form.control}
+                  name="discountAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ערך ההנחה</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          min="1"
+                          placeholder={
+                            form.watch("discountType") === "percentage" ? "10" : "50"
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {form.watch("discountType") === "percentage"
+                          ? "אחוז ההנחה (לדוגמה: 10 עבור 10%)"
+                          : "סכום ההנחה בשקלים (לדוגמה: 50 עבור ₪50 הנחה)"}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="minOrderAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>סכום הזמנה מינימלי</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          value={field.value === null ? "" : field.value}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? null : Number(e.target.value);
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        סכום ההזמנה המינימלי הנדרש לשימוש בקוד (השאר ריק לאפשר שימוש
+                        ללא מינימום)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="maxUses"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>מספר שימושים מקסימלי</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          min="0"
+                          placeholder="ללא הגבלה"
+                          value={field.value === null ? "" : field.value}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? null : Number(e.target.value);
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        כמה פעמים ניתן להשתמש בקוד (השאר ריק לשימוש ללא הגבלה)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>תאריך התחלה</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={`w-full pl-3 text-right font-normal ${
+                                !field.value ? "text-muted-foreground" : ""
+                              }`}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy", { locale: he })
+                              ) : (
+                                <span>בחר תאריך...</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value || undefined}
+                            onSelect={(date) => field.onChange(date)}
+                            locale={he}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        התאריך שבו הקוד יתחיל להיות פעיל (אופציונלי)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>תאריך סיום</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={`w-full pl-3 text-right font-normal ${
+                                !field.value ? "text-muted-foreground" : ""
+                              }`}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy", { locale: he })
+                              ) : (
+                                <span>בחר תאריך...</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value || undefined}
+                            onSelect={(date) => field.onChange(date)}
+                            locale={he}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>
+                        התאריך שבו הקוד יפסיק להיות פעיל (אופציונלי)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">קוד פעיל</FormLabel>
+                      <FormDescription>
+                        האם קוד הקופון יהיה זמין לשימוש מיד לאחר יצירתו
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button type="submit" disabled={createPromoCode.isPending || updatePromoCode.isPending}>
+                  {(createPromoCode.isPending || updatePromoCode.isPending) && (
+                    <div className="animate-spin w-4 h-4 border-2 border-background border-t-transparent rounded-full mr-2"></div>
+                  )}
+                  {editingPromoCode ? "עדכן קוד קופון" : "צור קוד קופון"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
-};
-
-export default PromoCodesPage;
+}

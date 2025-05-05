@@ -1750,6 +1750,236 @@ export async function registerRoutes(app: Express): Promise<Server> {
       </html>
     `);
   });
+  
+  // Promo code APIs
+  app.get("/api/admin/promo-codes", async (req, res) => {
+    if (!req.isAuthenticated() || req.user.role !== "admin") {
+      return res.status(401).json({ error: "גישה נדחתה" });
+    }
+    
+    try {
+      const promoCodes = await storage.getPromoCodes();
+      res.json(promoCodes);
+    } catch (error) {
+      console.error("Error fetching promo codes:", error);
+      res.status(500).json({ error: "שגיאה בטעינת קודי הקופון" });
+    }
+  });
+
+  app.post("/api/admin/promo-codes", async (req, res) => {
+    if (!req.isAuthenticated() || req.user.role !== "admin") {
+      return res.status(401).json({ error: "גישה נדחתה" });
+    }
+    
+    try {
+      const promoCodeData = {
+        ...req.body,
+        createdBy: req.user.id,
+        usedCount: 0,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : null,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+      };
+      
+      // Check if code already exists
+      const existingCode = await storage.getPromoCodeByCode(promoCodeData.code);
+      if (existingCode) {
+        return res.status(400).json({ error: "קוד קופון זה כבר קיים במערכת" });
+      }
+      
+      const newPromoCode = await storage.createPromoCode(promoCodeData);
+      res.status(201).json(newPromoCode);
+    } catch (error) {
+      console.error("Error creating promo code:", error);
+      res.status(500).json({ error: "שגיאה ביצירת קוד קופון" });
+    }
+  });
+
+  app.get("/api/admin/promo-codes/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user.role !== "admin") {
+      return res.status(401).json({ error: "גישה נדחתה" });
+    }
+    
+    try {
+      const { id } = req.params;
+      const promoCode = await storage.getPromoCode(parseInt(id, 10));
+      
+      if (!promoCode) {
+        return res.status(404).json({ error: "קוד קופון לא נמצא" });
+      }
+      
+      res.json(promoCode);
+    } catch (error) {
+      console.error("Error fetching promo code:", error);
+      res.status(500).json({ error: "שגיאה בטעינת קוד הקופון" });
+    }
+  });
+
+  app.patch("/api/admin/promo-codes/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user.role !== "admin") {
+      return res.status(401).json({ error: "גישה נדחתה" });
+    }
+    
+    try {
+      const { id } = req.params;
+      const promoId = parseInt(id, 10);
+      
+      // Check if promo code exists
+      const existingPromoCode = await storage.getPromoCode(promoId);
+      if (!existingPromoCode) {
+        return res.status(404).json({ error: "קוד קופון לא נמצא" });
+      }
+      
+      // Check if code is being changed and if it already exists
+      if (req.body.code && req.body.code !== existingPromoCode.code) {
+        const codeExists = await storage.getPromoCodeByCode(req.body.code);
+        if (codeExists) {
+          return res.status(400).json({ error: "קוד קופון זה כבר קיים במערכת" });
+        }
+      }
+      
+      const updateData = {
+        ...req.body,
+        startDate: req.body.startDate ? new Date(req.body.startDate) : existingPromoCode.startDate,
+        endDate: req.body.endDate ? new Date(req.body.endDate) : existingPromoCode.endDate
+      };
+      
+      const updatedPromoCode = await storage.updatePromoCode(promoId, updateData);
+      res.json(updatedPromoCode);
+    } catch (error) {
+      console.error("Error updating promo code:", error);
+      res.status(500).json({ error: "שגיאה בעדכון קוד הקופון" });
+    }
+  });
+
+  app.patch("/api/admin/promo-codes/:id/toggle", async (req, res) => {
+    if (!req.isAuthenticated() || req.user.role !== "admin") {
+      return res.status(401).json({ error: "גישה נדחתה" });
+    }
+    
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+      const promoId = parseInt(id, 10);
+      
+      // Check if promo code exists
+      const existingPromoCode = await storage.getPromoCode(promoId);
+      if (!existingPromoCode) {
+        return res.status(404).json({ error: "קוד קופון לא נמצא" });
+      }
+      
+      await storage.togglePromoCodeActive(promoId, isActive);
+      
+      res.json({ success: true, isActive });
+    } catch (error) {
+      console.error("Error toggling promo code status:", error);
+      res.status(500).json({ error: "שגיאה בשינוי סטטוס קוד הקופון" });
+    }
+  });
+
+  app.delete("/api/admin/promo-codes/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user.role !== "admin") {
+      return res.status(401).json({ error: "גישה נדחתה" });
+    }
+    
+    try {
+      const { id } = req.params;
+      const promoId = parseInt(id, 10);
+      
+      // Check if promo code exists
+      const existingPromoCode = await storage.getPromoCode(promoId);
+      if (!existingPromoCode) {
+        return res.status(404).json({ error: "קוד קופון לא נמצא" });
+      }
+      
+      await storage.deletePromoCode(promoId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting promo code:", error);
+      res.status(500).json({ error: "שגיאה במחיקת קוד הקופון" });
+    }
+  });
+
+  // Client promo code APIs
+  app.post("/api/validate-promo", async (req, res) => {
+    try {
+      const { code, cartTotal } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ error: "יש להזין קוד קופון" });
+      }
+      
+      // Get the promo code
+      const promoCode = await storage.getPromoCodeByCode(code);
+      
+      // Check if promo code exists and is active
+      if (!promoCode || !promoCode.isActive) {
+        return res.status(404).json({ error: "קוד קופון לא תקף" });
+      }
+      
+      // Check if promo code has expired
+      const now = new Date();
+      if (promoCode.startDate && new Date(promoCode.startDate) > now) {
+        return res.status(400).json({ error: "קוד קופון עדיין לא תקף" });
+      }
+      
+      if (promoCode.endDate && new Date(promoCode.endDate) < now) {
+        return res.status(400).json({ error: "קוד קופון פג תוקף" });
+      }
+      
+      // Check if promo code has reached max uses
+      if (promoCode.maxUses !== null && promoCode.usedCount >= promoCode.maxUses) {
+        return res.status(400).json({ error: "קוד הקופון מוצה במלואו" });
+      }
+      
+      // Check if cart total meets minimum order amount
+      if (promoCode.minOrderAmount !== null && cartTotal < promoCode.minOrderAmount) {
+        return res.status(400).json({ 
+          error: `יש להגיע לסכום הזמנה מינימלי של ₪${promoCode.minOrderAmount} לשימוש בקוד זה` 
+        });
+      }
+      
+      // Calculate discount
+      let discountAmount = 0;
+      if (promoCode.discountType === "percentage") {
+        discountAmount = (cartTotal * promoCode.discountAmount) / 100;
+      } else {
+        discountAmount = promoCode.discountAmount;
+      }
+      
+      // Return promo code details and discount amount
+      res.json({
+        success: true,
+        code: promoCode.code,
+        discountType: promoCode.discountType,
+        discountAmount: promoCode.discountAmount,
+        calculatedDiscount: discountAmount,
+        id: promoCode.id
+      });
+    } catch (error) {
+      console.error("Error validating promo code:", error);
+      res.status(500).json({ error: "שגיאה באימות קוד הקופון" });
+    }
+  });
+
+  app.post("/api/apply-promo/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const promoId = parseInt(id, 10);
+      
+      // Increment usage count
+      const success = await storage.incrementPromoCodeUsage(promoId);
+      
+      if (!success) {
+        return res.status(404).json({ error: "קוד קופון לא נמצא" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error applying promo code:", error);
+      res.status(500).json({ error: "שגיאה בהחלת קוד הקופון" });
+    }
+  });
 
   return httpServer;
 }
