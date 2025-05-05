@@ -74,7 +74,7 @@ const AboutPage = () => {
               <img 
                 src="/ormia-logo.png" 
                 alt="אור מיה תכשיטים - מויסנייט" 
-                className="w-full rounded-md shadow-lg bg-black p-8"
+                className="w-full rounded-md shadow-lg p-4"
               />
             </div>
           </div>
