@@ -73,7 +73,7 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="group relative overflow-hidden rounded-sm slide-in">
               <img 
-                src="/uploads/claire-engagement-ring.webp" 
+                src="/gold-ring.webp" 
                 alt={t("engagement_rings")} 
                 className="w-full h-96 object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />
