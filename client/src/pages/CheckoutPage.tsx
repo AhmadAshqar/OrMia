@@ -114,18 +114,83 @@ const CheckoutPage = () => {
 
     setIsSubmitting(true);
 
-    // Simulate processing for demo purposes
-    setTimeout(() => {
+    // Create shipping address object
+    const shippingAddress = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      address: data.address,
+      apartment: data.apartment,
+      city: data.city,
+      zipCode: data.zipCode,
+      country: data.country,
+      phone: data.phone
+    };
+
+    // Create billing address object if different from shipping
+    const billingAddress = data.sameAsShipping 
+      ? shippingAddress 
+      : {
+          firstName: data.billingFirstName,
+          lastName: data.billingLastName,
+          address: data.billingAddress,
+          apartment: data.billingApartment,
+          city: data.billingCity,
+          zipCode: data.billingZipCode,
+          country: data.billingCountry,
+          phone: data.billingPhone
+        };
+
+    try {
+      // Calculate total prices
+      const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const shippingCost = subtotal > 250 ? 0 : 30; // Free shipping above 250 ILS
+      const total = subtotal + shippingCost;
+
+      // Send checkout data to API
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items,
+          shippingAddress,
+          billingAddress,
+          paymentMethod: data.paymentMethod,
+          total,
+          subtotal,
+          shippingCost
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'שגיאה בביצוע ההזמנה');
+      }
+
+      const result = await response.json();
+      
       // Clear cart and show success
       if (clearCart) clearCart();
+      
       toast({
         title: "ההזמנה נשלחה בהצלחה!",
         description: "פרטי ההזמנה נשלחו לדוא\"ל שלך",
         variant: "default"
       });
+      
+      // Redirect to home page after successful checkout
       setLocation("/");
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast({
+        title: "שגיאה בביצוע ההזמנה",
+        description: error instanceof Error ? error.message : "אירעה שגיאה, אנא נסה שוב מאוחר יותר",
+        variant: "destructive"
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 2000);
+    }
   };
 
   return (

@@ -74,6 +74,7 @@ export interface IStorage {
   createInventory(item: InsertInventory): Promise<Inventory>;
   updateInventory(id: number, item: Partial<InsertInventory>): Promise<Inventory | undefined>;
   updateProductStock(productId: number, quantity: number): Promise<boolean>;
+  updateProductStockAfterOrder(productId: number, quantityOrdered: number): Promise<boolean>;
   
   // Order methods
   getOrders(): Promise<Order[]>;
@@ -1105,6 +1106,29 @@ export class DatabaseStorage implements IStorage {
     // Update product inStock status
     const [result] = await db.update(products)
       .set({ inStock: quantity > 0 })
+      .where(eq(products.id, productId))
+      .returning();
+      
+    return !!result;
+  }
+  
+  async updateProductStockAfterOrder(productId: number, quantityOrdered: number): Promise<boolean> {
+    const inventoryItem = await this.getInventoryByProductId(productId);
+    
+    if (!inventoryItem) {
+      console.warn(`No inventory item found for product ID ${productId}`);
+      return false;
+    }
+    
+    // Calculate new quantity after order
+    const newQuantity = Math.max(0, inventoryItem.quantity - quantityOrdered);
+    
+    // Update inventory
+    await this.updateInventory(inventoryItem.id, { quantity: newQuantity });
+    
+    // Update product inStock status
+    const [result] = await db.update(products)
+      .set({ inStock: newQuantity > 0 })
       .where(eq(products.id, productId))
       .returning();
       

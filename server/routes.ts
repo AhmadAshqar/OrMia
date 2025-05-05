@@ -1149,6 +1149,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Checkout API endpoint
+  app.post("/api/checkout", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { 
+        items, 
+        shippingAddress, 
+        billingAddress,
+        paymentMethod,
+        total,
+        subtotal,
+        shippingCost 
+      } = req.body;
+      
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: "אין פריטים בסל הקניות" });
+      }
+      
+      if (!shippingAddress) {
+        return res.status(400).json({ message: "כתובת למשלוח נדרשת" });
+      }
+      
+      // Generate a unique order number
+      const orderNumber = `OM-${Date.now()}-${randomUUID().substring(0, 4)}`;
+      
+      // Create the order
+      const orderData = {
+        userId,
+        orderNumber,
+        status: "pending",
+        paymentStatus: paymentMethod === 'credit-card' ? "paid" : "pending",
+        shipmentStatus: "pending",
+        total,
+        subtotal,
+        shippingCost: shippingCost || 0,
+        tax: 0, // No VAT as requested
+        discount: 0,
+        items: items.map(item => ({
+          productId: item.id,
+          productName: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          imageUrl: item.mainImage
+        })),
+        shippingAddress,
+        customerName: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
+        customerEmail: req.user.email,
+        customerPhone: shippingAddress.phone
+      };
+      
+      const order = await storage.createOrder(orderData);
+      
+      // Create shipping record
+      const trackingNumber = `TN-${Date.now()}-${randomUUID().substring(0, 6)}`;
+      const shippingData = {
+        orderId: order.id,
+        trackingNumber,
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        status: "pending",
+        address: shippingAddress,
+        shippingMethod: "standard",
+        estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        history: [{
+          status: "pending",
+          location: "מרכז שילוח",
+          timestamp: new Date().toISOString(),
+          notes: "ההזמנה התקבלה"
+        }],
+        shippingCost: shippingCost || 0
+      };
+      
+      const shippingRecord = await storage.createShipping(shippingData);
+      
+      // Update inventory and product stock levels
+      for (const item of items) {
+        await storage.updateProductStockAfterOrder(item.id, item.quantity);
+      }
+      
+      res.status(201).json({ 
+        success: true, 
+        order: { 
+          ...order, 
+          shipping: shippingRecord 
+        } 
+      });
+    } catch (err) {
+      console.error("Error processing checkout:", err);
+      res.status(500).json({ message: "שגיאה בביצוע ההזמנה" });
+    }
+  });
+  
   // Password reset routes
   app.post("/api/forgot-password", async (req, res) => {
     try {
