@@ -70,7 +70,7 @@ const FeatureSection = () => {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="slide-in flex flex-col items-center text-center p-8 relative group bg-white/90 backdrop-blur-sm rounded-lg shadow-md"
+              className="slide-in flex flex-col items-center text-center p-8 relative group bg-white/95 backdrop-blur-sm rounded-lg shadow-md"
             >
               {/* Background decorations */}
               <div className="absolute -inset-0.5 bg-gradient-to-tr from-primary/5 to-primary/0 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
@@ -84,8 +84,8 @@ const FeatureSection = () => {
                   </div>
                 </div>
                 
-                <h3 className="text-2xl font-serif mb-4 text-gold-gradient">{feature.title}</h3>
-                <p className="text-foreground/80 leading-relaxed">{feature.description}</p>
+                <h3 className="text-2xl font-serif mb-4 text-gold-gradient bg-white/95 px-4 py-2 rounded-lg shadow-sm">{feature.title}</h3>
+                <p className="text-foreground/90 leading-relaxed bg-white/95 px-3 py-2 rounded-lg">{feature.description}</p>
               </div>
             </div>
           ))}
