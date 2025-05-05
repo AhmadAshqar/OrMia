@@ -102,7 +102,7 @@ const resources = {
       'phone': '03-1234567',
       'email': 'info@luxmoissanite.co.il',
       'hours': 'א\'-ה\': 9:00-19:00 ו\': 9:00-14:00',
-      'copyright': '© 2023 לוקס מויסנייט. כל הזכויות שמורות.',
+      'copyright': '© 2023 אור מיה. כל הזכויות שמורות.',
       
       // Cart
       'your_cart': 'סל הקניות שלך',

@@ -151,7 +151,7 @@ const HomePage = () => {
               <div className="relative flex justify-center items-center">
                 <div className="absolute w-full h-full bg-gradient-to-b from-amber-50/10 to-amber-100/20 rounded-full opacity-60 blur-3xl"></div>
                 <img 
-                  src="./images/diamond-gemstone.png" 
+                  src="/diamond.png" 
                   alt="מויסנייט" 
                   className="w-3/4 mx-auto diamond-shine z-10 relative"
                 />
