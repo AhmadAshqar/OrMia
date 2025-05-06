@@ -192,10 +192,13 @@ export default function MessagesPage() {
           if (selectedMessage && selectedMessage.orderId === data.message.orderId) {
             queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
             
-            // Scroll to the bottom of the messages
-            if (messagesEndRef.current) {
-              messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-            }
+            // Scroll to the bottom of the chat container
+            setTimeout(() => {
+              const chatContainer = document.getElementById('chat-container');
+              if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+              }
+            }, 100);
           }
         }
         else if (data.type === 'message_read') {
@@ -279,10 +282,13 @@ export default function MessagesPage() {
       }));
     }
     
-    // Scroll to the bottom of the messages
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Scroll to the bottom of the chat container
+    setTimeout(() => {
+      const chatContainer = document.getElementById('chat-container');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
   }, [selectedMessage]);
   
   // Effect to load order-specific Firebase messages when an order is selected
@@ -299,9 +305,12 @@ export default function MessagesPage() {
       setOrderMessages(messages);
       
       // Scroll to the bottom when messages update
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
+      setTimeout(() => {
+        const chatContainer = document.getElementById('chat-container');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 100);
     });
     
     return () => {
