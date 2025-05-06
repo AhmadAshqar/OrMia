@@ -925,8 +925,8 @@ export default function AdminMessagesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
                   {/* Left panel - Orders list */}
                   <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
-                    <div className="p-3 border-b flex justify-between items-center">
-                      <h3 className="text-lg font-medium">שיחות לפי הזמנה</h3>
+                    <div className="p-3 border-b bg-white flex justify-between items-center">
+                      <h3 className="font-semibold">שיחות לפי הזמנה</h3>
                       <Button 
                         size="sm" 
                         variant="outline" 
@@ -939,18 +939,42 @@ export default function AdminMessagesPage() {
                     
                     <div className="flex-1 overflow-auto">
                       {orderConversations.length === 0 ? (
-                        <div className="flex justify-center items-center h-full flex-col gap-4">
-                          <p className="text-muted-foreground">אין הודעות להזמנות</p>
+                        <div className="flex flex-col justify-center items-center h-full p-4 text-center">
+                          <p className="mb-4 text-muted-foreground">אין הודעות להזמנות</p>
                           <div className="text-sm text-muted-foreground">
                             לחץ על "צור הודעת בדיקה" ליצירת הודעה להזמנה #10
                           </div>
+                          <div className="text-xs text-muted-foreground mt-4 border-t pt-4">
+                            <p className="font-bold mb-1">מידע לצורך הבנת הבעיה:</p>
+                            <p>מזהה משתמש: {user?.id}</p>
+                            <p>מספר הודעות API: {firebaseMessages?.length || 0}</p>
+                            <p>מספר הזמנות עם הודעות: {orderConversations.length}</p>
+                          </div>
                         </div>
                       ) : (
-                        <OrderList
-                          orders={orderConversations}
-                          selectedOrderId={selectedOrderId}
-                          onOrderClick={handleOrderClick}
-                        />
+                        <div className="divide-y overflow-auto h-full">
+                          {orderConversations.map((order) => (
+                            <div
+                              key={order.orderId}
+                              className={`p-4 hover:bg-gray-50 cursor-pointer ${selectedOrderId === order.orderId ? 'bg-gray-100' : ''}`}
+                              onClick={() => handleOrderClick(order.orderId)}
+                            >
+                              <div className="flex justify-between items-center mb-1">
+                                <div className="font-semibold">
+                                  הזמנה #{order.orderId}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {order.date && format(new Date(order.date), 'dd/MM/yyyy', { locale: he })}
+                                </div>
+                              </div>
+                              {order.unreadCount && order.unreadCount > 0 && (
+                                <div className="mt-1 flex justify-end">
+                                  <Badge variant="secondary">{order.unreadCount} הודעות חדשות</Badge>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -959,12 +983,15 @@ export default function AdminMessagesPage() {
                   <div className="md:col-span-2 border rounded-lg overflow-hidden h-full">
                     {selectedOrderId ? (
                       <div className="h-full flex flex-col">
-                        <div className="p-3 border-b">
-                          <h3 className="text-lg font-medium">הזמנה #{selectedOrderId}</h3>
+                        <div className="p-3 border-b bg-white">
+                          <h3 className="font-semibold">הזמנה #{selectedOrderId}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            צ'אט עם לקוח
+                          </p>
                         </div>
                         <div id="admin-chat-container-orders" className="flex-1 overflow-auto p-4 bg-gray-50">
                           {orderApiMessages && orderApiMessages.length > 0 ? (
-                            <div className="space-y-4 p-2 bg-gray-50">
+                            <div className="space-y-4">
                               {orderApiMessages
                                 .sort((a, b) => {
                                   // Sort messages by date (oldest first)
@@ -1013,17 +1040,23 @@ export default function AdminMessagesPage() {
                                     </div>
                                   );
                                 })}
-                              {/* Auto-scroll handled by container ID */}
                             </div>
                           ) : (
-                            <div className="flex justify-center items-center h-full">
-                              <p className="text-muted-foreground">אין הודעות להזמנה זו עדיין</p>
+                            <div className="flex flex-col items-center justify-center h-64 text-center">
+                              <p className="text-muted-foreground mb-2">אין הודעות להזמנה זו עדיין</p>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="mt-2"
+                                onClick={handleDirectTestMessage}
+                              >
+                                צור הודעת בדיקה
+                              </Button>
                             </div>
                           )}
-                          {/* Auto-scroll handled by container ID */}
                         </div>
-                        <div className="p-4 border-t bg-white">
-                          <form onSubmit={handleReplySubmit} className="flex flex-col gap-2">
+                        <div className="p-3 border-t bg-white">
+                          <form onSubmit={handleReplySubmit} className="flex items-end gap-2">
                             {/* Image preview if selected */}
                             {selectedImage && (
                               <div className="flex justify-start mb-2">
@@ -1043,32 +1076,33 @@ export default function AdminMessagesPage() {
                               </div>
                             )}
                             
-                            <div className="flex items-end">
-                              <div className="relative flex-1">
-                                <Textarea
-                                  className="flex-1 resize-none pr-20"
-                                  placeholder="כתוב הודעה..."
-                                  value={replyContent}
-                                  onChange={(e) => setReplyContent(e.target.value)}
-                                  dir="rtl"
-                                />
-                                <div className="absolute right-2 bottom-2 flex gap-2">
-                                  <EmojiPicker onEmojiSelect={handleEmojiSelect} />
-                                  <ImageUploader onImageUploaded={handleImageUploaded} />
-                                </div>
+                            <div className="relative flex-1">
+                              <Textarea
+                                className="flex-1 resize-none rounded-xl min-h-[50px] py-3 pr-4 pl-24 bg-gray-100"
+                                placeholder="כתוב הודעה..."
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                dir="rtl"
+                              />
+                              <div className="absolute right-2 bottom-2 flex gap-2 items-center">
+                                <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                                <ImageUploader onImageUploaded={handleImageUploaded} />
                               </div>
-                              <Button 
-                                type="submit" 
-                                className="ms-2 self-end"
-                                disabled={!selectedOrderId || (!replyContent.trim() && !selectedImage)}
-                              >
-                                {replyMutation.isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  'שלח'
-                                )}
-                              </Button>
                             </div>
+                            <Button 
+                              type="submit" 
+                              className="rounded-full h-[50px] w-[50px] p-0 flex items-center justify-center bg-blue-500 hover:bg-blue-600"
+                              disabled={!selectedOrderId || (!replyContent.trim() && !selectedImage)}
+                            >
+                              {replyMutation.isPending ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="22" y1="2" x2="11" y2="13" />
+                                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                </svg>
+                              )}
+                            </Button>
                           </form>
                         </div>
                       </div>
