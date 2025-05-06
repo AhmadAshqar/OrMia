@@ -12,8 +12,7 @@ import {
   FirebaseMessage, 
   markMessageAsRead,
   getOrderConversations,
-  OrderSummary,
-  createTestMessage
+  OrderSummary
 } from '@/lib/firebaseMessages';
 
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -72,25 +71,7 @@ export default function AdminMessagesPage() {
     }
   };
 
-  // Create a test message directly
-  const handleDirectTestMessage = async () => {
-    try {
-      // Create a test message for order 10
-      await createTestMessage(10, user?.id || 3);
-      toast({
-        title: "הודעת בדיקה נשלחה",
-        description: "הודעת בדיקה נוצרה להזמנה מספר 10",
-      });
-      fetchOrderConversations(); // Refresh the list after adding
-    } catch (error) {
-      console.error("Error creating test message:", error);
-      toast({
-        title: "שגיאה",
-        description: "לא ניתן ליצור הודעת בדיקה",
-        variant: "destructive",
-      });
-    }
-  };
+
 
   // Handle emoji selection
   const handleEmojiSelect = (emoji: string) => {
@@ -283,13 +264,6 @@ export default function AdminMessagesPage() {
                     <div className="p-3 border-b bg-white">
                       <div className="flex justify-between items-center mb-2">
                         <h3 className="font-semibold">שיחות לפי הזמנה</h3>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={handleDirectTestMessage}
-                        >
-                          צור הודעת בדיקה
-                        </Button>
                       </div>
                     </div>
                     
@@ -297,9 +271,6 @@ export default function AdminMessagesPage() {
                       {!orderConversations || orderConversations.length === 0 ? (
                         <div className="flex flex-col justify-center items-center h-full p-4 text-center">
                           <p className="mb-4 text-muted-foreground">אין הודעות להזמנות</p>
-                          <div className="text-sm text-muted-foreground">
-                            לחץ על "צור הודעת בדיקה" ליצירת הודעה להזמנה מספר 10
-                          </div>
                         </div>
                       ) : (
                         <div className="divide-y overflow-auto h-full">
@@ -394,14 +365,6 @@ export default function AdminMessagesPage() {
                           ) : (
                             <div className="flex flex-col items-center justify-center h-64 text-center">
                               <p className="text-muted-foreground mb-2">אין הודעות להזמנה זו עדיין</p>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="mt-2"
-                                onClick={handleDirectTestMessage}
-                              >
-                                צור הודעת בדיקה
-                              </Button>
                             </div>
                           )}
                         </div>
