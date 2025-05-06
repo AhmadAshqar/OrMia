@@ -756,8 +756,40 @@ export default function MessagesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
                   {/* Left panel - Orders list */}
                   <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
-                    <div className="p-3 border-b bg-white">
+                    <div className="p-3 border-b bg-white flex justify-between items-center">
                       <h3 className="font-semibold">הזמנות עם הודעות</h3>
+                      {/* Add test button for debugging */}
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => {
+                          if (!user) return;
+                          
+                          // Create a test message for order 10
+                          createFirebaseMessage({
+                            content: "זוהי הודעת בדיקה מהמשתמש " + user.username + " ב-" + new Date().toLocaleString(),
+                            orderId: 10,
+                            userId: user.id,
+                            isAdmin: false,
+                            isRead: false
+                          }).then(() => {
+                            toast({
+                              title: 'הודעה נוצרה',
+                              description: 'הודעת בדיקה נוצרה להזמנה #10'
+                            });
+                          }).catch(error => {
+                            console.error("Error creating test message:", error);
+                            toast({
+                              title: 'שגיאה',
+                              description: 'לא ניתן ליצור הודעת בדיקה',
+                              variant: 'destructive'
+                            });
+                          });
+                        }}
+                        title="צור הודעת בדיקה להזמנה 10"
+                      >
+                        צור הודעת בדיקה
+                      </Button>
                     </div>
                     
                     <div className="flex-1 overflow-auto">

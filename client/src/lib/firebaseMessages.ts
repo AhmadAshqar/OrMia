@@ -64,9 +64,27 @@ export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' |
       ...(message.imageUrl && { imageUrl: message.imageUrl })
     };
     
+    console.log('Creating message:', sanitizedMessage);
+    
+    // First ensure the order document exists
+    const orderRef = getOrderRef(message.orderId);
+    try {
+      // Create the order document if it doesn't exist, using set with merge
+      await doc(db, ORDERS_COLLECTION, message.orderId.toString()).set({
+        id: message.orderId,
+        createdAt: serverTimestamp()
+      }, { merge: true });
+      
+      console.log('Order document created/updated successfully');
+    } catch (error) {
+      console.error('Error creating/updating order document:', error);
+      // Continue anyway, as we'll try to add the message
+    }
+    
     // Add message to the order's messages subcollection
     const messagesCollection = getOrderMessagesCollection(message.orderId);
     const docRef = await addDoc(messagesCollection, sanitizedMessage);
+    console.log('Message created with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('Error creating message:', error);

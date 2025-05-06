@@ -368,6 +368,35 @@ export default function AdminMessagesPage() {
       }
     }
   };
+  
+  // Create a test message for debugging purposes
+  const createTestMessage = async (orderId: number) => {
+    if (!user) return;
+    
+    try {
+      console.log("Creating test message for order", orderId);
+      await createFirebaseMessage({
+        content: "זוהי הודעת בדיקה שנוצרה ב-" + new Date().toLocaleString(),
+        orderId: orderId,
+        userId: user.id,
+        isAdmin: true,
+        isRead: true
+      });
+      console.log("Test message created successfully");
+      
+      toast({
+        title: 'הודעה נוצרה',
+        description: `הודעת בדיקה נוצרה להזמנה ${orderId}`
+      });
+    } catch (error) {
+      console.error("Error creating test message:", error);
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן ליצור הודעת בדיקה',
+        variant: 'destructive'
+      });
+    }
+  };
 
   // Effect to listen for all Firebase messages
   useEffect(() => {
@@ -387,11 +416,14 @@ export default function AdminMessagesPage() {
     if (!user) return;
     
     // Subscribe to real-time order conversations updates
+    console.log("Setting up getOrderConversations subscription");
     const unsubscribe = getOrderConversations((orders) => {
+      console.log("Received order conversations:", orders);
       setOrderConversations(orders);
     });
     
     return () => {
+      console.log("Cleaning up getOrderConversations subscription");
       unsubscribe();
     };
   }, [user]);
@@ -759,14 +791,25 @@ export default function AdminMessagesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
                   {/* Left panel - Orders list */}
                   <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
-                    <div className="p-3 border-b">
+                    <div className="p-3 border-b flex justify-between items-center">
                       <h3 className="text-lg font-medium">שיחות לפי הזמנה</h3>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => createTestMessage(10)}
+                        title="צור הודעת בדיקה להזמנה 10"
+                      >
+                        צור הודעת בדיקה
+                      </Button>
                     </div>
                     
                     <div className="flex-1 overflow-auto">
                       {orderConversations.length === 0 ? (
-                        <div className="flex justify-center items-center h-full">
+                        <div className="flex justify-center items-center h-full flex-col gap-4">
                           <p className="text-muted-foreground">אין הודעות להזמנות</p>
+                          <div className="text-sm text-muted-foreground">
+                            לחץ על "צור הודעת בדיקה" ליצירת הודעה להזמנה #10
+                          </div>
                         </div>
                       ) : (
                         <OrderList
