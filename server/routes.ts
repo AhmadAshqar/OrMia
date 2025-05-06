@@ -2231,59 +2231,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "שגיאה בסימון הודעות כנקראות" });
     }
   });
-  
-  // Test message endpoint for debugging Firebase messaging
-  app.post("/api/test-message", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "לא מחובר" });
-    }
-
-    try {
-      const { orderId, content, isAdmin = false } = req.body;
-      
-      if (!orderId || typeof orderId !== 'number') {
-        return res.status(400).json({ error: "מזהה הזמנה חסר או לא תקין" });
-      }
-      
-      if (!content || typeof content !== 'string') {
-        return res.status(400).json({ error: "תוכן ההודעה חסר או לא תקין" });
-      }
-      
-      console.log(`Creating test message for order ${orderId} by user ${req.user.id} (admin: ${isAdmin})`);
-      
-      // Create a test message in the database
-      const message = await storage.createMessage({
-        userId: req.user.id,
-        orderId,
-        subject: `Test message ${new Date().toISOString()}`,
-        content,
-        isRead: false,
-        isFromAdmin: Boolean(isAdmin)
-      });
-      
-      console.log("Test message created:", message);
-      
-      // Broadcast message to all clients subscribed to this order
-      broadcastToOrder(orderId, {
-        type: 'new_message',
-        orderId,
-        message
-      });
-      
-      res.status(201).json({
-        success: true,
-        message: "הודעת בדיקה נוצרה בהצלחה",
-        messageId: message.id
-      });
-    } catch (err) {
-      console.error("Error creating test message:", err);
-      res.status(500).json({ 
-        error: "שגיאה ביצירת הודעת בדיקה", 
-        details: err instanceof Error ? err.message : String(err)
-      });
-    }
-  });
-
   // Get all messages related to an order
   app.get("/api/orders/:orderId/messages", async (req, res) => {
     if (!req.isAuthenticated()) {

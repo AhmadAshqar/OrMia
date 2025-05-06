@@ -480,51 +480,8 @@ export default function MessagesPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
                 {/* Left panel - Messages list */}
                 <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
-                  <div className="p-3 border-b bg-white flex justify-between items-center">
+                  <div className="p-3 border-b bg-white">
                     <h3 className="font-semibold">הודעות לפי הזמנה</h3>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={async () => {
-                        if (!user) return;
-                        
-                        try {
-                          // Create a test message for order 10 using API directly
-                          const response = await fetch('/api/test-message', {
-                            method: 'POST',
-                            headers: {
-                              'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ orderId: 10 })
-                          });
-                          
-                          if (!response.ok) {
-                            throw new Error('Failed to create test message');
-                          }
-                          
-                          // Refresh messages
-                          fetchMessages();
-                          if (selectedOrderId === 10) {
-                            fetchOrderMessages(10);
-                          }
-                          
-                          toast({
-                            title: 'הודעה נוצרה',
-                            description: 'הודעת בדיקה נוצרה להזמנה #10'
-                          });
-                        } catch (error) {
-                          console.error("Error creating test message:", error);
-                          toast({
-                            title: 'שגיאה',
-                            description: 'לא ניתן ליצור הודעת בדיקה',
-                            variant: 'destructive'
-                          });
-                        }
-                      }}
-                      title="צור הודעת בדיקה להזמנה 10"
-                    >
-                      צור הודעת בדיקה
-                    </Button>
                   </div>
                   
                   <div className="flex-1 overflow-auto">
@@ -687,36 +644,6 @@ export default function MessagesPage() {
                           ) : (
                             <div className="flex flex-col items-center justify-center h-64 text-center">
                               <p className="text-muted-foreground mb-2">אין הודעות להזמנה זו עדיין</p>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="mt-2"
-                                onClick={() => {
-                                  if (!user || !selectedMessage?.orderId) return;
-                                  
-                                  createFirebaseMessage({
-                                    content: "זוהי הודעת בדיקה מהמשתמש " + user.username + " ב-" + new Date().toLocaleString(),
-                                    orderId: selectedMessage.orderId,
-                                    userId: user.id,
-                                    isAdmin: false,
-                                    isRead: false
-                                  }).then(() => {
-                                    toast({
-                                      title: 'הודעה נוצרה',
-                                      description: 'הודעת בדיקה נוצרה להזמנה מספר ' + selectedMessage.orderId
-                                    });
-                                  }).catch(error => {
-                                    console.error("Error creating test message:", error);
-                                    toast({
-                                      title: 'שגיאה',
-                                      description: 'לא ניתן ליצור הודעת בדיקה',
-                                      variant: 'destructive'
-                                    });
-                                  });
-                                }}
-                              >
-                                צור הודעת בדיקה
-                              </Button>
                             </div>
                           )}
                           {/* No longer need a ref here */}
