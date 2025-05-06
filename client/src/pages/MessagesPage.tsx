@@ -347,11 +347,17 @@ export default function MessagesPage() {
       return;
     }
     
+    // Store the content before clearing it to avoid race conditions
+    const messageContent = replyContent;
+    
+    // Clear the input immediately for better user experience
+    setReplyContent('');
+    
     try {
       // Send message through Firebase
       if (user && selectedMessage.orderId) {
         await createFirebaseMessage({
-          content: replyContent,
+          content: messageContent,
           orderId: selectedMessage.orderId,
           userId: user.id,
           isAdmin: false,
@@ -359,7 +365,6 @@ export default function MessagesPage() {
           imageUrl: selectedImage || undefined
         });
         
-        setReplyContent('');
         setSelectedImage(null);
         
         toast({
@@ -373,10 +378,12 @@ export default function MessagesPage() {
         }
       } else {
         // Fallback to REST API if Firebase is not available or no order ID
-        replyMutation.mutate({ messageId: selectedMessage.id, content: replyContent });
+        replyMutation.mutate({ messageId: selectedMessage.id, content: messageContent });
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      // If there's an error, restore the content
+      setReplyContent(messageContent);
       toast({
         title: 'שגיאה',
         description: 'לא ניתן לשלוח את ההודעה',
