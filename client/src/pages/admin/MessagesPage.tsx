@@ -369,7 +369,7 @@ export default function AdminMessagesPage() {
                         <div className="p-3 border-b bg-white">
                           <h3 className="font-semibold">
                             הזמנה מספר {
-                              orders.find(order => order.orderId === selectedOrderId)?.orderNumber || selectedOrderId
+                              orderConversations.find(order => order.orderId === selectedOrderId)?.orderNumber || selectedOrderId
                             }
                           </h3>
                           <p className="text-sm text-muted-foreground">

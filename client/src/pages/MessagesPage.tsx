@@ -569,7 +569,7 @@ export default function MessagesPage() {
                               <div className="flex justify-between items-start">
                                 <div className="flex-1 overflow-hidden">
                                   <div className="flex items-center">
-                                    <p className="font-medium truncate">הזמנה מספר {order.orderId}</p>
+                                    <p className="font-medium truncate">הזמנה מספר {order.orderNumber || order.orderId}</p>
                                     {order.unreadCount > 0 && (
                                       <Badge variant="outline" className="text-primary ml-2">
                                         {order.unreadCount}

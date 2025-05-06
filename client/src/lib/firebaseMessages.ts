@@ -353,6 +353,7 @@ export function getAllOrdersWithLatestMessages(callback: (orders: OrderWithLates
 // Get unique order IDs with their latest message for a user
 export interface OrderWithLatestMessage {
   orderId: number;
+  orderNumber?: string;
   latestMessage: FirebaseMessage;
   unreadCount: number;
   date?: Date; // Date for display purposes
