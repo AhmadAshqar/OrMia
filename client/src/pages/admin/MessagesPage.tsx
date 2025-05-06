@@ -1057,9 +1057,12 @@ function MessageDetails({
       setFirebaseMessages(orderMessages);
       
       // Scroll to bottom when messages change
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
+      setTimeout(() => {
+        const chatContainer = document.getElementById('admin-chat-container-orders');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 100);
     });
     
     return () => {
@@ -1083,9 +1086,12 @@ function MessageDetails({
   
   // Auto-scroll to bottom when replies change
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    setTimeout(() => {
+      const chatContainer = document.getElementById('admin-chat-container-orders');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
   }, [selectedMessage?.replies, firebaseMessages]);
   return (
     <div className="md:col-span-2 border rounded-lg overflow-hidden h-[600px]">
