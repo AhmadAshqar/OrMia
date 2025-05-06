@@ -119,27 +119,37 @@ export function getUserMessages(userId: number, callback: (messages: FirebaseMes
 export function getOrderMessages(orderId: number, callback: (messages: FirebaseMessage[]) => void) {
   console.log(`Subscribing to messages for order ${orderId}`);
   
+  // Get collection reference for this order's messages
   const messagesCollection = getOrderMessagesCollection(orderId);
+  
+  // Create query sorted by creation time (oldest first)
   const q = query(
     messagesCollection,
     orderBy('createdAt', 'asc')
   );
 
+  // Subscribe to real-time updates
   return onSnapshot(q, (querySnapshot) => {
     console.log(`Received ${querySnapshot.size} messages for order ${orderId}`);
     
     const messages: FirebaseMessage[] = [];
+    
     querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      console.log(`Message for order ${orderId}: ${data.content.substring(0, 20)}... from ${data.isAdmin ? 'admin' : 'user'}`);
-      
-      messages.push({
-        id: doc.id,
-        ...data,
-        orderId // Ensure orderId is included
-      } as FirebaseMessage);
+      try {
+        const data = doc.data();
+        console.log(`Message for order ${orderId}: ${data.content?.substring(0, 20) || '(no content)'}... from ${data.isAdmin ? 'admin' : 'user'} (${data.userId})`);
+        
+        messages.push({
+          id: doc.id,
+          ...data,
+          orderId // Ensure orderId is included
+        } as FirebaseMessage);
+      } catch (error) {
+        console.error('Error processing message document:', error);
+      }
     });
     
+    // Log the result and return messages through callback
     console.log(`Returning ${messages.length} messages for order ${orderId}`);
     callback(messages);
   });
@@ -349,51 +359,68 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
     const orderMap = new Map<number, OrderWithLatestMessage>();
     
     querySnapshot.forEach((doc) => {
-      const data = doc.data() as FirebaseMessage;
-      data.id = doc.id;
-      
-      // Process all messages related to this user's orders (either from user or to user)
-      const orderId = data.orderId;
-      
-      // This is a message from/to the user if:
-      // 1. Message is from this user, OR
-      // 2. Message is related to an order where this user has sent messages
-      if (data.userId === userId || data.orderId) {
-        console.log(`Processing message for order ${orderId}, user ${data.userId}, isAdmin: ${data.isAdmin}`);
+      try {
+        const data = doc.data() as FirebaseMessage;
+        data.id = doc.id;
         
-        if (!orderMap.has(orderId)) {
-          // First message for this order, initialize with latest message
-          orderMap.set(orderId, {
-            orderId,
-            latestMessage: data,
-            unreadCount: data.isAdmin && !data.isRead ? 1 : 0
-          });
-        } else {
-          // Already have an entry for this order
-          const orderData = orderMap.get(orderId)!;
-          
-          // Update unread count if needed
-          if (data.isAdmin && !data.isRead) {
-            orderData.unreadCount++;
-          }
-          
-          // We're already sorted by descending date, so we don't need to update latestMessage
-          // since the first message we encounter for each order is already the latest
+        // Skip messages without orderId
+        if (!data.orderId) {
+          console.log('Skipping message without orderId:', data);
+          return;
         }
+        
+        const orderId = data.orderId;
+        
+        // We want to include messages that:
+        // 1. Are from this user (userId matches), OR
+        // 2. Are to this user (has orderId that belongs to this user)
+        const isFromThisUser = data.userId === userId;
+        const isForThisUserOrder = true; // Since Firebase doesn't filter by user's orders, we'll collect all messages
+        
+        if (isFromThisUser || isForThisUserOrder) {
+          console.log(`Processing message for order ${orderId}, user ${data.userId}, isAdmin: ${data.isAdmin}`);
+          
+          if (!orderMap.has(orderId)) {
+            // First message for this order, initialize with latest message
+            orderMap.set(orderId, {
+              orderId,
+              latestMessage: data,
+              unreadCount: data.isAdmin && !data.isRead ? 1 : 0
+            });
+          } else {
+            // Already have an entry for this order
+            const orderData = orderMap.get(orderId)!;
+            
+            // Update unread count if needed
+            if (data.isAdmin && !data.isRead) {
+              orderData.unreadCount++;
+            }
+            
+            // We're already sorted by descending date, so we don't need to update latestMessage
+            // since the first message we encounter for each order is already the latest
+          }
+        }
+      } catch (error) {
+        console.error('Error processing message in getUserOrdersWithMessages:', error);
       }
     });
     
     // Convert map to array and sort by latest message timestamp (most recent first)
     const orders = Array.from(orderMap.values()).sort((a, b) => {
-      const aTime = a.latestMessage.createdAt?.toDate?.() 
-        ? a.latestMessage.createdAt.toDate().getTime() 
-        : new Date(a.latestMessage.createdAt).getTime();
-      
-      const bTime = b.latestMessage.createdAt?.toDate?.() 
-        ? b.latestMessage.createdAt.toDate().getTime() 
-        : new Date(b.latestMessage.createdAt).getTime();
-      
-      return bTime - aTime; // Descending order (newest first)
+      try {
+        const aTime = a.latestMessage.createdAt?.toDate?.() 
+          ? a.latestMessage.createdAt.toDate().getTime() 
+          : new Date(a.latestMessage.createdAt).getTime();
+        
+        const bTime = b.latestMessage.createdAt?.toDate?.() 
+          ? b.latestMessage.createdAt.toDate().getTime() 
+          : new Date(b.latestMessage.createdAt).getTime();
+        
+        return bTime - aTime; // Descending order (newest first)
+      } catch (error) {
+        console.error('Error sorting messages:', error);
+        return 0;
+      }
     });
     
     console.log(`Returning ${orders.length} orders with messages for user ${userId}`);
@@ -447,7 +474,7 @@ export function getUnreadMessagesCount(userId: number, isAdmin: boolean, callbac
 export function getOrderConversations(callback: (orders: OrderSummary[]) => void) {
   console.log('Subscribing to order conversations for admin view');
   
-  // Query all messages from all orders
+  // Query all messages from all orders without filtering
   const q = query(
     collectionGroup(db, MESSAGES_SUBCOLLECTION),
     orderBy('createdAt', 'desc') // Get in descending order to easily find latest
@@ -457,33 +484,45 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
     console.log(`Received ${querySnapshot.size} messages in admin order conversations snapshot`);
     const orderMap = new Map<number, OrderSummary>();
     
+    // Process each message to build order conversations list
     querySnapshot.forEach((doc) => {
-      const data = doc.data() as FirebaseMessage;
-      data.id = doc.id;
-      
-      const orderId = data.orderId;
-      console.log(`Processing message in admin view for order ${orderId}, from ${data.isAdmin ? 'admin' : 'user'} ${data.userId}, content: ${data.content.substring(0, 20)}...`);
-      
-      if (!orderMap.has(orderId)) {
-        // First message for this order (will be the latest due to desc ordering)
+      try {
+        const data = doc.data() as FirebaseMessage;
+        data.id = doc.id;
+        
+        // Skip messages without orderId
+        if (!data.orderId) {
+          console.log('Skipping message without orderId:', data);
+          return;
+        }
+        
+        const orderId = data.orderId;
+        console.log(`Processing message in admin view for order ${orderId}, from ${data.isAdmin ? 'admin' : 'user'} ${data.userId}, content: ${data.content.substring(0, 20)}...`);
+        
+        // Get creation date
         const date = data.createdAt?.toDate?.() 
           ? data.createdAt.toDate() 
-          : new Date();
-          
-        orderMap.set(orderId, {
-          orderId,
-          date,
-          hasMessages: true,
-          unreadCount: !data.isAdmin && !data.isRead ? 1 : 0
-        });
-      } else {
-        // Already have an entry for this order
-        const orderData = orderMap.get(orderId)!;
+          : new Date(data.createdAt);
         
-        // Update unread count if needed
-        if (!data.isAdmin && !data.isRead) {
-          orderData.unreadCount = (orderData.unreadCount || 0) + 1;
+        if (!orderMap.has(orderId)) {
+          // First message for this order (will be the latest due to desc ordering)
+          orderMap.set(orderId, {
+            orderId,
+            date,
+            hasMessages: true,
+            unreadCount: !data.isAdmin && !data.isRead ? 1 : 0
+          });
+        } else {
+          // Already have an entry for this order
+          const orderData = orderMap.get(orderId)!;
+          
+          // Update unread count if needed
+          if (!data.isAdmin && !data.isRead) {
+            orderData.unreadCount = (orderData.unreadCount || 0) + 1;
+          }
         }
+      } catch (error) {
+        console.error('Error processing message in getOrderConversations:', error);
       }
     });
     
