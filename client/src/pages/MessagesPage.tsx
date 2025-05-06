@@ -13,7 +13,7 @@ import {
   getOrderMessages,
   getUserMessages,
   getUnreadMessagesCount,
-  uploadMessageImage as uploadOrderImage,
+  uploadMessageImage,
   getUserOrdersWithMessages,
   OrderWithLatestMessage
 } from '@/lib/firebaseMessages';

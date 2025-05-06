@@ -657,7 +657,7 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
     const orders = Array.from(orderMap.values()).sort((a, b) => a.orderId - b.orderId);
     console.log(`Returning ${orders.length} order conversations in admin view. Order IDs: ${orders.map(o => o.orderId).join(', ')}`);
     callback(orders);
-  });
+      });
     })
     .catch(error => {
       console.error('Error fetching admin orders:', error);
