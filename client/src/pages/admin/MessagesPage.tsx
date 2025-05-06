@@ -37,17 +37,17 @@ export default function AdminMessagesPage() {
   const [isFirebaseMessagePending, setIsFirebaseMessagePending] = useState(false);
   const websocketRef = useRef<WebSocket | null>(null);
 
-  // Fetch messages for a specific order via API
+  // Fetch messages for a specific order via API (using admin-specific endpoint)
   const { 
     data: orderApiMessages,
     isLoading: isLoadingOrderApiMessages,
     refetch: refetchOrderApiMessages
   } = useQuery({
-    queryKey: ['/api/orders', selectedOrderId, 'messages'],
+    queryKey: ['/api/admin/orders', selectedOrderId, 'messages'],
     queryFn: async () => {
       if (!selectedOrderId) return [];
       
-      const response = await fetch(`/api/orders/${selectedOrderId}/messages`);
+      const response = await fetch(`/api/admin/orders/${selectedOrderId}/messages`);
       if (!response.ok) {
         throw new Error(`Error fetching messages for order ${selectedOrderId}`);
       }
@@ -61,7 +61,7 @@ export default function AdminMessagesPage() {
     setSelectedOrderId(orderId);
     
     try {
-      const response = await fetch(`/api/orders/${orderId}/messages`);
+      const response = await fetch(`/api/admin/orders/${orderId}/messages`);
       if (!response.ok) throw new Error(`Failed to fetch messages for order ${orderId}`);
       
       const messages = await response.json();

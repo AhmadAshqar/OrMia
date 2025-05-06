@@ -2198,25 +2198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get all messages for a specific order (admin only)
-  app.get("/api/admin/orders/:orderId/messages", async (req, res) => {
-    if (!req.isAuthenticated() || !req.user.role?.includes('admin')) {
-      return res.status(403).json({ error: "אין הרשאה" });
-    }
-
-    try {
-      const orderId = parseInt(req.params.orderId);
-      if (isNaN(orderId)) {
-        return res.status(400).json({ error: "מזהה הזמנה לא תקין" });
-      }
-      
-      const messages = await storage.getMessagesByOrderId(orderId);
-      res.json(messages);
-    } catch (error) {
-      console.error("Error fetching order messages for admin:", error);
-      res.status(500).json({ error: "שגיאה בטעינת הודעות להזמנה" });
-    }
-  });
+  // This endpoint was duplicated - removed in favor of the implementation below with ensureAdmin middleware
   
   // Mark all messages as read for a specific order (admin only)
   app.post("/api/admin/messages/markread/:orderId", async (req, res) => {
