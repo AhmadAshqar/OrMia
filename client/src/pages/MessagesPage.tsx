@@ -462,7 +462,8 @@ export default function MessagesPage() {
     document.title = "הודעות שלי | אור מיה";
   }, []);
 
-  if (!user) {
+  // If user is not logged in or is an admin, don't allow access to this page
+  if (!user || user.role === 'admin') {
     return (
       <MainLayout>
         <div className="container max-w-5xl py-8 mt-12">
@@ -470,11 +471,18 @@ export default function MessagesPage() {
             <CardHeader>
               <CardTitle>הודעות שלי</CardTitle>
               <CardDescription>
-                עליך להתחבר כדי לצפות בהודעות שלך
+                {!user 
+                  ? 'עליך להתחבר כדי לצפות בהודעות שלך'
+                  : 'מנהלים מתבקשים להשתמש בממשק הניהול לצפייה בהודעות'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate('/auth')}>התחבר</Button>
+              {!user ? (
+                <Button onClick={() => navigate('/auth')}>התחבר</Button>
+              ) : (
+                <Button onClick={() => navigate('/admin/messages')}>עבור לממשק ניהול</Button>
+              )}
             </CardContent>
           </Card>
         </div>

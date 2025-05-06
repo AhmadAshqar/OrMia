@@ -133,10 +133,13 @@ const Header = () => {
                     <Link href="/orders" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
                       ההזמנות שלי
                     </Link>
-                    <Link href="/messages" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer relative">
-                      <span className="flex-1">ההודעות שלי</span>
-                      <UnreadMessagesIndicator className="ml-1" />
-                    </Link>
+                    {/* Only show messages link for regular users, not admins */}
+                    {user?.role !== 'admin' && (
+                      <Link href="/messages" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer relative">
+                        <span className="flex-1">ההודעות שלי</span>
+                        <UnreadMessagesIndicator className="ml-1" />
+                      </Link>
+                    )}
                     <Link href="/favorites" className="flex items-center p-2 hover:bg-gray-100 rounded-md cursor-pointer">
                       המועדפים שלי
                     </Link>
