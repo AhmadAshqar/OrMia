@@ -78,6 +78,7 @@ export default function AdminMessagesPage() {
     setSelectedOrderId(orderId);
     
     try {
+      // Fetch messages for the order
       const response = await fetch(`/api/admin/orders/${orderId}/messages`);
       if (!response.ok) throw new Error(`Failed to fetch messages for order ${orderId}`);
       
@@ -88,6 +89,17 @@ export default function AdminMessagesPage() {
       await fetch(`/api/admin/orders/${orderId}/messages/mark-read`, { 
         method: 'POST' 
       });
+      
+      // Update orders list to reflect read status changes
+      // Find the order in the conversations list and update its unreadCount
+      const updatedConversations = orderConversations.map(order => {
+        if (order.orderId === orderId) {
+          return { ...order, unreadCount: 0 };
+        }
+        return order;
+      });
+      
+      setOrderConversations(updatedConversations);
       
     } catch (error) {
       console.error(`Error fetching messages for order ${orderId}:`, error);
