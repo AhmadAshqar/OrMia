@@ -513,8 +513,8 @@ export default function AdminMessagesPage() {
     };
   }, [user]);
   
-  // Effect to listen for order-specific Firebase messages when an order is selected
-  const [orderFirebaseMessages, setOrderFirebaseMessages] = useState<FirebaseMessage[]>([]);
+  // Use API polling for order-specific messages when an order is selected
+  const [orderApiMessages, setOrderApiMessages] = useState<Message[]>([]);
   
   useEffect(() => {
     if (!selectedOrderId || selectedOrderId === 'all') return;
@@ -524,21 +524,39 @@ export default function AdminMessagesPage() {
       ? parseInt(selectedOrderId) 
       : selectedOrderId;
     
-    // Get messages for specific order
-    const unsubscribe = getOrderMessages(orderId, (messages) => {
-      setOrderFirebaseMessages(messages);
-      
-      // Scroll to the bottom when messages update
-      setTimeout(() => {
-        const chatContainer = document.getElementById('admin-chat-container');
-        if (chatContainer) {
-          chatContainer.scrollTop = chatContainer.scrollHeight;
+    console.log(`Setting up API polling for order ${orderId}`);
+    
+    // Function to fetch messages for the selected order
+    const fetchOrderMessages = async () => {
+      try {
+        const response = await fetch(`/api/orders/${orderId}/messages`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`Fetched ${data.length} messages for order ${orderId} from API`);
+          setOrderApiMessages(data);
+          
+          // Scroll to the bottom when messages update
+          setTimeout(() => {
+            const container = document.getElementById('admin-chat-container-orders');
+            if (container) {
+              container.scrollTop = container.scrollHeight;
+            }
+          }, 100);
         }
-      }, 100);
-    });
+      } catch (error) {
+        console.error(`Error fetching messages for order ${orderId}:`, error);
+      }
+    };
+    
+    // Fetch immediately
+    fetchOrderMessages();
+    
+    // Then set up polling every 5 seconds
+    const interval = setInterval(fetchOrderMessages, 5000);
     
     return () => {
-      unsubscribe();
+      console.log(`Cleaning up API polling for order ${orderId}`);
+      clearInterval(interval);
     };
   }, [selectedOrderId]);
 
