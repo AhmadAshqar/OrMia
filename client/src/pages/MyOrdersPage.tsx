@@ -18,7 +18,8 @@ import {
   Calendar, 
   ClipboardList, 
   ChevronRight,
-  Loader2
+  Loader2,
+  MessageCircle
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -461,9 +462,9 @@ const MyOrdersPage = () => {
                       }}
                     >
                       <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="flex items-center">
+                        <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                          <MessageCircle className="h-4 w-4" />
                           צור קשר בנוגע להזמנה
-                          <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
