@@ -463,7 +463,10 @@ const MyOrdersPage = () => {
                       }}
                     >
                       <DialogTrigger asChild>
-                        <OrderContactButton orderId={order.id} variant="dialog" />
+                        <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                          <MessageCircle className="h-4 w-4" />
+                          צור קשר בנוגע להזמנה
+                        </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
