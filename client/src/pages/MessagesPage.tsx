@@ -409,7 +409,7 @@ export default function MessagesPage() {
   if (!user) {
     return (
       <MainLayout>
-        <div className="container max-w-5xl py-8">
+        <div className="container max-w-5xl py-8 mt-12">
           <Card>
             <CardHeader>
               <CardTitle>הודעות שלי</CardTitle>
@@ -432,7 +432,7 @@ export default function MessagesPage() {
         <title>הודעות שלי | אור מיה</title>
       </Helmet>
       
-      <div className="container max-w-5xl py-8">
+      <div className="container max-w-5xl py-8 mt-12">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
