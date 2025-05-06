@@ -2198,6 +2198,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all messages for a specific order (admin only)
+  app.get("/api/admin/orders/:orderId/messages", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.role?.includes('admin')) {
+      return res.status(403).json({ error: "אין הרשאה" });
+    }
+
+    try {
+      const orderId = parseInt(req.params.orderId);
+      if (isNaN(orderId)) {
+        return res.status(400).json({ error: "מזהה הזמנה לא תקין" });
+      }
+      
+      const messages = await storage.getMessagesByOrderId(orderId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching order messages for admin:", error);
+      res.status(500).json({ error: "שגיאה בטעינת הודעות להזמנה" });
+    }
+  });
+  
+  // Mark all messages as read for a specific order (admin only)
+  app.post("/api/admin/messages/markread/:orderId", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.role?.includes('admin')) {
+      return res.status(403).json({ error: "אין הרשאה" });
+    }
+
+    try {
+      const orderId = parseInt(req.params.orderId);
+      if (isNaN(orderId)) {
+        return res.status(400).json({ error: "מזהה הזמנה לא תקין" });
+      }
+      
+      // Mark all user messages (non-admin) for this order as read
+      const success = await storage.markOrderMessagesAsRead(orderId);
+      
+      if (success) {
+        // Broadcast message read status to all clients
+        broadcastToOrder(orderId, {
+          type: 'messages_read',
+          orderId
+        });
+        
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ error: "שגיאה בסימון הודעות כנקראות" });
+      }
+    } catch (error) {
+      console.error("Error marking order messages as read:", error);
+      res.status(500).json({ error: "שגיאה בסימון הודעות כנקראות" });
+    }
+  });
+  
   // Test message endpoint for debugging Firebase messaging
   app.post("/api/test-message", async (req, res) => {
     if (!req.isAuthenticated()) {

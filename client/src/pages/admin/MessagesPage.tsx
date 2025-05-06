@@ -115,14 +115,16 @@ export default function AdminMessagesPage() {
 
   // Query to fetch order messages if an order is selected
   const { data: orderMessages, isLoading: isLoadingOrderMessages } = useQuery({
-    queryKey: ['/api/orders', selectedOrderId, 'messages'],
+    queryKey: ['/api/admin/orders', selectedOrderId, 'messages'],
     queryFn: async () => {
       if (!selectedOrderId) return [];
-      const response = await apiRequest('GET', `/api/orders/${selectedOrderId}/messages`);
+      const response = await apiRequest('GET', `/api/admin/orders/${selectedOrderId}/messages`);
       return response.json();
     },
     enabled: !!selectedOrderId
   });
+  
+  // API messages state is defined later in the component
 
   // Query to fetch orders for the dropdown
   const { data: orders, isLoading: isLoadingOrders } = useQuery({
@@ -367,26 +369,44 @@ export default function AdminMessagesPage() {
     }
   };
   
-  // Handle order click
-  const handleOrderClick = (orderId: number) => {
+  // Handle order click - fetch messages via API instead of Firebase
+  const handleOrderClick = async (orderId: number) => {
     setSelectedOrderId(orderId);
     
-    // Mark all unread messages for this order as read
-    const unreadMessages = firebaseMessages.filter(msg => 
-      msg.orderId === orderId && !msg.isAdmin && !msg.isRead
-    );
-    
-    // Use batch update to mark all unread messages as read at once
-    if (unreadMessages.length > 0) {
-      const messageIds = unreadMessages
-        .filter(msg => msg.id)
-        .map(msg => msg.id as string);
-      
-      if (messageIds.length > 0) {
-        markMessageAsRead(messageIds, orderId)
-          .catch(error => console.error("Error marking messages as read:", error));
+    try {
+      // Fetch messages directly via the API
+      const response = await apiRequest('GET', `/api/admin/orders/${orderId}/messages`);
+      if (response.ok) {
+        const messages = await response.json();
+        console.log(`Fetched ${messages.length} messages for order ${orderId}`);
+        setOrderApiMessages(messages);
+        
+        // Mark unread messages as read via API
+        await apiRequest('POST', `/api/admin/messages/markread/${orderId}`);
+      } else {
+        console.error(`Failed to fetch messages for order ${orderId}: ${response.statusText}`);
+        toast({
+          title: 'שגיאה',
+          description: 'לא ניתן לטעון את ההודעות',
+          variant: 'destructive'
+        });
       }
+    } catch (error) {
+      console.error(`Error fetching messages for order ${orderId}:`, error);
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בטעינת ההודעות',
+        variant: 'destructive'
+      });
     }
+    
+    // After a short delay, scroll to the bottom of the chat
+    setTimeout(() => {
+      const container = document.getElementById('admin-chat-container-orders');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 300);
   };
   
   // Direct Firebase test message - creates a guaranteed message in Firebase
@@ -529,7 +549,7 @@ export default function AdminMessagesPage() {
     // Function to fetch messages for the selected order
     const fetchOrderMessages = async () => {
       try {
-        const response = await fetch(`/api/orders/${orderId}/messages`);
+        const response = await fetch(`/api/admin/orders/${orderId}/messages`);
         if (response.ok) {
           const data = await response.json();
           console.log(`Fetched ${data.length} messages for order ${orderId} from API`);
@@ -626,7 +646,7 @@ export default function AdminMessagesPage() {
         }
         
         // Refetch messages after sending
-        const updatedMessages = await fetch(`/api/orders/${orderId}/messages`).then(res => res.json());
+        const updatedMessages = await fetch(`/api/admin/orders/${orderId}/messages`).then(res => res.json());
         setOrderApiMessages(updatedMessages);
         
         toast({
