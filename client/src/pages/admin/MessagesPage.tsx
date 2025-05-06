@@ -398,45 +398,85 @@ export default function AdminMessagesPage() {
     try {
       const orderId = 10; // Test with order 10
       
-      console.log("Creating direct test message in Firebase for order", orderId);
+      console.log("--- CREATING TEST MESSAGE ---");
+      console.log("User:", user);
+      console.log("Order ID:", orderId);
       
-      // Create a direct message in Firebase
-      const orderRef = doc(db, 'orders', orderId.toString());
+      // STEP 1: Use the simpler, more direct approach with new timestamp
+      const timestamp = new Date().toISOString();
       
-      // First ensure the order doc exists
-      await setDoc(orderRef, { exists: true, updatedAt: new Date().toISOString() }, { merge: true });
-      
-      // Then create the message directly
-      const messagesCollection = collection(orderRef, 'messages');
-      const messageData = {
-        content: `Direct test message created at ${new Date().toLocaleString()}`,
-        orderId: orderId,
-        userId: user.id,
-        isAdmin: true,
-        isRead: false,
-        createdAt: serverTimestamp(),
-      };
-      
-      const docRef = await addDoc(messagesCollection, messageData);
-      console.log("Direct test message created with ID:", docRef.id);
-      
-      toast({
-        title: 'הודעה נוצרה',
-        description: `הודעת בדיקה נוצרה ישירות בפיירבייס להזמנה ${orderId} עם מזהה ${docRef.id}`
+      // Create test message via our API endpoint for maximum reliability
+      const response = await apiRequest("POST", "/api/test-message", {
+        orderId,
+        content: `Test message via API at ${timestamp}`,
+        isAdmin: true
       });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Test message created via API:", result);
+        
+        toast({
+          title: 'הודעת בדיקה נוצרה',
+          description: `הודעה נוצרה בהצלחה להזמנה ${orderId} דרך ה-API`
+        });
+      } else {
+        // FALLBACK: If API approach fails, try direct Firebase
+        console.log("API approach failed, trying direct Firebase insertion");
+        
+        // Create a direct message in Firebase
+        const orderRef = doc(db, 'orders', orderId.toString());
+        
+        // First ensure the order doc exists
+        await setDoc(orderRef, { 
+          exists: true, 
+          updatedAt: timestamp,
+          testOrder: true,
+          version: "direct-firebase-v2"
+        }, { merge: true });
+        console.log("Order document created/updated successfully");
+        
+        // Then create the message directly - using a unique content to identify this message
+        const messagesCollection = collection(orderRef, 'messages');
+        const uniqueId = Math.random().toString(36).substring(2, 8);
+        const messageData = {
+          content: `Direct test message created at ${timestamp} [ID: ${uniqueId}]`,
+          orderId: orderId,
+          userId: user.id,
+          isAdmin: true,
+          isRead: false,
+          createdAt: serverTimestamp(),
+          testMessage: true
+        };
+        
+        console.log("About to create message with data:", {...messageData, createdAt: "(serverTimestamp)"});
+        const docRef = await addDoc(messagesCollection, messageData);
+        console.log("Message created successfully with ID:", docRef.id);
+        
+        toast({
+          title: 'הודעה נוצרה',
+          description: `הודעת בדיקה נוצרה ישירות בפיירבייס להזמנה ${orderId}`
+        });
+      }
       
       // Force refresh the messages
       setTimeout(() => {
         console.log("Forcing refresh of message lists");
-        // Check if we have the order selected, and refresh
-        if (selectedOrderId === orderId) {
-          const tempId = selectedOrderId;
-          setSelectedOrderId(null);
-          setTimeout(() => setSelectedOrderId(tempId), 100);
-        }
+        
+        // Refresh regardless of selected order
+        const tempId = selectedOrderId;
+        setSelectedOrderId(null);
+        setTimeout(() => {
+          if (tempId === orderId) {
+            setSelectedOrderId(tempId);
+          } else {
+            setSelectedOrderId(orderId);
+          }
+        }, 100);
       }, 1000);
+      
     } catch (error) {
-      console.error("Error creating direct test message:", error);
+      console.error("Error creating test message:", error);
       toast({
         title: 'שגיאה',
         description: `לא ניתן ליצור הודעת בדיקה: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`,
