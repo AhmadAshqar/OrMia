@@ -329,7 +329,7 @@ export default function AdminMessagesPage() {
                                   {order.date && format(new Date(order.date), 'dd/MM/yyyy', { locale: he })}
                                 </div>
                               </div>
-                              {order.unreadCount && order.unreadCount > 0 && (
+                              {order.unreadCount > 0 && (
                                 <div className="mt-1 flex justify-end">
                                   <Badge variant="secondary">{order.unreadCount} הודעות חדשות</Badge>
                                 </div>

@@ -2278,6 +2278,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Mark all messages for an order as read (admin)
+  app.post("/api/admin/orders/:orderId/messages/mark-read", ensureAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      
+      // Mark all messages for this order as read
+      await storage.markOrderMessagesAsRead(orderId);
+      
+      console.log(`Admin marked messages as read for order ${orderId}`);
+      res.sendStatus(200);
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ error: "שגיאה בסימון הודעות כנקראו" });
+    }
+  });
+  
   // Create a new message for an order as admin
   app.post("/api/admin/orders/:orderId/messages", ensureAdmin, async (req, res) => {
     try {
