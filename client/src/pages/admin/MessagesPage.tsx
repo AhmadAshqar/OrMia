@@ -6,7 +6,15 @@ import { he } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
-import { createMessage as createFirebaseMessage, FirebaseMessage, getAllMessages, markMessageAsRead, uploadMessageImage } from '@/lib/firebaseMessages';
+import { 
+  createMessage as createFirebaseMessage, 
+  FirebaseMessage, 
+  getAllMessages, 
+  markMessageAsRead, 
+  getOrderMessages,
+  getAllOrdersWithMessages,
+  uploadMessageImage as uploadOrderImage
+} from '@/lib/firebaseMessages';
 
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -310,14 +318,14 @@ export default function AdminMessagesPage() {
           .map(msg => msg.id as string);
         
         if (messageIds.length > 0) {
-          markMessageAsRead(messageIds)
+          markMessageAsRead(messageIds, message.orderId)
             .catch(error => console.error("Error marking messages as read:", error));
         }
       }
     }
   };
 
-  // Effect to listen for Firebase messages
+  // Effect to listen for all Firebase messages
   useEffect(() => {
     if (!user) return;
     
@@ -329,6 +337,32 @@ export default function AdminMessagesPage() {
       unsubscribe();
     };
   }, [user]);
+  
+  // Effect to listen for order-specific Firebase messages when an order is selected
+  const [orderFirebaseMessages, setOrderFirebaseMessages] = useState<FirebaseMessage[]>([]);
+  
+  useEffect(() => {
+    if (!selectedOrderId || selectedOrderId === 'all') return;
+    
+    // Convert to number if it's a string
+    const orderId = typeof selectedOrderId === 'string' 
+      ? parseInt(selectedOrderId) 
+      : selectedOrderId;
+    
+    // Get messages for specific order
+    const unsubscribe = getOrderMessages(orderId, (messages) => {
+      setOrderFirebaseMessages(messages);
+      
+      // Scroll to the bottom when messages update
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedOrderId]);
 
   // Handle reply submit with Firebase
   const handleReplySubmit = async (e: React.FormEvent) => {
@@ -346,6 +380,11 @@ export default function AdminMessagesPage() {
     try {
       // Send message through Firebase
       if (user) {
+        // Ensure orderId is defined before creating message
+        if (!selectedMessage.orderId) {
+          throw new Error('Order ID is required for Firebase messages');
+        }
+        
         await createFirebaseMessage({
           content: replyContent,
           orderId: selectedMessage.orderId,
@@ -356,8 +395,8 @@ export default function AdminMessagesPage() {
         });
         
         // Mark related messages as read
-        if (selectedMessage.id) {
-          await markMessageAsRead(selectedMessage.id.toString());
+        if (selectedMessage.id && selectedMessage.orderId) {
+          await markMessageAsRead(selectedMessage.id.toString(), selectedMessage.orderId);
         }
         
         // Also mark any unread Firebase messages for this order as read
@@ -373,7 +412,7 @@ export default function AdminMessagesPage() {
               .map(msg => msg.id as string);
             
             if (messageIds.length > 0) {
-              await markMessageAsRead(messageIds);
+              await markMessageAsRead(messageIds, selectedMessage.orderId);
             }
           }
         }
