@@ -33,10 +33,20 @@ export interface FirebaseMessage {
 // Create a new message
 export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' | 'id'>) {
   try {
-    const docRef = await addDoc(collection(db, MESSAGES_COLLECTION), {
-      ...message,
-      createdAt: serverTimestamp()
-    });
+    // Make sure to validate and sanitize data
+    const sanitizedMessage = {
+      content: message.content || '',
+      userId: message.userId,
+      isAdmin: Boolean(message.isAdmin),
+      isRead: Boolean(message.isRead),
+      createdAt: serverTimestamp(),
+      // Only include non-null values
+      ...(message.orderId !== undefined && message.orderId !== null && { orderId: message.orderId }),
+      ...(message.subject && { subject: message.subject }),
+      ...(message.imageUrl && { imageUrl: message.imageUrl })
+    };
+    
+    const docRef = await addDoc(collection(db, MESSAGES_COLLECTION), sanitizedMessage);
     return docRef.id;
   } catch (error) {
     console.error('Error creating message:', error);
