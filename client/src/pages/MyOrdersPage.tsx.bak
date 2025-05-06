@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,23 +7,40 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingBag, Truck, Package, CheckCircle, XCircle, AlertCircle, Clock, Calendar, ClipboardList, ChevronRight } from "lucide-react";
+import { 
+  ShoppingBag, 
+  Truck, 
+  Package, 
+  CheckCircle, 
+  XCircle, 
+  AlertCircle, 
+  Clock, 
+  Calendar, 
+  ClipboardList, 
+  ChevronRight,
+  Loader2,
+  MessageCircle
+} from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import MainLayout from "@/components/layout/MainLayout";
+import { apiRequest } from "@/lib/queryClient";
 
 // Helper functions to format data
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toLocaleDateString("he-IL", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  
+  // Format: DD/MM/YYYY
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year}`;
 };
 
 // Status mapping for displaying the current shipping status
@@ -48,16 +65,42 @@ const shippingStatusMap: Record<string, { color: string; icon: React.ReactNode; 
     icon: <CheckCircle className="h-4 w-4 mr-1" />,
     text: "נמסר"
   },
+  new: {
+    color: "bg-blue-50 text-blue-600 border-blue-200",
+    icon: <ShoppingBag className="h-4 w-4 mr-1" />,
+    text: "חדש"
+  },
   cancelled: {
     color: "bg-red-100 text-red-800 border-red-300",
     icon: <XCircle className="h-4 w-4 mr-1" />,
     text: "בוטל"
+  },
+  failed: {
+    color: "bg-red-100 text-red-800 border-red-300", 
+    icon: <XCircle className="h-4 w-4 mr-1" />,
+    text: "נכשל"
   },
   default: {
     color: "bg-gray-100 text-gray-800 border-gray-300",
     icon: <AlertCircle className="h-4 w-4 mr-1" />,
     text: "לא ידוע"
   }
+};
+
+// Helper function to safely get shipping status styling
+const getShippingStatus = (status: string | undefined | null) => {
+  if (!status || !shippingStatusMap[status]) {
+    return {
+      color: shippingStatusMap.default.color,
+      icon: shippingStatusMap.default.icon,
+      text: shippingStatusMap.default.text
+    };
+  }
+  return {
+    color: shippingStatusMap[status].color,
+    icon: shippingStatusMap[status].icon,
+    text: shippingStatusMap[status].text
+  };
 };
 
 // Component to display shipping history
@@ -76,8 +119,8 @@ const ShippingHistory = ({ history }: { history?: { status: string; location: st
           />
           <p className="text-sm text-gray-500 font-medium">{formatDate(entry.timestamp)}</p>
           <div className="flex flex-row-reverse items-center">
-            {shippingStatusMap[entry.status]?.icon || shippingStatusMap.default.icon}
-            <span className="font-medium mr-1">{shippingStatusMap[entry.status]?.text || entry.status}</span>
+            {getShippingStatus(entry.status).icon}
+            <span className="font-medium mr-1">{getShippingStatus(entry.status).text}</span>
           </div>
           <p className="text-gray-700">מיקום: {entry.location}</p>
           {entry.notes && <p className="text-gray-500 text-sm">{entry.notes}</p>}
@@ -93,13 +136,17 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
   const { data: order, isLoading, error } = useQuery({
     queryKey: ["/api/user/orders", orderId],
     queryFn: async () => {
-      const response = await fetch(`/api/user/orders/${orderId}`);
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/user/orders/${orderId}?t=${Date.now()}`);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "שגיאה בטעינת פרטי ההזמנה");
       }
       return response.json();
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   if (isLoading) {
@@ -145,11 +192,11 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
           <div>
             <p className="text-gray-500 mb-1">סטטוס משלוח:</p>
             <Badge 
-              className={`${shippingStatusMap[shipping?.status || "default"].color} flex items-center justify-center h-7 px-3`}
+              className={`${getShippingStatus(shipping?.status).color} flex items-center justify-center h-7 px-3`}
               variant="outline"
             >
-              {shippingStatusMap[shipping?.status || "default"].icon}
-              {shippingStatusMap[shipping?.status || "default"].text}
+              {getShippingStatus(shipping?.status).icon}
+              {getShippingStatus(shipping?.status).text}
             </Badge>
           </div>
         </div>
@@ -171,7 +218,7 @@ const OrderDetail = ({ orderId }: { orderId: number }) => {
                   <p className="text-sm text-gray-500">כמות: {item.quantity}</p>
                 </div>
               </div>
-              <div className="font-medium">₪{item.price.toLocaleString()}</div>
+              <div className="font-medium">₪{(item.price / 100).toLocaleString()}</div>
             </div>
           ))}
         </div>
@@ -196,19 +243,90 @@ const MyOrdersPage = () => {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [orderMessageForm, setOrderMessageForm] = useState({
+    subject: '',
+    content: ''
+  });
+  const [orderMessageSubmitting, setOrderMessageSubmitting] = useState(false);
+  const [openDialogId, setOpenDialogId] = useState<number | null>(null);
+
+  // Mutation to send messages about an order
+  const createMessageMutation = useMutation({
+    mutationFn: async ({ orderId, subject, content }: { orderId: number; subject: string; content: string }) => {
+      const response = await apiRequest('POST', '/api/messages', { orderId, subject, content });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+      toast({
+        title: 'הודעה נשלחה',
+        description: 'ההודעה שלך נשלחה בהצלחה'
+      });
+      setOrderMessageForm({
+        subject: '',
+        content: ''
+      });
+      setOrderMessageSubmitting(false);
+      // Close the dialog
+      setOpenDialogId(null);
+    },
+    onError: (error) => {
+      console.error('Error sending message:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן לשלוח את ההודעה',
+        variant: 'destructive'
+      });
+      setOrderMessageSubmitting(false);
+    }
+  });
+
+  // Handle order message submission
+  const handleOrderMessageSubmit = (e: React.FormEvent, orderId: number) => {
+    e.preventDefault();
+    setOrderMessageSubmitting(true);
+    
+    if (!orderMessageForm.subject.trim() || !orderMessageForm.content.trim()) {
+      toast({
+        title: 'שגיאה',
+        description: 'יש להזין נושא ותוכן להודעה',
+        variant: 'destructive'
+      });
+      setOrderMessageSubmitting(false);
+      return;
+    }
+    
+    createMessageMutation.mutate({
+      orderId,
+      subject: orderMessageForm.subject,
+      content: orderMessageForm.content
+    });
+  };
 
   const { data: orders, isLoading, error } = useQuery({
     queryKey: ["/api/user/orders"],
     queryFn: async () => {
-      const response = await fetch("/api/user/orders");
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/user/orders?t=${Date.now()}`);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "שגיאה בטעינת ההזמנות");
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Orders data:", data);
+      if (data && data.length > 0) {
+        console.log("First order shipmentStatus:", data[0].shipmentStatus);
+        console.log("ShippingStatusMap keys:", Object.keys(shippingStatusMap));
+      }
+      return data;
     },
-    enabled: !!user // Only run query if user is logged in
+    enabled: !!user, // Only run query if user is logged in
+    staleTime: 0, // Always consider data stale
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: true // Refetch when window regains focus
   });
 
   // Redirect to login if not authenticated
@@ -291,11 +409,11 @@ const MyOrdersPage = () => {
                       <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                     </div>
                     <Badge 
-                      className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                      className={`${getShippingStatus(order.shipmentStatus).color} flex items-center justify-center h-7 px-3`}
                       variant="outline"
                     >
-                      {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                      {shippingStatusMap[order.shipmentStatus || "default"].text}
+                      {getShippingStatus(order.shipmentStatus).icon}
+                      {getShippingStatus(order.shipmentStatus).text}
                     </Badge>
                   </CardHeader>
                   <CardContent className="p-5 pt-0">
@@ -331,19 +449,79 @@ const MyOrdersPage = () => {
                   </CardContent>
                   <Separator />
                   <CardFooter className="p-4 flex justify-between bg-gray-50">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/support/order/${order.id}`} className="flex items-center">
-                        צור קשר בנוגע להזמנה
-                        <ChevronRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <div className="flex items-center">
-                      <Button variant="outline" size="sm" className="mr-2" asChild>
-                        <Link href={`/account/orders/${order.id}`}>
-                          פרטים מלאים
-                        </Link>
-                      </Button>
-                    </div>
+                    <Dialog
+                      open={openDialogId === order.id}
+                      onOpenChange={(open) => {
+                        setOpenDialogId(open ? order.id : null);
+                        if (!open) {
+                          setOrderMessageForm({
+                            subject: '',
+                            content: ''
+                          });
+                        }
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                          <MessageCircle className="h-4 w-4" />
+                          צור קשר בנוגע להזמנה
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>פנייה בנוגע להזמנה #{order.orderNumber}</DialogTitle>
+                          <DialogDescription>שליחת הודעה לצוות אור מיה בנוגע להזמנה זו</DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={(e) => handleOrderMessageSubmit(e, order.id)}>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                נושא
+                              </label>
+                              <Input
+                                value={orderMessageForm.subject}
+                                onChange={(e) => setOrderMessageForm({
+                                  ...orderMessageForm,
+                                  subject: e.target.value
+                                })}
+                                dir="rtl"
+                                className="w-full"
+                                placeholder="נושא ההודעה"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                תוכן ההודעה
+                              </label>
+                              <Textarea
+                                value={orderMessageForm.content}
+                                onChange={(e) => setOrderMessageForm({
+                                  ...orderMessageForm,
+                                  content: e.target.value
+                                })}
+                                dir="rtl"
+                                className="w-full"
+                                placeholder="תוכן ההודעה"
+                                rows={5}
+                              />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button type="submit" disabled={orderMessageSubmitting}>
+                              {orderMessageSubmitting ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  שולח...
+                                </>
+                              ) : (
+                                'שלח הודעה'
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+
                   </CardFooter>
                 </Card>
               ))}
@@ -354,7 +532,7 @@ const MyOrdersPage = () => {
             <div className="space-y-4">
               {orders
                 .filter((order: any) => 
-                  ["pending", "processing", "shipped"].includes(order.shipmentStatus))
+                  (order.shipmentStatus && ["pending", "processing", "shipped", "new"].includes(order.shipmentStatus)))
                 .map((order: any) => (
                   <Card key={order.id} className="overflow-hidden transition-all">
                     <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
@@ -363,11 +541,11 @@ const MyOrdersPage = () => {
                         <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                       </div>
                       <Badge 
-                        className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                        className={`${getShippingStatus(order.shipmentStatus).color} flex items-center justify-center h-7 px-3`}
                         variant="outline"
                       >
-                        {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                        {shippingStatusMap[order.shipmentStatus || "default"].text}
+                        {getShippingStatus(order.shipmentStatus).icon}
+                        {getShippingStatus(order.shipmentStatus).text}
                       </Badge>
                     </CardHeader>
                     <CardContent className="p-5 pt-0">
@@ -378,7 +556,7 @@ const MyOrdersPage = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-sm text-gray-500">סכום כולל:</div>
-                          <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
+                          <div className="font-semibold">₪{(order.total / 100).toLocaleString()}</div>
                         </div>
                       </div>
 
@@ -409,18 +587,11 @@ const MyOrdersPage = () => {
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Link>
                       </Button>
-                      <div className="flex items-center">
-                        <Button variant="outline" size="sm" className="mr-2" asChild>
-                          <Link href={`/account/orders/${order.id}`}>
-                            פרטים מלאים
-                          </Link>
-                        </Button>
-                      </div>
                     </CardFooter>
                   </Card>
                 ))}
                 {orders.filter((order: any) => 
-                  ["pending", "processing", "shipped"].includes(order.shipmentStatus)).length === 0 && (
+                  (order.shipmentStatus && ["pending", "processing", "shipped", "new"].includes(order.shipmentStatus))).length === 0 && (
                   <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
                     <CheckCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h2 className="text-xl font-semibold mb-2">אין הזמנות פעילות</h2>
@@ -434,7 +605,7 @@ const MyOrdersPage = () => {
             <div className="space-y-4">
               {orders
                 .filter((order: any) => 
-                  ["delivered", "cancelled"].includes(order.shipmentStatus))
+                  ["delivered", "cancelled", "failed"].includes(order.shipmentStatus))
                 .map((order: any) => (
                   <Card key={order.id} className="overflow-hidden transition-all">
                     <CardHeader className="p-5 pb-3 flex flex-row-reverse justify-between">
@@ -443,11 +614,11 @@ const MyOrdersPage = () => {
                         <CardDescription>{formatDate(order.createdAt)}</CardDescription>
                       </div>
                       <Badge 
-                        className={`${shippingStatusMap[order.shipmentStatus || "default"].color} flex items-center justify-center h-7 px-3`}
+                        className={`${getShippingStatus(order.shipmentStatus).color} flex items-center justify-center h-7 px-3`}
                         variant="outline"
                       >
-                        {shippingStatusMap[order.shipmentStatus || "default"].icon}
-                        {shippingStatusMap[order.shipmentStatus || "default"].text}
+                        {getShippingStatus(order.shipmentStatus).icon}
+                        {getShippingStatus(order.shipmentStatus).text}
                       </Badge>
                     </CardHeader>
                     <CardContent className="p-5 pt-0">
@@ -458,7 +629,7 @@ const MyOrdersPage = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-sm text-gray-500">סכום כולל:</div>
-                          <div className="font-semibold">₪{order.total?.toLocaleString()}</div>
+                          <div className="font-semibold">₪{(order.total / 100).toLocaleString()}</div>
                         </div>
                       </div>
 
@@ -489,18 +660,11 @@ const MyOrdersPage = () => {
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Link>
                       </Button>
-                      <div className="flex items-center">
-                        <Button variant="outline" size="sm" className="mr-2" asChild>
-                          <Link href={`/account/orders/${order.id}`}>
-                            פרטים מלאים
-                          </Link>
-                        </Button>
-                      </div>
                     </CardFooter>
                   </Card>
                 ))}
                 {orders.filter((order: any) => 
-                  ["delivered", "cancelled"].includes(order.shipmentStatus)).length === 0 && (
+                  (order.shipmentStatus && ["delivered", "cancelled", "failed"].includes(order.shipmentStatus))).length === 0 && (
                   <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
                     <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h2 className="text-xl font-semibold mb-2">אין הזמנות שהושלמו</h2>

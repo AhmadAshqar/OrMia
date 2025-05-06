@@ -130,6 +130,85 @@ const ShippingHistory = ({ history }: { history?: { status: string; location: st
   );
 };
 
+// Order contact button component
+const OrderContactButton = ({ 
+  order, 
+  orderMessageForm, 
+  setOrderMessageForm,
+  orderMessageSubmitting,
+  handleOrderMessageSubmit
+}: { 
+  order: any; 
+  orderMessageForm: { subject: string; content: string };
+  setOrderMessageForm: React.Dispatch<React.SetStateAction<{ subject: string; content: string }>>;
+  orderMessageSubmitting: boolean;
+  handleOrderMessageSubmit: (e: React.FormEvent, orderId: number) => void;
+}) => {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="flex items-center gap-1">
+          <MessageCircle className="h-4 w-4" />
+          צור קשר בנוגע להזמנה
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>פנייה בנוגע להזמנה #{order.orderNumber}</DialogTitle>
+          <DialogDescription>שליחת הודעה לצוות אור מיה בנוגע להזמנה זו</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={(e) => handleOrderMessageSubmit(e, order.id)}>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                נושא
+              </label>
+              <Input
+                value={orderMessageForm.subject}
+                onChange={(e) => setOrderMessageForm({
+                  ...orderMessageForm,
+                  subject: e.target.value
+                })}
+                dir="rtl"
+                className="w-full"
+                placeholder="נושא ההודעה"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                תוכן ההודעה
+              </label>
+              <Textarea
+                value={orderMessageForm.content}
+                onChange={(e) => setOrderMessageForm({
+                  ...orderMessageForm,
+                  content: e.target.value
+                })}
+                dir="rtl"
+                className="w-full"
+                placeholder="תוכן ההודעה"
+                rows={5}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={orderMessageSubmitting}>
+              {orderMessageSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  שולח...
+                </>
+              ) : (
+                'שלח הודעה'
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // Order detail component with shipping information
 const OrderDetail = ({ orderId }: { orderId: number }) => {
   const { toast } = useToast();
