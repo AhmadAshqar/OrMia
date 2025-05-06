@@ -178,6 +178,122 @@ export function getAllMessages(callback: (messages: FirebaseMessage[]) => void) 
   });
 }
 
+// Get all unique orders with their latest message (admin only)
+export function getAllOrdersWithLatestMessages(callback: (orders: OrderWithLatestMessage[]) => void) {
+  // Query all messages from all orders
+  const q = query(
+    collectionGroup(db, MESSAGES_SUBCOLLECTION),
+    orderBy('createdAt', 'desc') // Get in descending order to easily find latest
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const orderMap = new Map<number, OrderWithLatestMessage>();
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as FirebaseMessage;
+      data.id = doc.id;
+      
+      const orderId = data.orderId;
+      
+      if (!orderMap.has(orderId)) {
+        // First message for this order, initialize with latest message
+        orderMap.set(orderId, {
+          orderId,
+          latestMessage: data,
+          unreadCount: !data.isAdmin && !data.isRead ? 1 : 0
+        });
+      } else {
+        // Already have an entry for this order
+        const orderData = orderMap.get(orderId)!;
+        
+        // Update unread count if needed
+        if (!data.isAdmin && !data.isRead) {
+          orderData.unreadCount++;
+        }
+      }
+    });
+    
+    // Convert map to array and sort by latest message timestamp (most recent first)
+    const orders = Array.from(orderMap.values()).sort((a, b) => {
+      const aTime = a.latestMessage.createdAt?.toDate?.() 
+        ? a.latestMessage.createdAt.toDate().getTime() 
+        : new Date(a.latestMessage.createdAt).getTime();
+      
+      const bTime = b.latestMessage.createdAt?.toDate?.() 
+        ? b.latestMessage.createdAt.toDate().getTime() 
+        : new Date(b.latestMessage.createdAt).getTime();
+      
+      return bTime - aTime; // Descending order (newest first)
+    });
+    
+    callback(orders);
+  });
+}
+
+// Get unique order IDs with their latest message for a user
+export interface OrderWithLatestMessage {
+  orderId: number;
+  latestMessage: FirebaseMessage;
+  unreadCount: number;
+}
+
+export function getUserOrdersWithMessages(userId: number, callback: (orders: OrderWithLatestMessage[]) => void) {
+  // Query all messages from all orders
+  const q = query(
+    collectionGroup(db, MESSAGES_SUBCOLLECTION),
+    orderBy('createdAt', 'desc') // Get in descending order to easily find latest
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const orderMap = new Map<number, OrderWithLatestMessage>();
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as FirebaseMessage;
+      data.id = doc.id;
+      
+      // Only process messages for this user
+      if (data.userId === userId || (data.orderId && (data.isAdmin || !data.isAdmin))) {
+        const orderId = data.orderId;
+        
+        if (!orderMap.has(orderId)) {
+          // First message for this order, initialize with latest message
+          orderMap.set(orderId, {
+            orderId,
+            latestMessage: data,
+            unreadCount: data.isAdmin && !data.isRead ? 1 : 0
+          });
+        } else {
+          // Already have an entry for this order
+          const orderData = orderMap.get(orderId)!;
+          
+          // Update unread count if needed
+          if (data.isAdmin && !data.isRead) {
+            orderData.unreadCount++;
+          }
+          
+          // We're already sorted by descending date, so we don't need to update latestMessage
+          // since the first message we encounter for each order is already the latest
+        }
+      }
+    });
+    
+    // Convert map to array and sort by latest message timestamp (most recent first)
+    const orders = Array.from(orderMap.values()).sort((a, b) => {
+      const aTime = a.latestMessage.createdAt?.toDate?.() 
+        ? a.latestMessage.createdAt.toDate().getTime() 
+        : new Date(a.latestMessage.createdAt).getTime();
+      
+      const bTime = b.latestMessage.createdAt?.toDate?.() 
+        ? b.latestMessage.createdAt.toDate().getTime() 
+        : new Date(b.latestMessage.createdAt).getTime();
+      
+      return bTime - aTime; // Descending order (newest first)
+    });
+    
+    callback(orders);
+  });
+}
+
 // Mark a message as read
 export async function markMessageAsRead(messageId: string | string[], orderId: number) {
   try {
