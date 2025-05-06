@@ -105,18 +105,24 @@ export default function MessagesPage() {
   // Removed create message mutation
 
   // Helper function to create a placeholder message object
-  const createPlaceholderMessage = (orderId: number): Message => ({
-    id: -1, // Temporary ID
-    userId: user?.id || 0,
-    orderId: orderId,
-    subject: `הזמנה #${orderId}`,
-    content: "",
-    isRead: true,
-    isFromAdmin: false,
-    createdAt: new Date(),
-    imageUrl: null,
-    parentId: null
-  });
+  const createPlaceholderMessage = (orderId: number): Message => {
+    // Find order number from our list of orders with messages
+    const orderInfo = userOrdersWithMessages.find(order => order.orderId === orderId);
+    const orderNumber = orderInfo?.orderNumber || orderId.toString();
+    
+    return {
+      id: -1, // Temporary ID
+      userId: user?.id || 0,
+      orderId: orderId,
+      subject: `הזמנה #${orderNumber}`,
+      content: "",
+      isRead: true,
+      isFromAdmin: false,
+      createdAt: new Date(),
+      imageUrl: null,
+      parentId: null
+    };
+  };
 
   // Handle clicking on a message
   const handleMessageClick = (message: Message) => {
@@ -180,6 +186,10 @@ export default function MessagesPage() {
     try {
       setIsFirebaseMessagePending(true);
       
+      // Find order number from our list of orders with messages
+      const orderInfo = userOrdersWithMessages.find(order => order.orderId === selectedMessage.orderId);
+      const orderNumber = orderInfo?.orderNumber || selectedMessage.orderId.toString();
+      
       // Use API endpoint directly to create a message
       const response = await fetch('/api/messages', {
         method: 'POST',
@@ -189,7 +199,7 @@ export default function MessagesPage() {
         body: JSON.stringify({
           content: orderReplyContent,
           orderId: selectedMessage.orderId,
-          subject: `הזמנה #${selectedMessage.orderId}`
+          subject: `הזמנה #${orderNumber}`
         })
       });
       
@@ -330,6 +340,16 @@ export default function MessagesPage() {
     if (!user) return;
 
     try {
+      // First get order details to map ID to order number
+      const ordersResponse = await fetch('/api/user/orders');
+      if (!ordersResponse.ok) throw new Error('Failed to fetch orders');
+      
+      const orders = await ordersResponse.json();
+      const orderNumberMap = new Map<number, string>();
+      orders.forEach((order: any) => {
+        orderNumberMap.set(order.id, order.orderNumber);
+      });
+      
       // Fetch all messages for this user (includes both sent and received)
       const response = await fetch('/api/messages');
       if (!response.ok) throw new Error('Failed to fetch messages');
@@ -348,6 +368,7 @@ export default function MessagesPage() {
         if (!orderMap.has(orderId)) {
           orderMap.set(orderId, {
             orderId,
+            orderNumber: orderNumberMap.get(orderId),
             latestMessage: message,
             unreadCount: message.isFromAdmin && !message.isRead ? 1 : 0
           });
