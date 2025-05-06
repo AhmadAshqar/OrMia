@@ -7,13 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
 
-import { 
-  createMessage as createFirebaseMessage, 
-  FirebaseMessage, 
-  markMessageAsRead,
-  getOrderConversations,
-  OrderSummary
-} from '@/lib/firebaseMessages';
+// Import only the OrderSummary type since we're transitioning to API-based messaging
+import { OrderSummary } from '@/lib/firebaseMessages';
 
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,7 +28,7 @@ export default function AdminMessagesPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [orderConversations, setOrderConversations] = useState<OrderSummary[]>([]);
-  const [isFirebaseMessagePending, setIsFirebaseMessagePending] = useState(false);
+  const [isMessageSending, setIsMessageSending] = useState(false);
   const websocketRef = useRef<WebSocket | null>(null);
 
   // Fetch orders with messages from the admin endpoint
@@ -118,17 +113,25 @@ export default function AdminMessagesPage() {
     if (!selectedOrderId || (!replyContent.trim() && !selectedImage)) return;
     
     try {
-      setIsFirebaseMessagePending(true);
+      setIsMessageSending(true);
       
-      // Send the message
-      await createFirebaseMessage({
-        content: replyContent,
-        imageUrl: selectedImage || undefined,
-        userId: user?.id || 0,
-        isAdmin: true,
-        orderId: selectedOrderId,
-        isRead: false
+      // Send the message using the API endpoint
+      const response = await fetch(`/api/admin/orders/${selectedOrderId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: replyContent,
+          imageUrl: selectedImage || undefined,
+          isFromAdmin: true,
+          isRead: false
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message via API');
+      }
       
       // Clear the input
       setReplyContent('');
@@ -141,7 +144,8 @@ export default function AdminMessagesPage() {
       });
       
       // Refresh the messages
-      fetchOrderConversations();
+      refetchOrderApiMessages();
+      refetchOrdersWithMessages();
       
     } catch (error) {
       console.error("Error sending message:", error);
@@ -151,26 +155,23 @@ export default function AdminMessagesPage() {
         variant: 'destructive'
       });
     } finally {
-      setIsFirebaseMessagePending(false);
+      setIsMessageSending(false);
     }
   };
 
-  // Fetch order conversations from Firestore
+  // Fetch order conversations using API endpoint instead of Firestore
   const fetchOrderConversations = useCallback(async () => {
     try {
-      console.log("Manually fetching order conversations");
-      const unsubscribe = getOrderConversations((convs) => {
-        console.log(`Received ${convs.length} order conversations`);
-        setOrderConversations(convs || []);
-      });
+      console.log("Manually fetching order conversations from API");
       
-      // Immediately unsubscribe since we're using it in a one-time fetch pattern
-      setTimeout(() => unsubscribe(), 2000);
+      // Use the refetch method from the useQuery hook
+      await refetchOrdersWithMessages();
+      
     } catch (error) {
       console.error("Error fetching order conversations:", error);
       setOrderConversations([]);
     }
-  }, []);
+  }, [refetchOrdersWithMessages]);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -433,7 +434,7 @@ export default function AdminMessagesPage() {
                             <Button 
                               type="submit" 
                               className="rounded-full h-[50px] w-[50px] p-0 flex items-center justify-center bg-blue-500 hover:bg-blue-600"
-                              disabled={isFirebaseMessagePending || (!replyContent.trim() && !selectedImage)}
+                              disabled={isMessageSending || (!replyContent.trim() && !selectedImage)}
                             >
                               {isFirebaseMessagePending ? (
                                 <Loader2 className="h-5 w-5 animate-spin" />
