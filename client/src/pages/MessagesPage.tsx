@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -181,21 +181,36 @@ export default function MessagesPage() {
     try {
       setIsFirebaseMessagePending(true);
       
-      await createFirebaseMessage({
-        content: orderReplyContent,
-        userId: user?.id || 0,
-        isAdmin: false,
-        orderId: selectedMessage.orderId,
-        isRead: false
+      // Use API endpoint directly to create a message
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: orderReplyContent,
+          orderId: selectedMessage.orderId,
+          subject: `הזמנה #${selectedMessage.orderId}`
+        })
       });
       
+      if (!response.ok) {
+        throw new Error('Failed to send message via API');
+      }
+      
       setOrderReplyContent('');
+      // Refresh messages after sending
+      fetchMessages();
+      if (selectedOrderId) {
+        fetchOrderMessages(selectedOrderId);
+      }
+      
       toast({
         title: 'הודעה נשלחה',
         description: 'ההודעה שלך נשלחה בהצלחה'
       });
     } catch (error) {
-      console.error("Error sending Firebase message:", error);
+      console.error("Error sending message:", error);
       toast({
         title: 'שגיאה',
         description: 'לא ניתן לשלוח את ההודעה',
@@ -290,56 +305,120 @@ export default function MessagesPage() {
     }
   }, [selectedOrderId, isConnected]);
 
-  // Fetch Firebase messages
-  useEffect(() => {
+  // Fetch messages directly from API instead of Firebase
+  const fetchMessages = useCallback(async () => {
     if (!user) return;
-    
-    const unsubscribe = getUserMessages(user.id, (messages) => {
-      console.log(`Received ${messages.length} Firebase messages in snapshot`);
-      setFirebaseMessages(messages);
-    });
-    
-    return () => unsubscribe();
-  }, [user]);
 
-  // Fetch user orders with messages
-  useEffect(() => {
-    if (!user) {
-      setUserOrdersWithMessages([]);
-      return;
+    try {
+      // Fetch all messages for this user (includes both sent and received)
+      const response = await fetch('/api/messages');
+      if (!response.ok) throw new Error('Failed to fetch messages');
+      
+      const messages = await response.json();
+      console.log(`Fetched ${messages.length} messages from API`);
+      
+      // Process messages to build order list with latest messages
+      const orderMap = new Map<number, OrderWithLatestMessage>();
+      
+      for (const message of messages) {
+        if (!message.orderId) continue;
+        
+        const orderId = message.orderId;
+        
+        if (!orderMap.has(orderId)) {
+          orderMap.set(orderId, {
+            orderId,
+            latestMessage: message,
+            unreadCount: message.isFromAdmin && !message.isRead ? 1 : 0
+          });
+        } else {
+          // Check if this message is newer than what we have
+          const existing = orderMap.get(orderId)!;
+          const existingDate = new Date(existing.latestMessage.createdAt);
+          const messageDate = new Date(message.createdAt);
+          
+          if (messageDate > existingDate) {
+            existing.latestMessage = message;
+          }
+          
+          // Update unread count
+          if (message.isFromAdmin && !message.isRead) {
+            existing.unreadCount++;
+          }
+        }
+      }
+      
+      // Convert to array and sort by latest first
+      const ordersList = Array.from(orderMap.values()).sort((a, b) => {
+        const dateA = new Date(a.latestMessage.createdAt);
+        const dateB = new Date(b.latestMessage.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      console.log(`Processed ${ordersList.length} orders with messages`);
+      setUserOrdersWithMessages(ordersList);
+      setFirebaseMessages(messages);  // Keep this for compatibility
+      
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן לטעון את ההודעות',
+        variant: 'destructive'
+      });
     }
-    
-    console.log(`Setting up live orders with messages subscription for user ${user.id}`);
-    const unsubscribe = getUserOrdersWithMessages(user.id, (orders) => {
-      console.log(`Received ${orders.length} orders with messages for user ${user.id}`);
-      setUserOrdersWithMessages(orders);
-    });
-    
-    return () => unsubscribe();
-  }, [user]);
+  }, [user, toast]);
 
   // Fetch messages for the selected order
-  useEffect(() => {
-    if (!selectedOrderId) {
+  const fetchOrderMessages = useCallback(async (orderId: number) => {
+    if (!orderId) {
       setOrderMessages([]);
       return;
     }
-    
-    const unsubscribe = getOrderMessages(selectedOrderId, (messages) => {
-      console.log(`Received ${messages.length} messages for order ${selectedOrderId}`);
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}/messages`);
+      if (!response.ok) throw new Error(`Failed to fetch messages for order ${orderId}`);
+      
+      const messages = await response.json();
+      console.log(`Fetched ${messages.length} messages for order ${orderId} from API`);
       setOrderMessages(messages);
-    });
+      
+    } catch (error) {
+      console.error(`Error fetching messages for order ${orderId}:`, error);
+      setOrderMessages([]);
+    }
+  }, []);
+
+  // Initial fetch and refresh messages periodically
+  useEffect(() => {
+    fetchMessages();
     
-    return () => unsubscribe();
-  }, [selectedOrderId]);
+    // Poll for updates every 5 seconds
+    const interval = setInterval(fetchMessages, 5000);
+    
+    return () => clearInterval(interval);
+  }, [fetchMessages]);
+
+  // Fetch order messages when an order is selected
+  useEffect(() => {
+    if (selectedOrderId) {
+      fetchOrderMessages(selectedOrderId);
+      
+      // Poll for updates every 5 seconds
+      const interval = setInterval(() => fetchOrderMessages(selectedOrderId), 5000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [selectedOrderId, fetchOrderMessages]);
 
   // Function to manually refresh messages for an order
   const refreshOrderMessages = (orderId: number) => {
     if (orderId === selectedOrderId) {
-      // This will trigger the useEffect hook above
-      setSelectedOrderId(null);
-      setTimeout(() => setSelectedOrderId(orderId), 10);
+      fetchOrderMessages(orderId);
     }
+    // Also refresh all messages to update the sidebar
+    fetchMessages();
   };
 
   // Auto-scroll to bottom when new messages arrive
@@ -347,7 +426,7 @@ export default function MessagesPage() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [selectedMessage, firebaseMessages]);
+  }, [selectedMessage, orderMessages]);
 
   // Auto-scroll to bottom for order messages
   useEffect(() => {
@@ -405,29 +484,41 @@ export default function MessagesPage() {
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      onClick={() => {
+                      onClick={async () => {
                         if (!user) return;
                         
-                        // Create a test message for order 10
-                        createFirebaseMessage({
-                          content: "זוהי הודעת בדיקה מהמשתמש " + user.username + " ב-" + new Date().toLocaleString(),
-                          orderId: 10,
-                          userId: user.id,
-                          isAdmin: false,
-                          isRead: false
-                        }).then(() => {
+                        try {
+                          // Create a test message for order 10 using API directly
+                          const response = await fetch('/api/test-message', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ orderId: 10 })
+                          });
+                          
+                          if (!response.ok) {
+                            throw new Error('Failed to create test message');
+                          }
+                          
+                          // Refresh messages
+                          fetchMessages();
+                          if (selectedOrderId === 10) {
+                            fetchOrderMessages(10);
+                          }
+                          
                           toast({
                             title: 'הודעה נוצרה',
                             description: 'הודעת בדיקה נוצרה להזמנה #10'
                           });
-                        }).catch(error => {
+                        } catch (error) {
                           console.error("Error creating test message:", error);
                           toast({
                             title: 'שגיאה',
                             description: 'לא ניתן ליצור הודעת בדיקה',
                             variant: 'destructive'
                           });
-                        });
+                        }
                       }}
                       title="צור הודעת בדיקה להזמנה 10"
                     >
