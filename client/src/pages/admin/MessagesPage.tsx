@@ -188,67 +188,88 @@ export default function AdminMessagesPage() {
   // Initialize WebSocket connection
   useEffect(() => {
     const connectWebSocket = () => {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      // Check if we already have an open connection
+      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+        return;
+      }
       
-      const ws = new WebSocket(wsUrl);
-      websocketRef.current = ws;
-      
-      ws.onopen = () => {
-        console.log('WebSocket connection established');
+      try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
         
-        // Send authentication
-        if (user) {
-          ws.send(JSON.stringify({ 
-            type: 'auth', 
-            userId: user.id,
-            isAdmin: true
-          }));
-        }
-      };
-      
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log('WebSocket message received:', data);
+        const ws = new WebSocket(wsUrl);
+        websocketRef.current = ws;
         
-        if (data.type === 'welcome') {
-          console.log(data.message);
-        } else if (data.type === 'auth_response' && data.success) {
-          console.log('WebSocket authentication successful');
-        } else if (data.type === 'new_message') {
-          // Refresh data when a new message arrives
-          fetchOrderConversations();
+        ws.onopen = () => {
+          console.log('WebSocket connection established');
           
-          if (selectedOrderId && data.orderId === selectedOrderId) {
-            refetchOrderApiMessages();
+          // Send authentication
+          if (user) {
+            ws.send(JSON.stringify({ 
+              type: 'auth', 
+              userId: user.id,
+              isAdmin: true
+            }));
           }
-          
-          // Show notification
-          toast({
-            title: 'הודעה חדשה',
-            description: `התקבלה הודעה חדשה${data.orderId ? ' להזמנה מספר ' + data.orderId : ''}`
-          });
-        }
-      };
-      
-      ws.onclose = (event) => {
-        console.log('WebSocket connection closed:', event);
+        };
         
-        // Attempt to reconnect after a delay
-        setTimeout(connectWebSocket, 3000);
-      };
-      
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        ws.close();
-      };
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log('WebSocket message received:', data);
+          
+          if (data.type === 'welcome') {
+            console.log(data.message);
+          } else if (data.type === 'auth_response' && data.success) {
+            console.log('WebSocket authentication successful');
+          } else if (data.type === 'new_message') {
+            // Refresh data when a new message arrives
+            fetchOrderConversations();
+            
+            if (selectedOrderId && data.orderId === selectedOrderId) {
+              refetchOrderApiMessages();
+            }
+            
+            // Show notification
+            toast({
+              title: 'הודעה חדשה',
+              description: `התקבלה הודעה חדשה${data.orderId ? ' להזמנה מספר ' + data.orderId : ''}`
+            });
+          }
+        };
+        
+        ws.onclose = (event) => {
+          console.log('WebSocket connection closed:', event);
+          
+          // Only attempt to reconnect if this wasn't an intentional close
+          if (event.code !== 1000) {
+            // Attempt to reconnect after a delay
+            setTimeout(connectWebSocket, 3000);
+          }
+        };
+        
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          // Don't close here as it can lead to InvalidStateError
+          // The onclose handler will fire automatically
+        };
+      } catch (error) {
+        console.error('Error creating WebSocket connection:', error);
+      }
     };
     
     connectWebSocket();
     
     return () => {
       if (websocketRef.current) {
-        websocketRef.current.close();
+        try {
+          // Only close if connection is still open
+          if (websocketRef.current.readyState === WebSocket.OPEN) {
+            websocketRef.current.close(1000); // 1000 = normal closure
+          }
+          websocketRef.current = null;
+        } catch (error) {
+          console.error('Error closing WebSocket:', error);
+        }
       }
     };
   }, [user, toast, fetchOrderConversations, selectedOrderId, refetchOrderApiMessages]);

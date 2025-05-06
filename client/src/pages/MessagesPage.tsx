@@ -227,68 +227,89 @@ export default function MessagesPage() {
     if (!user) return;
     
     const connectWebSocket = () => {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      // Check if we already have an open connection
+      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+        return;
+      }
       
-      const ws = new WebSocket(wsUrl);
-      
-      ws.onopen = () => {
-        console.log('WebSocket connection established');
-        // Authenticate with user ID
-        ws.send(JSON.stringify({
-          type: 'auth',
-          userId: user.id,
-          isAdmin: user.role === 'admin'
-        }));
-      };
-      
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log('WebSocket message received:', data);
+      try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
         
-        if (data.type === 'welcome') {
-          console.log(data.message);
-        } else if (data.type === 'auth_response' && data.success) {
-          console.log('WebSocket authentication successful');
-          setIsConnected(true);
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          console.log('WebSocket connection established');
+          // Authenticate with user ID
+          ws.send(JSON.stringify({
+            type: 'auth',
+            userId: user.id,
+            isAdmin: user.role === 'admin'
+          }));
+        };
+        
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log('WebSocket message received:', data);
           
-          // Subscribe to messages for current order if one is selected
-          if (selectedOrderId) {
-            console.log('Subscribing to messages for order', selectedOrderId);
-            ws.send(JSON.stringify({
-              type: 'subscribe',
-              orderId: selectedOrderId
-            }));
+          if (data.type === 'welcome') {
+            console.log(data.message);
+          } else if (data.type === 'auth_response' && data.success) {
+            console.log('WebSocket authentication successful');
+            setIsConnected(true);
+            
+            // Subscribe to messages for current order if one is selected
+            if (selectedOrderId) {
+              console.log('Subscribing to messages for order', selectedOrderId);
+              ws.send(JSON.stringify({
+                type: 'subscribe',
+                orderId: selectedOrderId
+              }));
+            }
+          } else if (data.type === 'message' && data.orderId) {
+            // Refresh messages when we receive a new one
+            refreshOrderMessages(data.orderId);
           }
-        } else if (data.type === 'message' && data.orderId) {
-          // Refresh messages when we receive a new one
-          refreshOrderMessages(data.orderId);
-        }
-      };
-      
-      ws.onclose = (event) => {
-        console.log('WebSocket connection closed:', event);
+        };
+        
+        ws.onclose = (event) => {
+          console.log('WebSocket connection closed:', event);
+          setIsConnected(false);
+          
+          // Only attempt to reconnect if this wasn't an intentional close
+          if (event.code !== 1000) {
+            // Try to reconnect after a delay
+            setTimeout(connectWebSocket, 3000);
+          }
+        };
+        
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          setIsConnected(false);
+          // Don't close here, let the onclose handler deal with it
+        };
+        
+        websocketRef.current = ws;
+      } catch (error) {
+        console.error('Error creating WebSocket connection:', error);
         setIsConnected(false);
-        // Attempt to reconnect after a delay
-        setTimeout(connectWebSocket, 3000);
-      };
-      
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-      
-      websocketRef.current = ws;
-      
-      return () => {
-        ws.close();
-      };
+      }
     };
     
     connectWebSocket();
     
     return () => {
+      // Clean up WebSocket connection on component unmount
       if (websocketRef.current) {
-        websocketRef.current.close();
+        try {
+          // Only close if connection is still open
+          if (websocketRef.current.readyState === WebSocket.OPEN) {
+            websocketRef.current.close(1000); // 1000 = normal closure
+          }
+          websocketRef.current = null;
+        } catch (error) {
+          console.error('Error closing WebSocket:', error);
+        }
       }
     };
   }, [user]);
