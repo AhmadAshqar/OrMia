@@ -13,7 +13,9 @@ import {
   markMessageAsRead, 
   getOrderMessages,
   getAllOrdersWithMessages,
-  uploadMessageImage as uploadOrderImage
+  uploadMessageImage as uploadOrderImage,
+  getOrderConversations,
+  OrderSummary
 } from '@/lib/firebaseMessages';
 
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -52,6 +54,7 @@ export default function AdminMessagesPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
+  const [orderConversations, setOrderConversations] = useState<OrderSummary[]>([]);
   const websocketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -350,6 +353,20 @@ export default function AdminMessagesPage() {
     
     const unsubscribe = getAllMessages((messages) => {
       setFirebaseMessages(messages);
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [user]);
+
+  // Effect to get all orders with messages
+  useEffect(() => {
+    if (!user) return;
+    
+    // Subscribe to real-time order conversations updates
+    const unsubscribe = getOrderConversations((orders) => {
+      setOrderConversations(orders);
     });
     
     return () => {
