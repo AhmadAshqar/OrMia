@@ -1050,6 +1050,11 @@ function MessageDetails({
   const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: string) => {
+    setReplyContent((prev) => prev + emoji);
+  };
+  
   // Load Firebase messages
   useEffect(() => {
     if (!selectedMessage?.orderId) return;
