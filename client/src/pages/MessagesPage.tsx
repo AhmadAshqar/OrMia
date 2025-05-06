@@ -21,7 +21,7 @@ import {
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -39,12 +39,7 @@ export default function MessagesPage() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [orderReplyContent, setOrderReplyContent] = useState('');
-  const [newMessageForm, setNewMessageForm] = useState({
-    subject: '',
-    content: '',
-    orderId: ''
-  });
-  const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false);
+
   const [isConnected, setIsConnected] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
@@ -108,33 +103,7 @@ export default function MessagesPage() {
     }
   });
 
-  // Mutation to create a new message
-  const createMessageMutation = useMutation({
-    mutationFn: async (messageData: { subject: string; content: string; orderId?: string }) => {
-      const response = await apiRequest('POST', '/api/messages', messageData);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
-      setIsNewMessageDialogOpen(false);
-      setNewMessageForm({
-        subject: '',
-        content: '',
-        orderId: ''
-      });
-      toast({
-        title: 'הודעה נשלחה',
-        description: 'ההודעה שלך נשלחה בהצלחה'
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'שגיאה',
-        description: 'לא ניתן לשלוח את ההודעה',
-        variant: 'destructive'
-      });
-    }
-  });
+
 
   // Helper function to create a placeholder message object
   const createPlaceholderMessage = (orderId: number): Message => ({
@@ -237,25 +206,7 @@ export default function MessagesPage() {
     }
   };
 
-  // Handle creating a new message
-  const handleCreateMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newMessageForm.subject.trim() || !newMessageForm.content.trim()) {
-      toast({
-        title: 'שגיאה',
-        description: 'נושא ותוכן ההודעה הם שדות חובה',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    createMessageMutation.mutate({
-      subject: newMessageForm.subject,
-      content: newMessageForm.content,
-      orderId: newMessageForm.orderId || undefined
-    });
-  };
+
 
   // Connect to WebSocket when component mounts
   useEffect(() => {
@@ -434,16 +385,11 @@ export default function MessagesPage() {
       
       <div className="container max-w-5xl py-8 mt-12">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>הודעות שלי</CardTitle>
-              <CardDescription>
-                התכתבות עם צוות אור מיה
-              </CardDescription>
-            </div>
-            <div>
-              <Button onClick={() => setIsNewMessageDialogOpen(true)}>הודעה חדשה</Button>
-            </div>
+          <CardHeader>
+            <CardTitle>הודעות שלי</CardTitle>
+            <CardDescription>
+              התכתבות עם צוות אור מיה
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="w-full">
@@ -761,70 +707,7 @@ export default function MessagesPage() {
         </Card>
       </div>
       
-      {/* New message dialog */}
-      <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>הודעה חדשה</DialogTitle>
-            <DialogDescription>
-              יצירת הודעה חדשה לצוות אור מיה
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreateMessage}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="subject" className="text-right">
-                  נושא
-                </label>
-                <Input
-                  id="subject"
-                  className="col-span-3"
-                  value={newMessageForm.subject}
-                  onChange={(e) => setNewMessageForm({ ...newMessageForm, subject: e.target.value })}
-                  dir="rtl"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="orderId" className="text-right">
-                  מספר הזמנה (אופציונלי)
-                </label>
-                <Input
-                  id="orderId"
-                  className="col-span-3"
-                  value={newMessageForm.orderId}
-                  onChange={(e) => setNewMessageForm({ ...newMessageForm, orderId: e.target.value })}
-                  dir="rtl"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="content" className="text-right">
-                  תוכן
-                </label>
-                <Textarea
-                  id="content"
-                  className="col-span-3"
-                  value={newMessageForm.content}
-                  onChange={(e) => setNewMessageForm({ ...newMessageForm, content: e.target.value })}
-                  dir="rtl"
-                  rows={5}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" disabled={createMessageMutation.isPending}>
-                {createMessageMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    שולח...
-                  </>
-                ) : (
-                  'שלח הודעה'
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+
     </MainLayout>
   );
 }
