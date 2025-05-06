@@ -344,7 +344,7 @@ export default function AdminMessagesPage() {
                             >
                               <div className="flex justify-between items-center mb-1">
                                 <div className="font-semibold">
-                                  הזמנה מספר {order.orderId}
+                                  הזמנה מספר {order.orderNumber || order.orderId}
                                 </div>
                                 <div className="text-xs text-gray-500">
                                   {order.date && format(new Date(order.date), 'dd/MM/yyyy', { locale: he })}
@@ -367,7 +367,11 @@ export default function AdminMessagesPage() {
                     {selectedOrderId ? (
                       <div className="h-full flex flex-col">
                         <div className="p-3 border-b bg-white">
-                          <h3 className="font-semibold">הזמנה מספר {selectedOrderId}</h3>
+                          <h3 className="font-semibold">
+                            הזמנה מספר {
+                              orders.find(order => order.orderId === selectedOrderId)?.orderNumber || selectedOrderId
+                            }
+                          </h3>
                           <p className="text-sm text-muted-foreground">
                             צ'אט עם לקוח
                           </p>
