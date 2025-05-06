@@ -21,7 +21,7 @@ import {
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -346,6 +346,28 @@ export default function AdminMessagesPage() {
       }
     }
   };
+  
+  // Handle order click
+  const handleOrderClick = (orderId: number) => {
+    setSelectedOrderId(orderId);
+    
+    // Mark all unread messages for this order as read
+    const unreadMessages = firebaseMessages.filter(msg => 
+      msg.orderId === orderId && !msg.isAdmin && !msg.isRead
+    );
+    
+    // Use batch update to mark all unread messages as read at once
+    if (unreadMessages.length > 0) {
+      const messageIds = unreadMessages
+        .filter(msg => msg.id)
+        .map(msg => msg.id as string);
+      
+      if (messageIds.length > 0) {
+        markMessageAsRead(messageIds, orderId)
+          .catch(error => console.error("Error marking messages as read:", error));
+      }
+    }
+  };
 
   // Effect to listen for all Firebase messages
   useEffect(() => {
@@ -406,7 +428,18 @@ export default function AdminMessagesPage() {
   // Handle reply submit with Firebase
   const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMessage) return;
+    // Check if we're in order view or message view
+    const targetOrderId = selectedOrderId || (selectedMessage?.orderId);
+    
+    if (!targetOrderId) {
+      toast({
+        title: 'שגיאה',
+        description: 'יש לבחור הזמנה או הודעה',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     if (!replyContent.trim() && !selectedImage) {
       toast({
         title: 'שגיאה',
@@ -427,53 +460,43 @@ export default function AdminMessagesPage() {
     try {
       // Send message through Firebase
       if (user) {
-        // Ensure orderId is defined before creating message
-        if (!selectedMessage.orderId) {
-          throw new Error('Order ID is required for Firebase messages');
-        }
-        
         await createFirebaseMessage({
           content: messageContent,
-          orderId: selectedMessage.orderId,
+          orderId: typeof targetOrderId === 'string' ? parseInt(targetOrderId) : targetOrderId,
           userId: user.id,
           isAdmin: true,
-          isRead: false,
+          isRead: true, // Admin's messages are always read
           imageUrl: imageContent || undefined
         });
         
-        // Mark related messages as read
-        if (selectedMessage.id && selectedMessage.orderId) {
-          await markMessageAsRead(selectedMessage.id.toString(), selectedMessage.orderId);
-        }
+        // Mark any unread Firebase messages for this order as read
+        const unreadUserMessages = firebaseMessages.filter(msg => 
+          msg.orderId === targetOrderId && !msg.isAdmin && !msg.isRead
+        );
         
-        // Also mark any unread Firebase messages for this order as read
-        if (selectedMessage.orderId) {
-          const unreadUserMessages = firebaseMessages.filter(msg => 
-            msg.orderId === selectedMessage.orderId && !msg.isAdmin && !msg.isRead
-          );
+        // Use batch update to mark all unread messages as read at once
+        if (unreadUserMessages.length > 0) {
+          const messageIds = unreadUserMessages
+            .filter(msg => msg.id)
+            .map(msg => msg.id as string);
           
-          // Use batch update to mark all unread messages as read at once
-          if (unreadUserMessages.length > 0) {
-            const messageIds = unreadUserMessages
-              .filter(msg => msg.id)
-              .map(msg => msg.id as string);
-            
-            if (messageIds.length > 0) {
-              await markMessageAsRead(messageIds, selectedMessage.orderId);
-            }
+          if (messageIds.length > 0) {
+            await markMessageAsRead(messageIds, 
+              typeof targetOrderId === 'string' ? parseInt(targetOrderId) : targetOrderId
+            );
           }
         }
         
         toast({
           title: 'הודעה נשלחה',
-          description: 'התשובה שלך נשלחה בהצלחה'
+          description: 'ההודעה שלך נשלחה בהצלחה'
         });
       }
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
         title: 'שגיאה',
-        description: 'לא ניתן לשלוח את התשובה',
+        description: 'לא ניתן לשלוח את ההודעה',
         variant: 'destructive'
       });
     }
@@ -506,6 +529,12 @@ export default function AdminMessagesPage() {
     if (!selectedUserId || !messages) return [];
     return messages.filter((message) => message.userId === selectedUserId);
   };
+  
+  // Filter messages by order
+  const getMessagesForSelectedOrder = (messages: FirebaseMessage[]) => {
+    if (!selectedOrderId || !messages) return [];
+    return messages.filter((message) => message.orderId === selectedOrderId);
+  };
 
   // Determine which messages to display based on the active tab
   const getActiveMessages = (tabValue: string) => {
@@ -535,7 +564,7 @@ export default function AdminMessagesPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="chat" className="w-full">
+            <Tabs defaultValue="orders" className="w-full">
               
               <TabsContent value="unread">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -727,6 +756,162 @@ export default function AdminMessagesPage() {
               </TabsContent>
               
               <TabsContent value="orders">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
+                  {/* Left panel - Orders list */}
+                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
+                    <div className="p-3 border-b">
+                      <h3 className="text-lg font-medium">שיחות לפי הזמנה</h3>
+                    </div>
+                    
+                    <div className="flex-1 overflow-auto">
+                      {orderConversations.length === 0 ? (
+                        <div className="flex justify-center items-center h-full">
+                          <p className="text-muted-foreground">אין הודעות להזמנות</p>
+                        </div>
+                      ) : (
+                        <OrderList
+                          orders={orderConversations}
+                          selectedOrderId={selectedOrderId}
+                          onOrderClick={handleOrderClick}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Right panel - Chat view for selected order */}
+                  <div className="md:col-span-2 border rounded-lg overflow-hidden h-full">
+                    {selectedOrderId ? (
+                      <div className="h-full flex flex-col">
+                        <div className="p-3 border-b">
+                          <h3 className="text-lg font-medium">הזמנה #{selectedOrderId}</h3>
+                        </div>
+                        <div id="admin-chat-container-orders" className="flex-1 overflow-auto p-4 bg-gray-50">
+                          {orderFirebaseMessages.length > 0 ? (
+                            <div className="space-y-4 p-2 bg-gray-50">
+                              {orderFirebaseMessages
+                                .sort((a, b) => {
+                                  // Sort messages by date (oldest first)
+                                  const dateA = a.createdAt?.toDate?.() 
+                                    ? a.createdAt.toDate().getTime() 
+                                    : new Date(a.createdAt).getTime();
+                                  
+                                  const dateB = b.createdAt?.toDate?.() 
+                                    ? b.createdAt.toDate().getTime() 
+                                    : new Date(b.createdAt).getTime();
+                                  
+                                  return dateA - dateB; // Ascending order (oldest first)
+                                })
+                                .map((msg) => {
+                                  const isAdmin = msg.isAdmin;
+                                  const alignRight = isAdmin;
+                                  const alignLeft = !isAdmin;
+                                  const senderName = isAdmin ? "מוכר" : "קונה";
+                                  
+                                  return (
+                                    <div 
+                                      key={msg.id}
+                                      className={`flex ${alignRight ? 'justify-end' : 'justify-start'} mb-3`}
+                                    >
+                                      <div 
+                                        className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                                          alignRight 
+                                            ? 'bg-blue-500 text-white rounded-tr-none' 
+                                            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                                        }`}
+                                      >
+                                        <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                                        
+                                        {/* Display image if any */}
+                                        {msg.imageUrl && (
+                                          <div className="mt-2">
+                                            <img 
+                                              src={msg.imageUrl} 
+                                              alt="תמונה שצורפה" 
+                                              className="max-w-full rounded-lg max-h-40" 
+                                            />
+                                          </div>
+                                        )}
+                                        
+                                        <div className={`flex items-center text-xs mt-1 ${alignRight ? 'text-blue-100' : 'text-gray-500'}`}>
+                                          <span>{format(new Date(
+                                              msg.createdAt?.toDate?.() ? msg.createdAt.toDate() : new Date(msg.createdAt)
+                                            ), 'HH:mm', { locale: he })}</span>
+                                          <span className="mx-1">•</span>
+                                          <span>{senderName}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              <div ref={messagesEndRef} />
+                            </div>
+                          ) : (
+                            <div className="flex justify-center items-center h-full">
+                              <p className="text-muted-foreground">אין הודעות להזמנה זו עדיין</p>
+                            </div>
+                          )}
+                          <div ref={messagesEndRef} />
+                        </div>
+                        <div className="p-4 border-t bg-white">
+                          <form onSubmit={handleReplySubmit} className="flex flex-col gap-2">
+                            {/* Image preview if selected */}
+                            {selectedImage && (
+                              <div className="flex justify-start mb-2">
+                                <div className="relative">
+                                  <img src={selectedImage} alt="Selected" className="max-w-[200px] max-h-[150px] rounded-lg" />
+                                  <button
+                                    type="button"
+                                    className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-70"
+                                    onClick={() => setSelectedImage(null)}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-end">
+                              <div className="relative flex-1">
+                                <Textarea
+                                  className="flex-1 resize-none pr-20"
+                                  placeholder="כתוב הודעה..."
+                                  value={replyContent}
+                                  onChange={(e) => setReplyContent(e.target.value)}
+                                  dir="rtl"
+                                />
+                                <div className="absolute right-2 bottom-2 flex gap-2">
+                                  <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                                  <ImageUploader onImageUploaded={handleImageUploaded} />
+                                </div>
+                              </div>
+                              <Button 
+                                type="submit" 
+                                className="ms-2 self-end"
+                                disabled={!selectedOrderId || (!replyContent.trim() && !selectedImage)}
+                              >
+                                {replyMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  'שלח'
+                                )}
+                              </Button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center h-full">
+                        <p className="text-muted-foreground">נא לבחור הזמנה מהרשימה</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="orders-old">
                 <div className="mb-4">
                   <Select
                     value={selectedOrderId?.toString() || 'all'}
@@ -835,6 +1020,47 @@ function MessageList({ messages, selectedMessageId, onMessageClick }: MessageLis
           </p>
         </div>
       ))}
+    </div>
+  );
+}
+
+// OrderList component to show orders in sidebar
+interface OrderListProps {
+  orders: OrderSummary[];
+  selectedOrderId?: number | string | null;
+  onOrderClick: (orderId: number) => void;
+}
+
+function OrderList({ orders, selectedOrderId, onOrderClick }: OrderListProps) {
+  return (
+    <div className="divide-y overflow-auto h-full">
+      {orders.length === 0 ? (
+        <div className="flex justify-center items-center h-full p-4">
+          <p className="text-muted-foreground">אין הודעות להזמנות</p>
+        </div>
+      ) : (
+        orders.map((order) => (
+          <div 
+            key={order.orderId} 
+            className={`p-4 hover:bg-gray-50 cursor-pointer ${selectedOrderId === order.orderId ? 'bg-gray-100' : ''}`}
+            onClick={() => onOrderClick(order.orderId)}
+          >
+            <div className="flex justify-between items-center mb-1">
+              <div className="font-semibold">
+                הזמנה #{order.orderId}
+              </div>
+              <div className="text-xs text-gray-500">
+                {order.date && format(new Date(order.date), 'dd/MM/yyyy', { locale: he })}
+              </div>
+            </div>
+            {order.unreadCount && order.unreadCount > 0 && (
+              <div className="mt-1 flex justify-end">
+                <Badge variant="secondary">{order.unreadCount} הודעות חדשות</Badge>
+              </div>
+            )}
+          </div>
+        ))
+      )}
     </div>
   );
 }
