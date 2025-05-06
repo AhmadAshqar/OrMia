@@ -450,8 +450,39 @@ export default function MessagesPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
                 {/* Left panel - Messages list */}
                 <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
-                  <div className="p-3 border-b bg-white">
+                  <div className="p-3 border-b bg-white flex justify-between items-center">
                     <h3 className="font-semibold">הודעות לפי הזמנה</h3>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        if (!user) return;
+                        
+                        // Create a test message for order 10
+                        createFirebaseMessage({
+                          content: "זוהי הודעת בדיקה מהמשתמש " + user.username + " ב-" + new Date().toLocaleString(),
+                          orderId: 10,
+                          userId: user.id,
+                          isAdmin: false,
+                          isRead: false
+                        }).then(() => {
+                          toast({
+                            title: 'הודעה נוצרה',
+                            description: 'הודעת בדיקה נוצרה להזמנה #10'
+                          });
+                        }).catch(error => {
+                          console.error("Error creating test message:", error);
+                          toast({
+                            title: 'שגיאה',
+                            description: 'לא ניתן ליצור הודעת בדיקה',
+                            variant: 'destructive'
+                          });
+                        });
+                      }}
+                      title="צור הודעת בדיקה להזמנה 10"
+                    >
+                      צור הודעת בדיקה
+                    </Button>
                   </div>
                   
                   <div className="flex-1 overflow-auto">
@@ -528,6 +559,15 @@ export default function MessagesPage() {
                         <Button onClick={() => navigate('/orders')}>
                           עבור לדף ההזמנות שלי
                         </Button>
+                        <div className="text-xs text-muted-foreground mt-4 border-t pt-4">
+                          <p className="font-bold mb-1">מידע לצורך הבנת הבעיה:</p>
+                          <p>מזהה משתמש: {user?.id}</p>
+                          <p>מספר הודעות Firebase: {firebaseMessages.length}</p>
+                          <p>מספר הזמנות עם הודעות: {userOrdersWithMessages.length}</p>
+                          <pre className="text-left text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40 max-w-xs">
+                            {JSON.stringify(firebaseMessages, null, 2)}
+                          </pre>
+                        </div>
                       </div>
                     )}
                   </div>
