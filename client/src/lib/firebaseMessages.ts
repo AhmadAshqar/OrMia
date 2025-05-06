@@ -66,20 +66,12 @@ export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' |
     
     console.log('Creating message:', sanitizedMessage);
     
-    // First ensure the order document exists
+    // First get a reference to the order document
     const orderRef = getOrderRef(message.orderId);
-    try {
-      // Create the order document if it doesn't exist, using set with merge
-      await doc(db, ORDERS_COLLECTION, message.orderId.toString()).set({
-        id: message.orderId,
-        createdAt: serverTimestamp()
-      }, { merge: true });
-      
-      console.log('Order document created/updated successfully');
-    } catch (error) {
-      console.error('Error creating/updating order document:', error);
-      // Continue anyway, as we'll try to add the message
-    }
+    
+    // No need to create the order document explicitly
+    // Firestore will automatically create parent documents when creating subcollection documents
+    console.log('Using order reference:', message.orderId.toString());
     
     // Add message to the order's messages subcollection
     const messagesCollection = getOrderMessagesCollection(message.orderId);

@@ -866,6 +866,19 @@ export default function MessagesPage() {
                           <Button onClick={() => navigate('/orders')}>
                             עבור לדף ההזמנות שלי
                           </Button>
+                          <div className="text-xs text-muted-foreground mt-4 border-t pt-4">
+                            <p className="font-bold mb-1">Debug Info:</p>
+                            <p>User ID: {user?.id}</p>
+                            <p>Firebase Messages: {firebaseMessages.length}</p>
+                            <p>Orders with Messages: {userOrdersWithMessages.length}</p>
+                            <pre className="text-left text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40 max-w-xs">
+                              {JSON.stringify(userOrdersWithMessages.map(o => ({
+                                orderId: o.orderId,
+                                unreadCount: o.unreadCount,
+                                content: o.latestMessage.content.substring(0, 20) + '...'
+                              })), null, 2)}
+                            </pre>
+                          </div>
                         </div>
                       )}
                     </div>
