@@ -2277,6 +2277,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "שגיאה בטעינת הודעות הזמנה" });
     }
   });
+  
+  // ADMIN: Get all messages related to an order - specifically for admin interface
+  app.get("/api/admin/orders/:orderId/messages", ensureAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const order = await storage.getOrder(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: "הזמנה לא נמצאה" });
+      }
+      
+      const messages = await storage.getOrderMessages(orderId);
+      console.log(`Admin fetched ${messages.length} messages for order ${orderId}`);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching order messages for admin:", error);
+      res.status(500).json({ error: "שגיאה בטעינת הודעות הזמנה" });
+    }
+  });
 
   // Set up WebSocket server for real-time messaging
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
