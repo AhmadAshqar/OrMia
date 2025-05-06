@@ -678,7 +678,7 @@ export default function MessagesPage() {
                               <div className="absolute right-2 bottom-2 flex gap-2 items-center">
                                 {/* Emoji picker */}
                                 <EmojiPicker 
-                                  onEmojiSelect={(emoji) => setReplyContent((prev: string) => prev + emoji)} 
+                                  onEmojiSelect={(emoji) => setReplyContent(replyContent + emoji)} 
                                 />
                                 
                                 {/* Image uploader */}
@@ -946,7 +946,7 @@ export default function MessagesPage() {
                                 dir="rtl"
                               />
                               <div className="absolute right-1 bottom-1.5 flex gap-2">
-                                <EmojiPicker onEmojiSelect={(emoji) => setReplyContent(prev => prev + emoji)} />
+                                <EmojiPicker onEmojiSelect={(emoji) => setReplyContent(replyContent + emoji)} />
                                 <ImageUploader onImageUploaded={(url) => {
                                   setSelectedImage(url);
                                   toast({
