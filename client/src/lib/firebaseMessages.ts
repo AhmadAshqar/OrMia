@@ -11,7 +11,9 @@ import {
   updateDoc,
   doc,
   writeBatch,
-  collectionGroup
+  collectionGroup,
+  limit,
+  Timestamp
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -235,6 +237,76 @@ export interface OrderWithLatestMessage {
   orderId: number;
   latestMessage: FirebaseMessage;
   unreadCount: number;
+  date?: Date; // Date for display purposes
+}
+
+// Order summary for display in the sidebar
+export interface OrderSummary {
+  orderId: number;
+  date: Date;
+  hasMessages: boolean;
+  unreadCount?: number;
+}
+
+// Get all orders that have messages
+export async function getOrdersWithMessages(): Promise<OrderSummary[]> {
+  try {
+    // First get all distinct orders
+    const ordersQuery = query(collection(db, ORDERS_COLLECTION));
+    const ordersSnapshot = await getDocs(ordersQuery);
+    
+    const orders: { id: number; date: Date }[] = [];
+    
+    ordersSnapshot.forEach(doc => {
+      const orderId = Number(doc.id);
+      orders.push({
+        id: orderId,
+        date: new Date() // Default date, will be updated with latest message date
+      });
+    });
+    
+    // For each order, check if it has messages
+    const ordersWithMessages = await Promise.all(
+      orders.map(async (order) => {
+        const messagesQuery = query(
+          collection(db, ORDERS_COLLECTION, order.id.toString(), MESSAGES_SUBCOLLECTION),
+          orderBy('createdAt', 'desc'),
+          // Limit to 1 to get the most recent message
+          // limit(1)
+        );
+        
+        const messagesSnapshot = await getDocs(messagesQuery);
+        
+        if (!messagesSnapshot.empty) {
+          // Order has messages
+          const latestMessage = messagesSnapshot.docs[0].data() as FirebaseMessage;
+          const date = latestMessage.createdAt?.toDate?.() 
+            ? latestMessage.createdAt.toDate() 
+            : new Date();
+            
+          return {
+            orderId: order.id,
+            hasMessages: true,
+            date
+          };
+        }
+        
+        return {
+          orderId: order.id,
+          hasMessages: false,
+          date: order.date
+        };
+      })
+    );
+    
+    // Filter out orders without messages and sort by ID ascending
+    return ordersWithMessages
+      .filter(order => order.hasMessages)
+      .sort((a, b) => a.orderId - b.orderId);
+  } catch (error) {
+    console.error('Error getting orders with messages:', error);
+    throw error;
+  }
 }
 
 export function getUserOrdersWithMessages(userId: number, callback: (orders: OrderWithLatestMessage[]) => void) {
@@ -333,6 +405,52 @@ export function getUnreadMessagesCount(userId: number, isAdmin: boolean, callbac
 
   return onSnapshot(q, (querySnapshot) => {
     callback(querySnapshot.size);
+  });
+}
+
+// Get all orders with messages for admin view (real-time updates)
+export function getOrderConversations(callback: (orders: OrderSummary[]) => void) {
+  // Query all messages from all orders
+  const q = query(
+    collectionGroup(db, MESSAGES_SUBCOLLECTION),
+    orderBy('createdAt', 'desc') // Get in descending order to easily find latest
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const orderMap = new Map<number, OrderSummary>();
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as FirebaseMessage;
+      data.id = doc.id;
+      
+      const orderId = data.orderId;
+      
+      if (!orderMap.has(orderId)) {
+        // First message for this order (will be the latest due to desc ordering)
+        const date = data.createdAt?.toDate?.() 
+          ? data.createdAt.toDate() 
+          : new Date();
+          
+        orderMap.set(orderId, {
+          orderId,
+          date,
+          hasMessages: true,
+          unreadCount: !data.isAdmin && !data.isRead ? 1 : 0
+        });
+      } else {
+        // Already have an entry for this order
+        const orderData = orderMap.get(orderId)!;
+        
+        // Update unread count if needed
+        if (!data.isAdmin && !data.isRead) {
+          orderData.unreadCount = (orderData.unreadCount || 0) + 1;
+        }
+      }
+    });
+    
+    // Convert map to array and sort by order ID
+    const orders = Array.from(orderMap.values()).sort((a, b) => a.orderId - b.orderId);
+    callback(orders);
   });
 }
 
