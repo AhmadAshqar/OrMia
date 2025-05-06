@@ -643,13 +643,16 @@ export default function AdminMessagesPage() {
 
   // Filter messages by conversation (grouped by user)
   const getMessagesForSelectedUser = (messages: Message[]) => {
-    if (!selectedUserId || !messages) return [];
+    if (!messages) return [];
+    // Return all messages if no user is selected
+    if (!selectedUserId) return messages;
     return messages.filter((message) => message.userId === selectedUserId);
   };
   
   // Filter messages by order
   const getMessagesForSelectedOrder = (messages: FirebaseMessage[]) => {
-    if (!selectedOrderId || !messages) return [];
+    if (!messages) return [];
+    if (!selectedOrderId) return messages; // If no order is selected, return all messages
     return messages.filter((message) => message.orderId === selectedOrderId);
   };
 
@@ -664,6 +667,7 @@ export default function AdminMessagesPage() {
     } else if (tabValue === 'orders' && orderMessages) {
       return orderMessages;
     }
+    // If no messages for the selected tab, return an empty array
     return [];
   };
 
