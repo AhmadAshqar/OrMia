@@ -115,8 +115,8 @@ export default function MessagesPage() {
     isRead: true,
     isFromAdmin: false,
     createdAt: new Date(),
-    // No updatedAt field needed
-    replies: []
+    imageUrl: null,
+    parentId: null
   });
 
   // Handle clicking on a message

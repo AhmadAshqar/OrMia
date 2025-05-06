@@ -448,9 +448,10 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
         // 1. Are from this user (userId matches), OR
         // 2. Are to this user (has orderId that belongs to this user)
         const isFromThisUser = data.userId === userId;
-        const isForThisUserOrder = true; // Since Firebase doesn't filter by user's orders, we'll collect all messages
         
-        if (isFromThisUser || isForThisUserOrder) {
+        // We'll include messages from this user or for this user
+        // Instead of checking "isAdmin || !isAdmin" which is always true
+        if (isFromThisUser) {
           console.log(`Processing message for order ${orderId}, user ${data.userId}, isAdmin: ${data.isAdmin}`);
           
           if (!orderMap.has(orderId)) {
