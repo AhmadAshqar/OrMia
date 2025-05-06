@@ -463,10 +463,7 @@ const MyOrdersPage = () => {
                       }}
                     >
                       <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                          <MessageCircle className="h-4 w-4" />
-                          צור קשר בנוגע להזמנה
-                        </Button>
+                        <OrderContactButton orderId={order.id} variant="dialog" />
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
@@ -582,12 +579,7 @@ const MyOrdersPage = () => {
                     </CardContent>
                     <Separator />
                     <CardFooter className="p-4 flex justify-between bg-gray-50">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/support/order/${order.id}`} className="flex items-center">
-                          צור קשר בנוגע להזמנה
-                          <ChevronRight className="ml-1 h-4 w-4" />
-                        </Link>
-                      </Button>
+                      <OrderContactButton orderId={order.id} />
                     </CardFooter>
                   </Card>
                 ))}
@@ -655,12 +647,7 @@ const MyOrdersPage = () => {
                     </CardContent>
                     <Separator />
                     <CardFooter className="p-4 flex justify-between bg-gray-50">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/support/order/${order.id}`} className="flex items-center">
-                          צור קשר בנוגע להזמנה
-                          <ChevronRight className="ml-1 h-4 w-4" />
-                        </Link>
-                      </Button>
+                      <OrderContactButton orderId={order.id} />
                     </CardFooter>
                   </Card>
                 ))}
