@@ -25,7 +25,7 @@ const MESSAGES_SUBCOLLECTION = 'messages';
 // Log Firebase configuration for debugging
 console.log('Firebase setup initialized');
 
-// Message types
+// Type definitions
 export interface FirebaseMessage {
   id?: string;
   content: string;
@@ -36,6 +36,15 @@ export interface FirebaseMessage {
   isRead: boolean;
   subject?: string;
   imageUrl?: string;
+}
+
+// Order summary type for admin messaging interface - matches the server-side type
+export interface OrderSummary {
+  orderId: number;
+  orderNumber?: string;
+  date: Date;
+  hasMessages: boolean;
+  unreadCount?: number;
 }
 
 // Helper to get the order document reference
