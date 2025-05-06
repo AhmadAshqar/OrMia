@@ -1754,7 +1754,7 @@ export class DatabaseStorage implements IStorage {
   async getOrderMessages(orderId: number): Promise<Message[]> {
     const orderMessages = await db.select().from(messages)
       .where(eq(messages.orderId, orderId))
-      .orderBy(desc(messages.createdAt));
+      .orderBy(asc(messages.createdAt)); // Changed from desc to asc for oldest-first ordering
     
     return orderMessages;
   }
