@@ -624,12 +624,13 @@ export default function MessagesPage() {
                               <div className="absolute right-2 bottom-2 flex gap-2 items-center">
                                 {/* Emoji picker */}
                                 <EmojiPicker 
-                                  onEmojiSelect={(emoji) => setReplyContent(prev => prev + emoji)} 
+                                  onEmojiSelect={(emoji) => setReplyContent((prev: string) => prev + emoji)} 
                                 />
                                 
                                 {/* Image uploader */}
                                 <ImageUploader 
-                                  onImageUploaded={async (file) => {
+                                  orderId={selectedMessage?.orderId}
+                                  onImageUploaded={async (imageUrl) => {
                                     if (!selectedMessage || !user) return;
                                     
                                     try {
@@ -641,13 +642,6 @@ export default function MessagesPage() {
                                         });
                                         return;
                                       }
-                                      
-                                      // Upload the image to Firebase Storage
-                                      const imageUrl = await uploadOrderImage(
-                                        file, 
-                                        user.id, 
-                                        selectedMessage.orderId
-                                      );
                                       
                                       // Send message with the image URL
                                       await createFirebaseMessage({

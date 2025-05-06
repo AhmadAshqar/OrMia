@@ -6,9 +6,10 @@ import { useAuth } from '@/hooks/use-auth';
 interface ImageUploaderProps {
   onImageUploaded: (imageUrl: string) => void;
   disabled?: boolean;
+  orderId?: number;
 }
 
-export function ImageUploader({ onImageUploaded, disabled = false }: ImageUploaderProps) {
+export function ImageUploader({ onImageUploaded, disabled = false, orderId }: ImageUploaderProps) {
   const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,7 +39,12 @@ export function ImageUploader({ onImageUploaded, disabled = false }: ImageUpload
 
     try {
       setIsUploading(true);
-      const imageUrl = await uploadMessageImage(file, user.id);
+      if (!orderId) {
+        alert('Order ID is required for image uploads');
+        return;
+      }
+      
+      const imageUrl = await uploadMessageImage(file, user.id, orderId);
       onImageUploaded(imageUrl);
     } catch (error) {
       console.error('Error uploading image:', error);
