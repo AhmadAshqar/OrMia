@@ -29,6 +29,17 @@ import { Input } from '@/components/ui/input';
 import { EmojiPicker } from '@/components/ui/EmojiPicker';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 
+// Interface for chat thread messages
+interface ThreadMessage {
+  id: number;
+  content: string;
+  createdAt: Date;
+  isFromAdmin: boolean;
+  userId: number;
+  imageUrl: string | null;
+  orderId?: number | null;
+}
+
 export default function AdminMessagesPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -921,14 +932,15 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
   
   // Combine messages and their replies into a single chronological thread
   const allMessages = messages.flatMap((message) => {
-    const threadMessages = [
+    const threadMessages: ThreadMessage[] = [
       {
         id: message.id,
         content: message.content,
         createdAt: message.createdAt,
         isFromAdmin: message.isFromAdmin || false,
         userId: message.userId,
-        imageUrl: message.imageUrl
+        imageUrl: message.imageUrl,
+        orderId: message.orderId
       }
     ];
     
@@ -940,7 +952,8 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
           createdAt: reply.createdAt,
           isFromAdmin: reply.isFromAdmin || false,
           userId: reply.userId,
-          imageUrl: reply.imageUrl
+          imageUrl: reply.imageUrl,
+          orderId: message.orderId
         });
       });
     }
@@ -948,10 +961,17 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
     return threadMessages;
   });
   
-  // Sort all messages by date
-  const sortedMessages = allMessages.sort((a, b) => 
-    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
+  // Sort all messages by orderId first (if exists), then by date
+  const sortedMessages = allMessages.sort((a, b) => {
+    // First sort by orderId in ascending order (if exists)
+    if (a.orderId && b.orderId) {
+      if (a.orderId !== b.orderId) {
+        return a.orderId - b.orderId;
+      }
+    }
+    // Then sort by date for same order or when orderId doesn't exist
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
   
   if (sortedMessages.length === 0) {
     return (
