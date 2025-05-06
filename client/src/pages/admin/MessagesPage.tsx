@@ -560,7 +560,7 @@ export default function AdminMessagesPage() {
     };
   }, [selectedOrderId]);
 
-  // Handle reply submit with Firebase
+  // Handle reply submit with API
   const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Check if we're in order view or message view
@@ -593,34 +593,41 @@ export default function AdminMessagesPage() {
     setSelectedImage(null);
     
     try {
-      // Send message through Firebase
+      // Send message using API endpoint
       if (user) {
-        await createFirebaseMessage({
-          content: messageContent,
-          orderId: typeof targetOrderId === 'string' ? parseInt(targetOrderId) : targetOrderId,
-          userId: user.id,
-          isAdmin: true,
-          isRead: true, // Admin's messages are always read
-          imageUrl: imageContent || undefined
+        const orderId = typeof targetOrderId === 'string' ? parseInt(targetOrderId) : targetOrderId;
+        
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: messageContent,
+            orderId: orderId,
+            subject: `הזמנה #${orderId}`,
+            isFromAdmin: true,
+            isRead: true, // Admin's messages are always read
+            imageUrl: imageContent || null
+          })
         });
         
-        // Mark any unread Firebase messages for this order as read
-        const unreadUserMessages = firebaseMessages.filter(msg => 
-          msg.orderId === targetOrderId && !msg.isAdmin && !msg.isRead
-        );
-        
-        // Use batch update to mark all unread messages as read at once
-        if (unreadUserMessages.length > 0) {
-          const messageIds = unreadUserMessages
-            .filter(msg => msg.id)
-            .map(msg => msg.id as string);
-          
-          if (messageIds.length > 0) {
-            await markMessageAsRead(messageIds, 
-              typeof targetOrderId === 'string' ? parseInt(targetOrderId) : targetOrderId
-            );
-          }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        // Mark any unread messages for this order as read
+        const markReadResponse = await fetch(`/api/admin/messages/markread/${orderId}`, {
+          method: 'POST'
+        });
+        
+        if (!markReadResponse.ok) {
+          console.warn('Failed to mark messages as read:', markReadResponse.statusText);
+        }
+        
+        // Refetch messages after sending
+        const updatedMessages = await fetch(`/api/orders/${orderId}/messages`).then(res => res.json());
+        setOrderApiMessages(updatedMessages);
         
         toast({
           title: 'הודעה נשלחה',
@@ -668,7 +675,7 @@ export default function AdminMessagesPage() {
   };
   
   // Filter messages by order
-  const getMessagesForSelectedOrder = (messages: FirebaseMessage[]) => {
+  const getMessagesForSelectedOrder = (messages: Message[]) => {
     if (!messages) return [];
     if (!selectedOrderId) return messages; // If no order is selected, return all messages
     return messages.filter((message) => message.orderId === selectedOrderId);
@@ -936,23 +943,18 @@ export default function AdminMessagesPage() {
                           <h3 className="text-lg font-medium">הזמנה #{selectedOrderId}</h3>
                         </div>
                         <div id="admin-chat-container-orders" className="flex-1 overflow-auto p-4 bg-gray-50">
-                          {orderFirebaseMessages.length > 0 ? (
+                          {orderApiMessages && orderApiMessages.length > 0 ? (
                             <div className="space-y-4 p-2 bg-gray-50">
-                              {orderFirebaseMessages
+                              {orderApiMessages
                                 .sort((a, b) => {
                                   // Sort messages by date (oldest first)
-                                  const dateA = a.createdAt?.toDate?.() 
-                                    ? a.createdAt.toDate().getTime() 
-                                    : new Date(a.createdAt).getTime();
-                                  
-                                  const dateB = b.createdAt?.toDate?.() 
-                                    ? b.createdAt.toDate().getTime() 
-                                    : new Date(b.createdAt).getTime();
+                                  const dateA = new Date(a.createdAt).getTime();
+                                  const dateB = new Date(b.createdAt).getTime();
                                   
                                   return dateA - dateB; // Ascending order (oldest first)
                                 })
                                 .map((msg) => {
-                                  const isAdmin = msg.isAdmin;
+                                  const isAdmin = msg.isFromAdmin;
                                   const alignRight = isAdmin;
                                   const alignLeft = !isAdmin;
                                   const senderName = isAdmin ? "מוכר" : "קונה";
@@ -983,9 +985,7 @@ export default function AdminMessagesPage() {
                                         )}
                                         
                                         <div className={`flex items-center text-xs mt-1 ${alignRight ? 'text-blue-100' : 'text-gray-500'}`}>
-                                          <span>{format(new Date(
-                                              msg.createdAt?.toDate?.() ? msg.createdAt.toDate() : new Date(msg.createdAt)
-                                            ), 'HH:mm', { locale: he })}</span>
+                                          <span>{format(new Date(msg.createdAt), 'HH:mm', { locale: he })}</span>
                                           <span className="mx-1">•</span>
                                           <span>{senderName}</span>
                                         </div>
