@@ -907,7 +907,7 @@ export default function MessagesPage() {
                             {/* We don't show the initial message here since we're focusing on order-specific messages */}
                             
                             {/* Firebase messages for this order */}
-                            {orderMessages.length > 0 && (
+                            {orderMessages.length > 0 ? (
                               <div className="space-y-4">
                                 {orderMessages.map((message) => {
                                   const isFromUser = !message.isAdmin;
@@ -954,6 +954,46 @@ export default function MessagesPage() {
                                     </div>
                                   );
                                 })}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center h-64 text-center">
+                                <p className="text-muted-foreground mb-2">אין הודעות להזמנה זו עדיין</p>
+                                <div className="text-xs text-muted-foreground mt-4 p-4 border rounded bg-gray-50">
+                                  <p className="font-bold mb-1">מידע לצורך הבנת הבעיה:</p>
+                                  <p>מספר הזמנה: {selectedMessage?.orderId}</p>
+                                  <p>Firebase Messages מספר: {firebaseMessages.length}</p>
+                                  <p>Order Messages מספר: {orderMessages.length}</p>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="mt-2"
+                                    onClick={() => {
+                                      if (!user || !selectedMessage?.orderId) return;
+                                      
+                                      createFirebaseMessage({
+                                        content: "זוהי הודעת בדיקה עבור הזמנה #" + selectedMessage.orderId + " מאת " + user.username + " ב-" + new Date().toLocaleString(),
+                                        orderId: selectedMessage.orderId,
+                                        userId: user.id,
+                                        isAdmin: false,
+                                        isRead: false
+                                      }).then(() => {
+                                        toast({
+                                          title: 'הודעה נוצרה',
+                                          description: `הודעת בדיקה נוצרה להזמנה #${selectedMessage.orderId}`
+                                        });
+                                      }).catch(error => {
+                                        console.error("Error creating test message:", error);
+                                        toast({
+                                          title: 'שגיאה',
+                                          description: 'לא ניתן ליצור הודעת בדיקה',
+                                          variant: 'destructive'
+                                        });
+                                      });
+                                    }}
+                                  >
+                                    צור הודעת בדיקה להזמנה זו
+                                  </Button>
+                                </div>
                               </div>
                             )}
                             

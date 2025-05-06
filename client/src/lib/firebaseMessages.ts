@@ -110,6 +110,8 @@ export function getUserMessages(userId: number, callback: (messages: FirebaseMes
 
 // Get messages for a specific order
 export function getOrderMessages(orderId: number, callback: (messages: FirebaseMessage[]) => void) {
+  console.log(`Subscribing to messages for order ${orderId}`);
+  
   const messagesCollection = getOrderMessagesCollection(orderId);
   const q = query(
     messagesCollection,
@@ -117,14 +119,21 @@ export function getOrderMessages(orderId: number, callback: (messages: FirebaseM
   );
 
   return onSnapshot(q, (querySnapshot) => {
+    console.log(`Received ${querySnapshot.size} messages for order ${orderId}`);
+    
     const messages: FirebaseMessage[] = [];
     querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      console.log(`Message for order ${orderId}: ${data.content.substring(0, 20)}... from ${data.isAdmin ? 'admin' : 'user'}`);
+      
       messages.push({
         id: doc.id,
-        ...doc.data(),
+        ...data,
         orderId // Ensure orderId is included
       } as FirebaseMessage);
     });
+    
+    console.log(`Returning ${messages.length} messages for order ${orderId}`);
     callback(messages);
   });
 }
@@ -320,6 +329,8 @@ export async function getOrdersWithMessages(): Promise<OrderSummary[]> {
 }
 
 export function getUserOrdersWithMessages(userId: number, callback: (orders: OrderWithLatestMessage[]) => void) {
+  console.log(`Subscribing to Firebase messages for user ${userId}`);
+  
   // Query all messages from all orders
   const q = query(
     collectionGroup(db, MESSAGES_SUBCOLLECTION),
@@ -327,6 +338,7 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
   );
 
   return onSnapshot(q, (querySnapshot) => {
+    console.log(`Received ${querySnapshot.size} Firebase messages in snapshot`);
     const orderMap = new Map<number, OrderWithLatestMessage>();
     
     querySnapshot.forEach((doc) => {
@@ -336,6 +348,7 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
       // Only process messages for this user
       if (data.userId === userId || (data.orderId && (data.isAdmin || !data.isAdmin))) {
         const orderId = data.orderId;
+        console.log(`Processing message for order ${orderId}, user ${data.userId}, isAdmin: ${data.isAdmin}`);
         
         if (!orderMap.has(orderId)) {
           // First message for this order, initialize with latest message
@@ -372,6 +385,7 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
       return bTime - aTime; // Descending order (newest first)
     });
     
+    console.log(`Returning ${orders.length} orders with messages for user ${userId}`);
     callback(orders);
   });
 }
@@ -420,6 +434,8 @@ export function getUnreadMessagesCount(userId: number, isAdmin: boolean, callbac
 
 // Get all orders with messages for admin view (real-time updates)
 export function getOrderConversations(callback: (orders: OrderSummary[]) => void) {
+  console.log('Subscribing to order conversations for admin view');
+  
   // Query all messages from all orders
   const q = query(
     collectionGroup(db, MESSAGES_SUBCOLLECTION),
@@ -427,6 +443,7 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
   );
 
   return onSnapshot(q, (querySnapshot) => {
+    console.log(`Received ${querySnapshot.size} messages in admin order conversations snapshot`);
     const orderMap = new Map<number, OrderSummary>();
     
     querySnapshot.forEach((doc) => {
@@ -434,6 +451,7 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
       data.id = doc.id;
       
       const orderId = data.orderId;
+      console.log(`Processing message in admin view for order ${orderId}, from ${data.isAdmin ? 'admin' : 'user'} ${data.userId}, content: ${data.content.substring(0, 20)}...`);
       
       if (!orderMap.has(orderId)) {
         // First message for this order (will be the latest due to desc ordering)
@@ -460,6 +478,7 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
     
     // Convert map to array and sort by order ID
     const orders = Array.from(orderMap.values()).sort((a, b) => a.orderId - b.orderId);
+    console.log(`Returning ${orders.length} order conversations in admin view. Order IDs: ${orders.map(o => o.orderId).join(', ')}`);
     callback(orders);
   });
 }
