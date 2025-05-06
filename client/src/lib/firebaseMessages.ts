@@ -352,9 +352,13 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
       const data = doc.data() as FirebaseMessage;
       data.id = doc.id;
       
-      // Only process messages for this user
-      if (data.userId === userId || (data.orderId && (data.isAdmin || !data.isAdmin))) {
-        const orderId = data.orderId;
+      // Process all messages related to this user's orders (either from user or to user)
+      const orderId = data.orderId;
+      
+      // This is a message from/to the user if:
+      // 1. Message is from this user, OR
+      // 2. Message is related to an order where this user has sent messages
+      if (data.userId === userId || data.orderId) {
         console.log(`Processing message for order ${orderId}, user ${data.userId}, isAdmin: ${data.isAdmin}`);
         
         if (!orderMap.has(orderId)) {
