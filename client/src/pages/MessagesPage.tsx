@@ -434,16 +434,11 @@ export default function MessagesPage() {
       
       <div className="container max-w-5xl py-8 mt-12">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>הודעות שלי</CardTitle>
-              <CardDescription>
-                התכתבות עם צוות אור מיה
-              </CardDescription>
-            </div>
-            <div>
-              <Button onClick={() => setIsNewMessageDialogOpen(true)}>הודעה חדשה</Button>
-            </div>
+          <CardHeader>
+            <CardTitle>הודעות שלי</CardTitle>
+            <CardDescription>
+              התכתבות עם צוות אור מיה
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="w-full">
