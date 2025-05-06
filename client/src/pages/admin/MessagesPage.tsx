@@ -252,14 +252,12 @@ export default function AdminMessagesPage() {
             queryClient.invalidateQueries({ queryKey: ['/api/orders', selectedMessage.orderId, 'messages'] });
             
             // Scroll to the bottom of the messages
-            if (messagesEndRef.current) {
-              setTimeout(() => {
-            const chatContainer = document.getElementById('admin-chat-container');
-            if (chatContainer) {
-              chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-          }, 100);
-            }
+            setTimeout(() => {
+              const chatContainer = document.getElementById('admin-chat-container');
+              if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+              }
+            }, 100);
           }
         }
         else if (data.type === 'message_read') {
