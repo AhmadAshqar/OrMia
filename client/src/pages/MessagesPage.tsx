@@ -48,8 +48,7 @@ export default function MessagesPage() {
   const [isFirebaseMessagePending, setIsFirebaseMessagePending] = useState(false);
   const [orderMessages, setOrderMessages] = useState<FirebaseMessage[]>([]);
   const websocketRef = useRef<WebSocket | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const ordersMessagesEndRef = useRef<HTMLDivElement>(null);
+  // Removed unnecessary ref usage - using container ID-based scrolling instead
   
   // Query to fetch messages
   const { data: messages, isLoading: isLoadingMessages } = useQuery({

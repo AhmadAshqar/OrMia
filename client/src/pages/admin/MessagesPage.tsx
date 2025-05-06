@@ -1424,7 +1424,7 @@ function MessageDetails({
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Removed messagesEndRef - using container ID for scrolling
   
   // Handle emoji selection
   const handleEmojiSelect = (emoji: string) => {
