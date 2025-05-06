@@ -446,12 +446,12 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
         
         // We want to include messages that:
         // 1. Are from this user (userId matches), OR
-        // 2. Are to this user (has orderId that belongs to this user)
+        // 2. Are for this user (in their orders AND from admin)
         const isFromThisUser = data.userId === userId;
+        const isForThisUser = data.isAdmin && data.orderId && data.userId !== userId;
         
-        // We'll include messages from this user or for this user
-        // Instead of checking "isAdmin || !isAdmin" which is always true
-        if (isFromThisUser) {
+        // Include messages that are from this user OR messages from admin to this user's orders
+        if (isFromThisUser || isForThisUser) {
           console.log(`Processing message for order ${orderId}, user ${data.userId}, isAdmin: ${data.isAdmin}`);
           
           if (!orderMap.has(orderId)) {
