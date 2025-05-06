@@ -249,6 +249,7 @@ const MyOrdersPage = () => {
     content: ''
   });
   const [orderMessageSubmitting, setOrderMessageSubmitting] = useState(false);
+  const [openDialogId, setOpenDialogId] = useState<number | null>(null);
 
   // Mutation to send messages about an order
   const createMessageMutation = useMutation({
@@ -268,6 +269,8 @@ const MyOrdersPage = () => {
         content: ''
       });
       setOrderMessageSubmitting(false);
+      // Close the dialog
+      setOpenDialogId(null);
     },
     onError: (error) => {
       console.error('Error sending message:', error);
@@ -445,7 +448,18 @@ const MyOrdersPage = () => {
                   </CardContent>
                   <Separator />
                   <CardFooter className="p-4 flex justify-between bg-gray-50">
-                    <Dialog>
+                    <Dialog
+                      open={openDialogId === order.id}
+                      onOpenChange={(open) => {
+                        setOpenDialogId(open ? order.id : null);
+                        if (!open) {
+                          setOrderMessageForm({
+                            subject: '',
+                            content: ''
+                          });
+                        }
+                      }}
+                    >
                       <DialogTrigger asChild>
                         <Button variant="ghost" size="sm" className="flex items-center">
                           צור קשר בנוגע להזמנה
