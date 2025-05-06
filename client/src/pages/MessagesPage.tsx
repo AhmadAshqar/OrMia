@@ -13,7 +13,9 @@ import {
   getOrderMessages,
   getUserMessages,
   getUnreadMessagesCount,
-  uploadMessageImage as uploadOrderImage
+  uploadMessageImage as uploadOrderImage,
+  getUserOrdersWithMessages,
+  OrderWithLatestMessage
 } from '@/lib/firebaseMessages';
 
 import MainLayout from '@/components/layout/MainLayout';
@@ -46,6 +48,8 @@ export default function MessagesPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
+  const [userOrdersWithMessages, setUserOrdersWithMessages] = useState<OrderWithLatestMessage[]>([]);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const websocketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -256,12 +260,17 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!user) return;
     
-    const unsubscribe = getUserMessages(user.id, (messages) => {
+    const unsubscribeMessages = getUserMessages(user.id, (messages) => {
       setFirebaseMessages(messages);
     });
     
+    const unsubscribeOrders = getUserOrdersWithMessages(user.id, (orders) => {
+      setUserOrdersWithMessages(orders);
+    });
+    
     return () => {
-      unsubscribe();
+      unsubscribeMessages();
+      unsubscribeOrders();
     };
   }, [user]);
   
@@ -306,9 +315,15 @@ export default function MessagesPage() {
       
       // Scroll to the bottom when messages update
       setTimeout(() => {
+        // Scroll for both chat containers
         const chatContainer = document.getElementById('chat-container');
         if (chatContainer) {
           chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        const orderChatContainer = document.getElementById('chat-container-orders');
+        if (orderChatContainer) {
+          orderChatContainer.scrollTop = orderChatContainer.scrollHeight;
         }
       }, 100);
     });
@@ -381,11 +396,16 @@ export default function MessagesPage() {
           description: 'ההודעה שלך נשלחה בהצלחה'
         });
         
-        // Scroll to the bottom of the chat container
+        // Scroll to the bottom of all chat containers
         setTimeout(() => {
           const chatContainer = document.getElementById('chat-container');
           if (chatContainer) {
             chatContainer.scrollTop = chatContainer.scrollHeight;
+          }
+          
+          const orderChatContainer = document.getElementById('chat-container-orders');
+          if (orderChatContainer) {
+            orderChatContainer.scrollTop = orderChatContainer.scrollHeight;
           }
         }, 100);
       } else {
@@ -718,11 +738,237 @@ export default function MessagesPage() {
                 </div>
               </TabsContent>
               <TabsContent value="orders">
-                <div className="flex flex-col justify-center items-center h-[500px] p-4 text-center">
-                  <p className="mb-4 text-muted-foreground">לצפייה בהודעות לפי הזמנה, אנא בקר בדף ההזמנות שלי</p>
-                  <Button onClick={() => navigate('/orders')}>
-                    עבור לדף ההזמנות שלי
-                  </Button>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
+                  {/* Left panel - Orders list */}
+                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
+                    <div className="p-3 border-b bg-white">
+                      <h3 className="font-semibold">הזמנות עם הודעות</h3>
+                    </div>
+                    
+                    <div className="flex-1 overflow-auto">
+                      {userOrdersWithMessages.length > 0 ? (
+                        <div className="divide-y overflow-auto h-full">
+                          {userOrdersWithMessages.map((order) => (
+                            <div
+                              key={order.orderId}
+                              className={`p-3 cursor-pointer hover:bg-muted ${
+                                selectedOrderId === order.orderId ? 'bg-muted' : ''
+                              } ${order.unreadCount > 0 ? 'font-semibold' : ''}`}
+                              onClick={() => {
+                                setSelectedOrderId(order.orderId);
+                                // Find a message with this orderId, or create a placeholder
+                                const existingMessage = messages?.find(
+                                  (m: Message) => m.orderId === order.orderId
+                                );
+                                
+                                if (existingMessage) {
+                                  handleMessageClick(existingMessage);
+                                } else {
+                                  // Create a placeholder message object to initiate chat for this order
+                                  setSelectedMessage({
+                                    id: 0, // Placeholder ID
+                                    userId: user.id,
+                                    orderId: order.orderId,
+                                    content: "שיחה על הזמנה #" + order.orderId,
+                                    subject: "הזמנה #" + order.orderId,
+                                    createdAt: new Date(),
+                                    isRead: true,
+                                    isFromAdmin: false
+                                  });
+                                }
+                                
+                                // Mark unread messages as read
+                                if (order.unreadCount > 0) {
+                                  const unreadMessages = firebaseMessages.filter(msg => 
+                                    msg.orderId === order.orderId && msg.isAdmin && !msg.isRead
+                                  );
+                                  
+                                  if (unreadMessages.length > 0) {
+                                    const messageIds = unreadMessages
+                                      .filter(msg => msg.id)
+                                      .map(msg => msg.id as string);
+                                    
+                                    if (messageIds.length > 0) {
+                                      markMessageAsRead(messageIds, order.orderId)
+                                        .catch(error => console.error("Error marking messages as read:", error));
+                                    }
+                                  }
+                                }
+                              }}
+                            >
+                              <div className="flex flex-col">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1 overflow-hidden">
+                                    <div className="flex items-center">
+                                      <p className="font-medium truncate">הזמנה #{order.orderId}</p>
+                                      {order.unreadCount > 0 && (
+                                        <Badge variant="outline" className="text-primary ml-2">
+                                          {order.unreadCount}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {order.latestMessage.createdAt?.toDate ? 
+                                      format(new Date(order.latestMessage.createdAt.toDate()), 'dd/MM/yyyy', { locale: he }) :
+                                      format(new Date(order.latestMessage.createdAt), 'dd/MM/yyyy', { locale: he })}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1 truncate">
+                                  {order.latestMessage.content.substring(0, 40) + 
+                                    (order.latestMessage.content.length > 40 ? '...' : '')}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col justify-center items-center h-full p-4 text-center">
+                          <p className="mb-4 text-muted-foreground">אין הודעות עדיין</p>
+                          <Button onClick={() => navigate('/orders')}>
+                            עבור לדף ההזמנות שלי
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Right panel - Chat view */}
+                  <div className="md:col-span-2 border rounded-lg overflow-hidden h-full">
+                    {selectedMessage ? (
+                      <div className="h-full flex flex-col">
+                        <div className="p-3 border-b bg-white">
+                          <h3 className="font-semibold">
+                            {selectedMessage.subject}
+                            {selectedMessage.orderId && (
+                              <span className="text-sm text-muted-foreground mr-2">
+                                (הזמנה #{selectedMessage.orderId})
+                              </span>
+                            )}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            צ'אט עם צוות אור מיה
+                          </p>
+                        </div>
+                        
+                        <div id="chat-container-orders" className="flex-1 overflow-auto p-4 bg-gray-50">
+                          <div className="space-y-4">
+                            {/* We don't show the initial message here since we're focusing on order-specific messages */}
+                            
+                            {/* Firebase messages for this order */}
+                            {orderMessages.length > 0 && (
+                              <div className="space-y-4">
+                                {orderMessages.map((message) => {
+                                  const isFromUser = !message.isAdmin;
+                                  const senderName = isFromUser ? "אני" : "אור מיה";
+                                  
+                                  return (
+                                    <div
+                                      key={message.id}
+                                      className={`flex ${isFromUser ? 'justify-end' : 'justify-start'} mb-3`}
+                                    >
+                                      <div 
+                                        className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                                          isFromUser 
+                                            ? 'bg-blue-500 text-white rounded-tr-none' 
+                                            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                                        }`}
+                                      >
+                                        <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                                        
+                                        {/* Display image if any */}
+                                        {message.imageUrl && (
+                                          <div className="mt-2">
+                                            <img 
+                                              src={message.imageUrl} 
+                                              alt="תמונה שצורפה" 
+                                              className="max-w-full rounded-lg max-h-40" 
+                                            />
+                                          </div>
+                                        )}
+                                        
+                                        <div className={`flex items-center text-xs mt-1 ${isFromUser ? 'text-blue-100' : 'text-gray-500'}`}>
+                                          <span>
+                                            {message.createdAt?.toDate ? 
+                                              format(new Date(message.createdAt.toDate()), 'HH:mm', { locale: he }) : 
+                                              format(new Date(message.createdAt), 'HH:mm', { locale: he })}
+                                          </span>
+                                          <span className="mx-1">•</span>
+                                          <span>{senderName}</span>
+                                          {message.isRead && !isFromUser && (
+                                            <CheckCheck className="h-3 w-3 ml-1" />
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            
+                            {/* Selected image preview for the message being composed */}
+                            {selectedImage && (
+                              <div className="flex justify-end mb-4">
+                                <div className="relative">
+                                  <img src={selectedImage} alt="Selected" className="max-w-[200px] max-h-[150px] rounded-lg" />
+                                  <button
+                                    type="button"
+                                    className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-70"
+                                    onClick={() => setSelectedImage(null)}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div ref={messagesEndRef} />
+                          </div>
+                        </div>
+                        
+                        <div className="p-3 border-t bg-white">
+                          <form onSubmit={handleReplySubmit} className="flex items-end gap-2">
+                            <div className="relative flex-1">
+                              <Textarea
+                                className="flex-1 resize-none rounded-full min-h-[50px] py-3 pr-4 pl-12 bg-gray-100"
+                                placeholder="כתוב הודעה..."
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                dir="rtl"
+                              />
+                              <div className="absolute right-1 bottom-1.5 flex gap-2">
+                                <EmojiPicker onEmojiSelect={(emoji) => setReplyContent(prev => prev + emoji)} />
+                                <ImageUploader onImageUploaded={(url) => {
+                                  setSelectedImage(url);
+                                  toast({
+                                    title: "תמונה הועלתה",
+                                    description: "התמונה הועלתה בהצלחה ותשלח עם ההודעה",
+                                  });
+                                }} />
+                              </div>
+                            </div>
+                            <Button 
+                              type="submit" 
+                              className="rounded-full h-[50px] w-[50px] p-0 flex items-center justify-center bg-blue-500 hover:bg-blue-600"
+                              disabled={!replyContent.trim() && !selectedImage}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13" />
+                                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                              </svg>
+                            </Button>
+                          </form>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center h-full text-muted-foreground">
+                        <p>יש לבחור הזמנה כדי לצפות בהודעות</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
