@@ -370,24 +370,33 @@ export default function AdminMessagesPage() {
   };
   
   // Create a test message for debugging purposes
-  const createTestMessage = async (orderId: number) => {
+  const handleCreateTestMessage = async (orderId: number) => {
     if (!user) return;
     
     try {
       console.log("Creating test message for order", orderId);
-      await createFirebaseMessage({
-        content: "זוהי הודעת בדיקה שנוצרה ב-" + new Date().toLocaleString(),
-        orderId: orderId,
-        userId: user.id,
-        isAdmin: true,
-        isRead: true
-      });
-      console.log("Test message created successfully");
+      
+      // Use our improved test message function that directly creates the message
+      const messageId = await createTestMessage(orderId, user.id, true);
+      
+      console.log("Test message created successfully with ID:", messageId);
       
       toast({
         title: 'הודעה נוצרה',
-        description: `הודעת בדיקה נוצרה להזמנה ${orderId}`
+        description: `הודעת בדיקה נוצרה להזמנה ${orderId} עם מזהה ${messageId}`
       });
+      
+      // Force refresh the order conversations
+      // This is a workaround to ensure the UI updates
+      setTimeout(() => {
+        console.log("Forcing refresh of message lists");
+        // If the order is selected, refresh its messages
+        if (selectedOrderId === orderId) {
+          const tempId = selectedOrderId;
+          setSelectedOrderId(null);
+          setTimeout(() => setSelectedOrderId(tempId), 10);
+        }
+      }, 1000);
     } catch (error) {
       console.error("Error creating test message:", error);
       toast({

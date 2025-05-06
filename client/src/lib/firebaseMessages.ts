@@ -13,7 +13,8 @@ import {
   writeBatch,
   collectionGroup,
   limit,
-  Timestamp
+  Timestamp,
+  setDoc
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -39,12 +40,47 @@ export interface FirebaseMessage {
 
 // Helper to get the order document reference
 function getOrderRef(orderId: number) {
+  console.log(`Getting order ref for order ID: ${orderId}`);
   return doc(db, ORDERS_COLLECTION, orderId.toString());
 }
 
 // Helper to get the messages collection for an order
 function getOrderMessagesCollection(orderId: number) {
+  console.log(`Getting messages collection for order ID: ${orderId}`);
   return collection(getOrderRef(orderId), MESSAGES_SUBCOLLECTION);
+}
+
+// Function to create a guaranteed test message for a specific order
+export async function createTestMessage(orderId: number, userId: number, isAdmin: boolean): Promise<string> {
+  console.log(`Creating test message for order ${orderId}, user ${userId}, isAdmin: ${isAdmin}`);
+  
+  try {
+    // First, ensure the order document exists
+    const orderRef = getOrderRef(orderId);
+    await setDoc(orderRef, { exists: true, updatedAt: new Date().toISOString() }, { merge: true });
+    console.log(`Order document ensured: ${orderId}`);
+    
+    // Create the message document directly
+    const messagesCollection = getOrderMessagesCollection(orderId);
+    const message = {
+      content: `Test message created at ${new Date().toLocaleString()}`,
+      orderId: orderId,
+      userId: userId,
+      isAdmin: isAdmin,
+      isRead: false,
+      createdAt: new Date(),
+      subject: `Test message for order ${orderId}`
+    };
+    
+    console.log('Creating message with data:', message);
+    const docRef = await addDoc(messagesCollection, message);
+    console.log(`Test message created with ID: ${docRef.id}`);
+    
+    return docRef.id;
+  } catch (error) {
+    console.error('Error creating test message:', error);
+    throw error;
+  }
 }
 
 // Create a new message for a specific order
