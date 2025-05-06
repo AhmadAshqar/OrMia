@@ -1758,6 +1758,11 @@ export class DatabaseStorage implements IStorage {
     
     return orderMessages;
   }
+  
+  // Alias for better semantics in admin routes
+  async getMessagesByOrderId(orderId: number): Promise<Message[]> {
+    return this.getOrderMessages(orderId);
+  }
 
   async getUnreadUserMessages(userId: number): Promise<Message[]> {
     const unreadMessages = await db.select().from(messages)
@@ -1835,6 +1840,22 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return result.length > 0;
+  }
+  
+  async markOrderMessagesAsRead(orderId: number): Promise<boolean> {
+    // Mark all non-admin messages for this order as read
+    // (messages from users to admin need to be marked as read by the admin)
+    const result = await db.update(messages)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(messages.orderId, orderId),
+          eq(messages.isFromAdmin, false)
+        )
+      )
+      .returning();
+    
+    return result.length >= 0; // Consider success even if no messages were updated
   }
 
   async replyToMessage(parentId: number, message: InsertMessage): Promise<Message> {

@@ -2276,7 +2276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subject: `Test message ${new Date().toISOString()}`,
         content,
         isRead: false,
-        isAdmin: Boolean(isAdmin)
+        isFromAdmin: Boolean(isAdmin)
       });
       
       console.log("Test message created:", message);
