@@ -150,8 +150,13 @@ export function ensureAuthenticated(req: Request, res: Response, next: NextFunct
 
 // Middleware to check if user is an admin
 export function ensureAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated() && req.user.role === "admin") {
+  // Allow both string "admin" role and array roles that include "admin"
+  if (req.isAuthenticated() && 
+      (req.user.role === "admin" || 
+       (Array.isArray(req.user.role) && req.user.role.includes("admin")) ||
+       (typeof req.user.role === "string" && req.user.role.includes("admin")))) {
     return next();
   }
+  console.log("Admin access denied for user:", req.user?.id, req.user?.username, "with role:", req.user?.role);
   res.status(403).json({ error: "אין הרשאה מתאימה" });
 }
