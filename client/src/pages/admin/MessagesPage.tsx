@@ -508,19 +508,6 @@ export default function AdminMessagesPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="chat" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-4">
-                <TabsTrigger value="chat">
-                  צ'אטים
-                </TabsTrigger>
-                <TabsTrigger value="unread">
-                  הודעות חדשות
-                  {unreadMessages && unreadMessages.length > 0 && (
-                    <Badge variant="destructive" className="ml-2">{unreadMessages.length}</Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="search">חיפוש הודעות</TabsTrigger>
-                <TabsTrigger value="orders">הודעות לפי הזמנה</TabsTrigger>
-              </TabsList>
               
               <TabsContent value="unread">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
