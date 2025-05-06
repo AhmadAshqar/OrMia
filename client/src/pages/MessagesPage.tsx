@@ -573,7 +573,7 @@ export default function MessagesPage() {
                               <div className="flex justify-between items-start">
                                 <div className="flex-1 overflow-hidden">
                                   <div className="flex items-center">
-                                    <p className="font-medium truncate">הזמנה #{order.orderId}</p>
+                                    <p className="font-medium truncate">הזמנה מספר {order.orderId}</p>
                                     {order.unreadCount > 0 && (
                                       <Badge variant="outline" className="text-primary ml-2">
                                         {order.unreadCount}
@@ -624,7 +624,7 @@ export default function MessagesPage() {
                           {selectedMessage.subject}
                           {selectedMessage.orderId && (
                             <span className="text-sm text-muted-foreground mr-2">
-                              (הזמנה #{selectedMessage.orderId})
+                              (הזמנה מספר {selectedMessage.orderId})
                             </span>
                           )}
                         </h3>
@@ -703,7 +703,7 @@ export default function MessagesPage() {
                                   }).then(() => {
                                     toast({
                                       title: 'הודעה נוצרה',
-                                      description: 'הודעת בדיקה נוצרה להזמנה #' + selectedMessage.orderId
+                                      description: 'הודעת בדיקה נוצרה להזמנה מספר ' + selectedMessage.orderId
                                     });
                                   }).catch(error => {
                                     console.error("Error creating test message:", error);

@@ -79,7 +79,7 @@ export default function AdminMessagesPage() {
       await createTestMessage(10, user?.id || 3);
       toast({
         title: "הודעת בדיקה נשלחה",
-        description: "הודעת בדיקה נוצרה להזמנה #10",
+        description: "הודעת בדיקה נוצרה להזמנה מספר 10",
       });
       fetchOrderConversations(); // Refresh the list after adding
     } catch (error) {
@@ -204,7 +204,7 @@ export default function AdminMessagesPage() {
           // Show notification
           toast({
             title: 'הודעה חדשה',
-            description: `התקבלה הודעה חדשה${data.orderId ? ' להזמנה #' + data.orderId : ''}`
+            description: `התקבלה הודעה חדשה${data.orderId ? ' להזמנה מספר ' + data.orderId : ''}`
           });
         }
       };
@@ -298,7 +298,7 @@ export default function AdminMessagesPage() {
                         <div className="flex flex-col justify-center items-center h-full p-4 text-center">
                           <p className="mb-4 text-muted-foreground">אין הודעות להזמנות</p>
                           <div className="text-sm text-muted-foreground">
-                            לחץ על "צור הודעת בדיקה" ליצירת הודעה להזמנה #10
+                            לחץ על "צור הודעת בדיקה" ליצירת הודעה להזמנה מספר 10
                           </div>
                         </div>
                       ) : (
@@ -311,7 +311,7 @@ export default function AdminMessagesPage() {
                             >
                               <div className="flex justify-between items-center mb-1">
                                 <div className="font-semibold">
-                                  הזמנה #{order.orderId}
+                                  הזמנה מספר {order.orderId}
                                 </div>
                                 <div className="text-xs text-gray-500">
                                   {order.date && format(new Date(order.date), 'dd/MM/yyyy', { locale: he })}
@@ -334,7 +334,7 @@ export default function AdminMessagesPage() {
                     {selectedOrderId ? (
                       <div className="h-full flex flex-col">
                         <div className="p-3 border-b bg-white">
-                          <h3 className="font-semibold">הזמנה #{selectedOrderId}</h3>
+                          <h3 className="font-semibold">הזמנה מספר {selectedOrderId}</h3>
                           <p className="text-sm text-muted-foreground">
                             צ'אט עם לקוח
                           </p>
