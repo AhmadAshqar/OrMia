@@ -217,7 +217,12 @@ export default function AdminMessagesPage() {
             
             // Scroll to the bottom of the messages
             if (messagesEndRef.current) {
-              messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+              setTimeout(() => {
+            const chatContainer = document.getElementById('admin-chat-container');
+            if (chatContainer) {
+              chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+          }, 100);
             }
           }
         }
@@ -293,10 +298,13 @@ export default function AdminMessagesPage() {
       }));
     }
     
-    // Scroll to the bottom of the messages
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Scroll to the bottom of the chat container
+    setTimeout(() => {
+      const chatContainer = document.getElementById('admin-chat-container');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
   }, [selectedMessage]);
 
   // Handle message click
@@ -354,9 +362,12 @@ export default function AdminMessagesPage() {
       setOrderFirebaseMessages(messages);
       
       // Scroll to the bottom when messages update
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
+      setTimeout(() => {
+        const chatContainer = document.getElementById('admin-chat-container');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 100);
     });
     
     return () => {
@@ -586,7 +597,7 @@ export default function AdminMessagesPage() {
                   <div className="md:col-span-2 border rounded-lg overflow-hidden h-full">
                     {selectedMessage ? (
                       <div className="h-full flex flex-col">
-                        <div className="flex-1 overflow-auto p-4 bg-gray-50">
+                        <div id="admin-chat-container" className="flex-1 overflow-auto p-4 bg-gray-50">
                           <ChatThread 
                             messages={getMessagesForSelectedUser(allMessages)}
                             currentUserId={0} // Admin is always 0 in chat view
@@ -908,9 +919,12 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
   
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    setTimeout(() => {
+      const chatContainer = document.getElementById('admin-chat-container');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
   }, [messages]);
   
   // Combine messages and their replies into a single chronological thread
@@ -1098,7 +1112,7 @@ function MessageDetails({
               )}
             </div>
           </div>
-          <div className="flex-1 overflow-auto p-4 bg-gray-50">
+          <div id="admin-chat-container-orders" className="flex-1 overflow-auto p-4 bg-gray-50">
             {/* Initial message */}
             <div className="flex justify-start mb-6">
               <div className="rounded-2xl p-3 max-w-[80%] shadow-sm bg-gray-100 text-gray-800 rounded-tl-none">
