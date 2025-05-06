@@ -377,12 +377,6 @@ export default function AdminMessagesPage() {
       return;
     }
     
-    // Store the content before clearing it to avoid race conditions
-    const messageContent = replyContent;
-    
-    // Clear the input immediately for better user experience
-    setReplyContent('');
-    
     try {
       // Send message through Firebase
       if (user) {
@@ -392,16 +386,13 @@ export default function AdminMessagesPage() {
         }
         
         await createFirebaseMessage({
-          content: messageContent,
+          content: replyContent,
           orderId: selectedMessage.orderId,
           userId: user.id,
           isAdmin: true,
           isRead: false,
           imageUrl: selectedImage || undefined
         });
-        
-        // Clear the selected image after successful submission
-        setSelectedImage(null);
         
         // Mark related messages as read
         if (selectedMessage.id && selectedMessage.orderId) {
@@ -426,6 +417,9 @@ export default function AdminMessagesPage() {
           }
         }
         
+        setReplyContent('');
+        setSelectedImage(null);
+        
         toast({
           title: 'הודעה נשלחה',
           description: 'התשובה שלך נשלחה בהצלחה'
@@ -443,7 +437,7 @@ export default function AdminMessagesPage() {
 
   // Handle emoji selection
   const handleEmojiSelect = (emoji: string) => {
-    setReplyContent((prev: string) => prev + emoji);
+    setReplyContent(prev => prev + emoji);
   };
   
   // Handle image upload
@@ -629,22 +623,21 @@ export default function AdminMessagesPage() {
                                   onChange={(e) => setReplyContent(e.target.value)}
                                   dir="rtl"
                                 />
-                                <div className="absolute left-2 bottom-2 flex gap-2">
+                                <div className="absolute right-2 bottom-2 flex gap-2">
                                   <EmojiPicker onEmojiSelect={handleEmojiSelect} />
                                   <ImageUploader onImageUploaded={handleImageUploaded} />
                                 </div>
                               </div>
                               <Button 
                                 type="submit" 
-                                className="ml-2 px-4"
+                                className="ms-2 self-end"
                                 disabled={replyMutation.isPending || (!replyContent.trim() && !selectedImage)}
                               >
                                 {replyMutation.isPending ? (
-                                  <span className="flex items-center">
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    שולח...
-                                  </span>
-                                ) : "שלח"}
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  'שלח'
+                                )}
                               </Button>
                             </div>
                           </form>
@@ -652,7 +645,7 @@ export default function AdminMessagesPage() {
                       </div>
                     ) : (
                       <div className="flex justify-center items-center h-full">
-                        <p className="text-muted-foreground">יש לבחור הודעה כדי לצפות בשיחה</p>
+                        <p className="text-muted-foreground">בחר הודעה כדי להציג את תוכנה</p>
                       </div>
                     )}
                   </div>
@@ -660,45 +653,38 @@ export default function AdminMessagesPage() {
               </TabsContent>
               
               <TabsContent value="search">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-[600px] flex flex-col">
-                    <div className="p-3 border-b">
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          placeholder="חיפוש הודעות..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pr-10"
-                          dir="rtl"
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <Search className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex-1 overflow-auto">
-                      {isLoadingAllMessages ? (
-                        <div className="flex justify-center items-center h-full">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        </div>
-                      ) : filteredMessages.length > 0 ? (
-                        <MessageList 
-                          messages={filteredMessages} 
-                          selectedMessageId={selectedMessage?.id} 
-                          onMessageClick={handleMessageClick} 
-                        />
-                      ) : (
-                        <div className="flex justify-center items-center h-full">
-                          <p className="text-muted-foreground">
-                            {searchQuery ? 'אין תוצאות חיפוש' : 'הזן טקסט לחיפוש'}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                <div className="mb-4 flex items-center">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="חיפוש לפי שם משתמש, אימייל, נושא או תוכן..."
+                      className="pl-8"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      dir="rtl"
+                    />
                   </div>
-                  
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-[600px]">
+                    {isLoadingAllMessages ? (
+                      <div className="flex justify-center items-center h-full">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : filteredMessages.length > 0 ? (
+                      <MessageList 
+                        messages={filteredMessages} 
+                        selectedMessageId={selectedMessage?.id} 
+                        onMessageClick={handleMessageClick} 
+                      />
+                    ) : (
+                      <div className="flex justify-center items-center h-full">
+                        <p className="text-muted-foreground">לא נמצאו הודעות</p>
+                      </div>
+                    )}
+                  </div>
                   <MessageDetails 
                     selectedMessage={selectedMessage}
                     replyContent={replyContent}
@@ -710,102 +696,54 @@ export default function AdminMessagesPage() {
               </TabsContent>
               
               <TabsContent value="orders">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[700px]">
-                  {/* Left panel - Orders list */}
-                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-full flex flex-col">
-                    <div className="p-3 border-b">
-                      <Select
-                        value={selectedOrderId?.toString() || 'all'}
-                        onValueChange={(value) => setSelectedOrderId(value)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="בחר הזמנה" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">כל ההזמנות</SelectItem>
-                          {!isLoadingOrders && orders && orders.map((order: any) => (
-                            <SelectItem key={order.id} value={order.id.toString()}>
-                              #{order.orderNumber} - {order.user?.username || 'לקוח'} - 
-                              {new Date(order.createdAt).toLocaleDateString('he-IL')}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="flex-1 overflow-auto">
-                      {isLoadingOrderMessages ? (
-                        <div className="flex justify-center items-center h-full">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        </div>
-                      ) : !selectedOrderId || selectedOrderId === 'all' ? (
-                        <div className="flex justify-center items-center h-full">
-                          <p className="text-muted-foreground">יש לבחור הזמנה לצפייה בהודעות</p>
-                        </div>
-                      ) : orderFirebaseMessages && orderFirebaseMessages.length > 0 ? (
-                        <div className="h-full p-4">
-                          <ChatThread
-                            messages={orderFirebaseMessages}
-                            currentUserId={0} // Admin is always 0 in chat view
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex justify-center items-center h-full">
-                          <p className="text-muted-foreground">אין הודעות להזמנה זו</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Right panel - Messages view */}
-                  <div className="md:col-span-2 border rounded-lg overflow-hidden h-full">
-                    {selectedOrderId && selectedOrderId !== 'all' ? (
-                      <div className="h-full flex flex-col">
-                        <div className="flex-1 overflow-auto p-4 bg-gray-50">
-                          <ChatThread
-                            messages={orderFirebaseMessages}
-                            currentUserId={0} // Admin is always 0 in chat view
-                          />
-                          <div ref={messagesEndRef} />
-                        </div>
-                        <div className="p-3 border-t bg-white">
-                          <form onSubmit={handleReplySubmit} className="flex items-end gap-2">
-                            <div className="relative flex-1">
-                              <Textarea
-                                className="flex-1 resize-none rounded-full min-h-[50px] py-3 pr-4 pl-12 bg-gray-100"
-                                placeholder="כתוב הודעה..."
-                                value={replyContent}
-                                onChange={(e) => setReplyContent(e.target.value)}
-                                dir="rtl"
-                              />
-                              <div className="absolute right-1 bottom-1.5 flex gap-2">
-                                <EmojiPicker onEmojiSelect={(emoji: string) => setReplyContent((prev: string) => prev + emoji)} />
-                                <ImageUploader onImageUploaded={handleImageUploaded} />
-                              </div>
-                            </div>
-                            <Button 
-                              type="submit" 
-                              className="rounded-full h-[50px] w-[50px] p-0 flex items-center justify-center bg-blue-500 hover:bg-blue-600"
-                              disabled={replyMutation.isPending || (!replyContent.trim() && !selectedImage)}
-                            >
-                              {replyMutation.isPending ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                              ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <line x1="22" y1="2" x2="11" y2="13" />
-                                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                                </svg>
-                              )}
-                            </Button>
-                          </form>
-                        </div>
+                <div className="mb-4">
+                  <Select
+                    value={selectedOrderId?.toString() || 'all'}
+                    onValueChange={(value) => setSelectedOrderId(value === 'all' ? null : isNaN(parseInt(value)) ? value : parseInt(value))}
+                  >
+                    <SelectTrigger className="w-full md:w-80">
+                      <SelectValue placeholder="בחר הזמנה" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">כל ההזמנות</SelectItem>
+                      {!isLoadingOrders && orders && orders.map((order: any) => (
+                        <SelectItem key={order.id} value={order.id.toString()}>
+                          הזמנה #{order.orderNumber} - {order.customerName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-1 border rounded-lg overflow-hidden h-[600px]">
+                    {isLoadingOrderMessages || (selectedOrderId && !orderMessages) ? (
+                      <div className="flex justify-center items-center h-full">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
+                    ) : !selectedOrderId ? (
+                      <div className="flex justify-center items-center h-full">
+                        <p className="text-muted-foreground">יש לבחור הזמנה</p>
+                      </div>
+                    ) : orderMessages && orderMessages.length > 0 ? (
+                      <MessageList 
+                        messages={orderMessages} 
+                        selectedMessageId={selectedMessage?.id} 
+                        onMessageClick={handleMessageClick} 
+                      />
                     ) : (
-                      <div className="flex justify-center items-center h-full text-muted-foreground">
-                        <p>יש לבחור הודעה כדי לצפות בפרטים</p>
+                      <div className="flex justify-center items-center h-full">
+                        <p className="text-muted-foreground">אין הודעות להזמנה זו</p>
                       </div>
                     )}
                   </div>
+                  <MessageDetails 
+                    selectedMessage={selectedMessage}
+                    replyContent={replyContent}
+                    setReplyContent={setReplyContent}
+                    handleReplySubmit={handleReplySubmit}
+                    isReplying={replyMutation.isPending}
+                  />
                 </div>
               </TabsContent>
             </Tabs>
@@ -816,7 +754,7 @@ export default function AdminMessagesPage() {
   );
 }
 
-// Sub-component for message list
+// Message list component
 interface MessageListProps {
   messages: Message[];
   selectedMessageId?: number;
@@ -824,131 +762,187 @@ interface MessageListProps {
 }
 
 function MessageList({ messages, selectedMessageId, onMessageClick }: MessageListProps) {
-  if (!messages || messages.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <p className="text-muted-foreground">אין הודעות</p>
-      </div>
-    );
-  }
-  
   return (
-    <div className="divide-y">
+    <div className="divide-y overflow-auto h-full">
       {messages.map((message: Message) => (
-        <div 
-          key={message.id} 
+        <div
+          key={message.id}
+          className={`p-3 cursor-pointer hover:bg-muted ${
+            selectedMessageId === message.id ? 'bg-muted' : ''
+          } ${!message.isRead ? 'font-bold' : ''}`}
           onClick={() => onMessageClick(message)}
-          className={`p-4 cursor-pointer hover:bg-gray-50 ${selectedMessageId === message.id ? 'bg-gray-100' : ''}`}
         >
           <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-medium truncate">
+            <div className="flex-1 overflow-hidden">
+              <div className="flex items-center">
+                <p className="font-medium truncate">{message.subject}</p>
                 {!message.isRead && (
-                  <span className="inline-block w-2 h-2 bg-primary rounded-full mr-2"></span>
+                  <Badge variant="destructive" className="ml-2">
+                    חדש
+                  </Badge>
                 )}
-                {message.subject || 'ללא נושא'}
-              </h3>
-              <p className="text-sm text-gray-500 truncate">
-                {message.user?.username || 'אנונימי'} - {message.content ? message.content.substring(0, 30) + (message.content.length > 30 ? '...' : '') : 'ללא תוכן'}
+              </div>
+              <p className="text-sm text-muted-foreground truncate mt-1">
+                {message.content.substring(0, 50)}
+                {message.content.length > 50 ? '...' : ''}
               </p>
+              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                <span className="font-medium">
+                  {message.user?.username || 'משתמש לא ידוע'} 
+                  {message.user?.email && ` (${message.user.email})`}
+                </span>
+                {message.orderId && (
+                  <span className="ml-2">
+                    | הזמנה #{message.orderId}
+                  </span>
+                )}
+              </div>
             </div>
-            <span className="text-xs text-gray-400 whitespace-nowrap">
-              {message.createdAt ? format(new Date(message.createdAt), 'dd/MM/yy HH:mm') : ''}
-            </span>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {format(new Date(message.createdAt), 'dd/MM/yyyy HH:mm', { locale: he })}
+          </p>
         </div>
       ))}
     </div>
   );
 }
 
-// Sub-component for message thread
+// Thread view for WhatsApp style messaging
 interface MessageThreadProps {
   messages: Message[];
   onMessageClick: (message: Message) => void;
 }
 
 function MessageThread({ messages, onMessageClick }: MessageThreadProps) {
-  if (!messages || messages.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <p className="text-muted-foreground">אין הודעות</p>
-      </div>
-    );
-  }
-  
-  // Group messages by order
+  // Group messages by date (today, yesterday, older)
   const groupedMessages = messages.reduce((groups: Record<string, Message[]>, message) => {
-    const orderId = message.orderId ? message.orderId.toString() : 'other';
-    if (!groups[orderId]) {
-      groups[orderId] = [];
+    const date = new Date(message.createdAt);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    let groupKey;
+    if (date.toDateString() === today.toDateString()) {
+      groupKey = 'היום';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      groupKey = 'אתמול';
+    } else {
+      groupKey = format(date, 'dd/MM/yyyy', { locale: he });
     }
-    groups[orderId].push(message);
+    
+    if (!groups[groupKey]) {
+      groups[groupKey] = [];
+    }
+    
+    groups[groupKey].push(message);
     return groups;
   }, {});
   
+  // Sort messages by date
+  const sortedDates = Object.keys(groupedMessages).sort((a, b) => {
+    if (a === 'היום') return -1;
+    if (b === 'היום') return 1;
+    if (a === 'אתמול') return -1;
+    if (b === 'אתמול') return 1;
+    
+    // Parse and compare dates
+    const dateA = a.split('/').reverse().join('-');
+    const dateB = b.split('/').reverse().join('-');
+    return dateB.localeCompare(dateA);
+  });
+  
   return (
-    <div className="divide-y">
-      {Object.entries(groupedMessages).map(([orderId, orderMessages]) => {
-        // Sort messages by date, newest first for the thread view
-        const sortedMessages = [...orderMessages].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        
-        // Get the first message for display
-        const latestMessage = sortedMessages[0];
-        
-        return (
-          <div 
-            key={orderId}
-            onClick={() => onMessageClick(latestMessage)}
-            className="p-4 cursor-pointer hover:bg-gray-50"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-medium truncate">
-                  {sortedMessages.some(msg => !msg.isRead) && (
-                    <span className="inline-block w-2 h-2 bg-primary rounded-full mr-2"></span>
-                  )}
-                  {latestMessage.orderId ? `הזמנה #${latestMessage.orderId}` : 'שיחה כללית'}
-                </h3>
-                <p className="text-sm text-gray-500 truncate">
-                  {latestMessage.user?.username || 'משתמש'} - {latestMessage.content ? latestMessage.content.substring(0, 30) + (latestMessage.content.length > 30 ? '...' : '') : 'ללא תוכן'}
-                </p>
-              </div>
-              <span className="text-xs text-gray-400 whitespace-nowrap">
-                {latestMessage.createdAt ? format(new Date(latestMessage.createdAt), 'dd/MM/yy HH:mm') : ''}
-              </span>
-            </div>
-            <div className="text-xs text-gray-400 mt-1">
-              {sortedMessages.length} הודעות
-            </div>
+    <div className="divide-y overflow-auto h-full">
+      {sortedDates.map(dateGroup => (
+        <div key={dateGroup} className="message-date-group">
+          <div className="sticky top-0 bg-gray-100 text-xs text-center py-1">
+            {dateGroup}
           </div>
-        );
-      })}
+          {groupedMessages[dateGroup]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .map(message => (
+              <div
+                key={message.id}
+                className={`p-3 cursor-pointer hover:bg-muted ${!message.isRead ? 'font-bold' : ''}`}
+                onClick={() => onMessageClick(message)}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 overflow-hidden">
+                    <div className="flex items-start">
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground truncate">
+                          {message.content.substring(0, 50)}
+                          {message.content.length > 50 ? '...' : ''}
+                        </p>
+                      </div>
+                      <div className="ml-2 flex flex-col items-end">
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(message.createdAt), 'HH:mm', { locale: he })}
+                        </p>
+                        {!message.isRead && (
+                          <Badge variant="destructive" className="mt-1">
+                            חדש
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
+      ))}
     </div>
   );
 }
 
-// Sub-component for chat thread view
+// WhatsApp style chat thread
 interface ChatThreadProps {
   messages: Message[];
   currentUserId: number;
 }
 
 function ChatThread({ messages, currentUserId }: ChatThreadProps) {
-  if (!messages || messages.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <p className="text-muted-foreground">אין הודעות</p>
-      </div>
-    );
-  }
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Get all messages for this thread
-  const allMessages = [...messages];
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
   
-  // Sort messages by date, oldest first for the chat view
+  // Combine messages and their replies into a single chronological thread
+  const allMessages = messages.flatMap((message) => {
+    const threadMessages = [
+      {
+        id: message.id,
+        content: message.content,
+        createdAt: message.createdAt,
+        isFromAdmin: message.isFromAdmin || false,
+        userId: message.userId,
+        imageUrl: message.imageUrl
+      }
+    ];
+    
+    if (message.replies) {
+      message.replies.forEach((reply) => {
+        threadMessages.push({
+          id: reply.id,
+          content: reply.content,
+          createdAt: reply.createdAt,
+          isFromAdmin: reply.isFromAdmin || false,
+          userId: reply.userId,
+          imageUrl: reply.imageUrl
+        });
+      });
+    }
+    
+    return threadMessages;
+  });
+  
+  // Sort all messages by date
   const sortedMessages = allMessages.sort((a, b) => 
     new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
@@ -1010,11 +1004,12 @@ function ChatThread({ messages, currentUserId }: ChatThreadProps) {
           </div>
         );
       })}
+      <div ref={messagesEndRef} />
     </div>
   );
 }
 
-// Sub-component for message details and reply form
+// Message details component
 interface MessageDetailsProps {
   selectedMessage: Message | null;
   replyContent: string;
@@ -1030,127 +1025,240 @@ function MessageDetails({
   handleReplySubmit,
   isReplying
 }: MessageDetailsProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Load Firebase messages
+  useEffect(() => {
+    if (!selectedMessage?.orderId) return;
+    
+    const unsubscribe = getAllMessages((messages) => {
+      // Filter for this order
+      const orderMessages = messages.filter(msg => 
+        msg.orderId === selectedMessage.orderId
+      );
+      setFirebaseMessages(orderMessages);
+      
+      // Scroll to bottom when messages change
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedMessage?.orderId]);
   
   // Handle emoji selection
   const handleEmojiSelect = (emoji: string) => {
-    setReplyContent((prev: string) => prev + emoji);
+    setReplyContent(prev => prev + emoji);
   };
   
   // Handle image upload
-  const handleImageUploaded = async (imageUrl: string) => {
+  const handleImageUploaded = (imageUrl: string) => {
     setSelectedImage(imageUrl);
+    toast({
+      title: "תמונה הועלתה",
+      description: "התמונה הועלתה בהצלחה ותשלח עם ההודעה",
+    });
   };
   
+  // Auto-scroll to bottom when replies change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [selectedMessage?.replies, firebaseMessages]);
   return (
     <div className="md:col-span-2 border rounded-lg overflow-hidden h-[600px]">
       {selectedMessage ? (
         <div className="h-full flex flex-col">
           <div className="p-4 border-b">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">
-                {selectedMessage.subject || 'ללא נושא'}
-                {!selectedMessage.isRead && (
-                  <span className="inline-block w-2 h-2 bg-primary rounded-full ml-2"></span>
-                )}
-              </h3>
-              <span className="text-sm text-gray-500">
-                {selectedMessage.createdAt ? format(new Date(selectedMessage.createdAt), 'dd/MM/yyyy HH:mm', { locale: he }) : ''}
+            <h3 className="text-lg font-semibold">{selectedMessage.subject}</h3>
+            <div className="flex flex-col md:flex-row md:items-center text-sm text-muted-foreground mt-1">
+              <span>
+                מאת: {selectedMessage.user?.username || 'משתמש לא ידוע'} 
+                {selectedMessage.user?.email && ` (${selectedMessage.user.email})`}
               </span>
-            </div>
-            {selectedMessage.orderId && (
-              <div className="text-sm text-gray-500 mb-1">
-                הזמנה: #{selectedMessage.orderId}
-              </div>
-            )}
-            <div className="text-sm text-gray-500">
-              מאת: {selectedMessage.user?.username || 'אנונימי'} {selectedMessage.user?.email ? `(${selectedMessage.user?.email})` : ''}
+              <span className="md:mx-2 hidden md:block">•</span>
+              <span>
+                {format(new Date(selectedMessage.createdAt), 'dd/MM/yyyy HH:mm', { locale: he })}
+              </span>
+              {selectedMessage.orderId && (
+                <>
+                  <span className="md:mx-2 hidden md:block">•</span>
+                  <span>
+                    הזמנה #{selectedMessage.orderId}
+                  </span>
+                </>
+              )}
             </div>
           </div>
-          
-          <div className="flex-1 overflow-auto p-4">
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <div className="whitespace-pre-wrap">{selectedMessage.content}</div>
-              
-              {/* Display image if any */}
-              {selectedMessage.imageUrl && (
-                <div className="mt-4">
-                  <img 
-                    src={selectedMessage.imageUrl} 
-                    alt="תמונה שצורפה" 
-                    className="max-w-full rounded-lg" 
-                  />
+          <div className="flex-1 overflow-auto p-4 bg-gray-50">
+            {/* Initial message */}
+            <div className="flex justify-start mb-6">
+              <div className="rounded-2xl p-3 max-w-[80%] shadow-sm bg-gray-100 text-gray-800 rounded-tl-none">
+                <p className="whitespace-pre-wrap text-sm">{selectedMessage.content}</p>
+                {/* Show image if it exists */}
+                {selectedMessage.imageUrl && (
+                  <div className="mt-2">
+                    <img src={selectedMessage.imageUrl} alt="תמונה שצורפה" className="max-w-full rounded-lg max-h-40" />
+                  </div>
+                )}
+                <div className="flex items-center text-xs mt-1 text-gray-500">
+                  <span>{format(new Date(selectedMessage.createdAt), 'HH:mm', { locale: he })}</span>
+                  <span className="mx-1">•</span>
+                  <span>קונה</span>
                 </div>
-              )}
+              </div>
             </div>
             
-            <div className="mt-4">
-              <h4 className="text-sm font-medium mb-2">פרטי משתמש:</h4>
-              <div className="text-sm">
-                <p><span className="font-medium">שם משתמש:</span> {selectedMessage.user?.username || 'לא זמין'}</p>
-                <p><span className="font-medium">אימייל:</span> {selectedMessage.user?.email || 'לא זמין'}</p>
-                <p><span className="font-medium">שם:</span> {selectedMessage.user?.firstName} {selectedMessage.user?.lastName}</p>
-                <p><span className="font-medium">טלפון:</span> {selectedMessage.user?.phone || 'לא זמין'}</p>
+            {/* Firebase messages */}
+            {firebaseMessages.length > 0 && (
+              <div className="space-y-4">
+                {firebaseMessages.map((message) => {
+                  const isAdmin = message.isAdmin;
+                  const senderName = isAdmin ? "מוכר" : "קונה";
+                  
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-3`}
+                    >
+                      <div 
+                        className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                          isAdmin 
+                            ? 'bg-blue-500 text-white rounded-tr-none' 
+                            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                        
+                        {/* Display image if any */}
+                        {message.imageUrl && (
+                          <div className="mt-2">
+                            <img 
+                              src={message.imageUrl} 
+                              alt="תמונה שצורפה" 
+                              className="max-w-full rounded-lg max-h-40" 
+                            />
+                          </div>
+                        )}
+                        
+                        <div className={`flex items-center text-xs mt-1 ${isAdmin ? 'text-blue-100' : 'text-gray-500'}`}>
+                          <span>{message.createdAt ? format(new Date(message.createdAt.toDate()), 'HH:mm', { locale: he }) : ''}</span>
+                          <span className="mx-1">•</span>
+                          <span>{senderName}</span>
+                          {message.isRead && isAdmin && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M18 6L7 17L2 12" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            )}
+            
+            {/* Legacy replies from database */}
+            {selectedMessage.replies && selectedMessage.replies.length > 0 && (
+              <div className="space-y-4">
+                {selectedMessage.replies.map((reply) => {
+                  const isAdmin = reply.isFromAdmin;
+                  const senderName = isAdmin ? "מוכר" : "קונה";
+                  
+                  return (
+                    <div
+                      key={reply.id}
+                      className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-3`}
+                    >
+                      <div 
+                        className={`rounded-2xl p-3 max-w-[80%] shadow-sm ${
+                          isAdmin 
+                            ? 'bg-blue-500 text-white rounded-tr-none' 
+                            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap text-sm">{reply.content}</p>
+                        <div className={`flex items-center text-xs mt-1 ${isAdmin ? 'text-blue-100' : 'text-gray-500'}`}>
+                          <span>{format(new Date(reply.createdAt), 'HH:mm', { locale: he })}</span>
+                          <span className="mx-1">•</span>
+                          <span>{senderName}</span>
+                          {reply.isRead && isAdmin && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M18 6L7 17L2 12" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {/* Selected image preview for the message being composed */}
+            {selectedImage && (
+              <div className="flex justify-end mb-4">
+                <div className="relative">
+                  <img src={selectedImage} alt="Selected" className="max-w-[200px] max-h-[150px] rounded-lg" />
+                  <button
+                    type="button"
+                    className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-70"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+            
             <div ref={messagesEndRef} />
           </div>
-          
-          <div className="p-4 border-t bg-white">
-            <form onSubmit={handleReplySubmit} className="flex flex-col gap-2">
-              {/* Image preview if selected */}
-              {selectedImage && (
-                <div className="flex justify-start mb-2">
-                  <div className="relative">
-                    <img src={selectedImage} alt="Selected" className="max-w-[200px] max-h-[150px] rounded-lg" />
-                    <button
-                      type="button"
-                      className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-70"
-                      onClick={() => setSelectedImage(null)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  </div>
+          <div className="p-3 border-t bg-white">
+            <form onSubmit={handleReplySubmit} className="flex items-end gap-2">
+              <div className="relative flex-1">
+                <Textarea
+                  className="flex-1 resize-none rounded-full min-h-[50px] py-3 pr-4 pl-12 bg-gray-100"
+                  placeholder="כתוב הודעה..."
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  dir="rtl"
+                />
+                <div className="absolute right-1 bottom-1.5 flex gap-2">
+                  <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                  <ImageUploader onImageUploaded={handleImageUploaded} />
                 </div>
-              )}
-              
-              <div className="flex items-end">
-                <div className="relative flex-1">
-                  <Textarea
-                    className="flex-1 resize-none pr-20"
-                    placeholder="הזן תשובה..."
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    dir="rtl"
-                  />
-                  <div className="absolute left-2 bottom-2 flex gap-2">
-                    <EmojiPicker onEmojiSelect={handleEmojiSelect} />
-                    <ImageUploader onImageUploaded={handleImageUploaded} />
-                  </div>
-                </div>
-                <Button 
-                  type="submit" 
-                  className="ml-2 px-4"
-                  disabled={isReplying || (!replyContent.trim() && !selectedImage)}
-                >
-                  {isReplying ? (
-                    <span className="flex items-center">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      שולח...
-                    </span>
-                  ) : "שלח"}
-                </Button>
               </div>
+              <Button 
+                type="submit" 
+                className="rounded-full h-[50px] w-[50px] p-0 flex items-center justify-center bg-blue-500 hover:bg-blue-600"
+                disabled={isReplying || (!replyContent.trim() && !selectedImage)}
+              >
+                {isReplying ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                )}
+              </Button>
             </form>
           </div>
         </div>
       ) : (
-        <div className="flex justify-center items-center h-full">
-          <p className="text-muted-foreground">יש לבחור הודעה כדי לצפות בפרטים</p>
+        <div className="flex justify-center items-center h-full text-muted-foreground">
+          <p>יש לבחור הודעה כדי לצפות בפרטים</p>
         </div>
       )}
     </div>
