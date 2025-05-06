@@ -629,7 +629,7 @@ export default function MessagesPage() {
                                 
                                 {/* Image uploader */}
                                 <ImageUploader 
-                                  orderId={selectedMessage?.orderId}
+                                  orderId={selectedMessage?.orderId || undefined}
                                   onImageUploaded={async (imageUrl) => {
                                     if (!selectedMessage || !user) return;
                                     
