@@ -300,6 +300,21 @@ export default function MessagesPage() {
     }, 100);
   }, [selectedMessage]);
   
+  // Helper function to create placeholder messages
+  const createPlaceholderMessage = (orderId: number): Message => ({
+    id: 0,
+    userId: user?.id || 0,
+    orderId: orderId,
+    content: `שיחה על הזמנה #${orderId}`,
+    subject: `הזמנה #${orderId}`,
+    createdAt: new Date(),
+    isRead: true,
+    isFromAdmin: false,
+    imageUrl: null,
+    parentId: null,
+    replies: []
+  });
+
   // Effect to load order-specific Firebase messages when an order is selected
   const [orderMessages, setOrderMessages] = useState<FirebaseMessage[]>([]);
   
@@ -765,16 +780,7 @@ export default function MessagesPage() {
                                   handleMessageClick(existingMessage);
                                 } else {
                                   // Create a placeholder message object to initiate chat for this order
-                                  setSelectedMessage({
-                                    id: 0, // Placeholder ID
-                                    userId: user.id,
-                                    orderId: order.orderId,
-                                    content: "שיחה על הזמנה #" + order.orderId,
-                                    subject: "הזמנה #" + order.orderId,
-                                    createdAt: new Date(),
-                                    isRead: true,
-                                    isFromAdmin: false
-                                  });
+                                  setSelectedMessage(createPlaceholderMessage(order.orderId));
                                 }
                                 
                                 // Mark unread messages as read
