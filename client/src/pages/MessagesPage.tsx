@@ -423,15 +423,17 @@ export default function MessagesPage() {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    const chatContainer = document.getElementById('chat-container');
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     }
   }, [selectedMessage, orderMessages]);
 
   // Auto-scroll to bottom for order messages
   useEffect(() => {
-    if (ordersMessagesEndRef.current) {
-      ordersMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    const orderChatContainer = document.getElementById('chat-container-orders');
+    if (orderChatContainer) {
+      orderChatContainer.scrollTop = orderChatContainer.scrollHeight;
     }
   }, [orderMessages]);
 
@@ -718,7 +720,7 @@ export default function MessagesPage() {
                               </Button>
                             </div>
                           )}
-                          <div ref={ordersMessagesEndRef} />
+                          {/* No longer need a ref here */}
                         </div>
                       </div>
                       
