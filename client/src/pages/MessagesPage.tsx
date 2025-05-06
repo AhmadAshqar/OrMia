@@ -544,6 +544,16 @@ export default function MessagesPage() {
                                       .catch(error => console.error("Error marking messages as read:", error));
                                   }
                                 }
+                                
+                                // Update the local state immediately to hide the unread badge
+                                setUserOrdersWithMessages(prevOrders => 
+                                  prevOrders.map(prevOrder => {
+                                    if (prevOrder.orderId === order.orderId) {
+                                      return { ...prevOrder, unreadCount: 0 };
+                                    }
+                                    return prevOrder;
+                                  })
+                                );
                               }
                             }}
                           >
