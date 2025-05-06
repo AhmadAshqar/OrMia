@@ -304,15 +304,19 @@ export default function MessagesPage() {
 
   // Fetch user orders with messages
   useEffect(() => {
-    if (!user || !firebaseMessages.length) {
+    if (!user) {
       setUserOrdersWithMessages([]);
       return;
     }
     
-    const orders = getUserOrdersWithMessages(user.id, firebaseMessages);
-    console.log(`Returning ${orders.length} orders with messages for user ${user.id}`);
-    setUserOrdersWithMessages(orders);
-  }, [user, firebaseMessages]);
+    console.log(`Setting up live orders with messages subscription for user ${user.id}`);
+    const unsubscribe = getUserOrdersWithMessages(user.id, (orders) => {
+      console.log(`Received ${orders.length} orders with messages for user ${user.id}`);
+      setUserOrdersWithMessages(orders);
+    });
+    
+    return () => unsubscribe();
+  }, [user]);
 
   // Fetch messages for the selected order
   useEffect(() => {

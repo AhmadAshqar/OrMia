@@ -21,6 +21,9 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 const ORDERS_COLLECTION = 'orders';
 const MESSAGES_SUBCOLLECTION = 'messages';
 
+// Log Firebase configuration for debugging
+console.log('Firebase setup initialized');
+
 // Message types
 export interface FirebaseMessage {
   id?: string;
@@ -51,11 +54,17 @@ export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' |
       throw new Error('Order ID is required');
     }
 
+    // Convert orderId to a number to ensure consistency
+    const orderId = Number(message.orderId);
+    if (isNaN(orderId)) {
+      throw new Error('Invalid order ID - must be a number');
+    }
+
     // Make sure to validate and sanitize data
     const sanitizedMessage = {
       content: message.content || '',
-      userId: message.userId,
-      orderId: message.orderId,
+      userId: Number(message.userId),
+      orderId: orderId,
       isAdmin: Boolean(message.isAdmin),
       isRead: Boolean(message.isRead),
       createdAt: serverTimestamp(),
@@ -64,26 +73,35 @@ export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' |
       ...(message.imageUrl && { imageUrl: message.imageUrl })
     };
     
-    console.log('Creating message:', sanitizedMessage);
+    console.log('Creating message for order:', orderId, sanitizedMessage);
     
     // First get a reference to the order document
-    const orderRef = getOrderRef(message.orderId);
+    const orderRef = getOrderRef(orderId);
     
     // Ensure the order document exists before adding messages
     try {
       // This will create the document if it doesn't exist
       const batch = writeBatch(db);
-      batch.set(orderRef, { exists: true }, { merge: true });
+      batch.set(orderRef, { exists: true, updatedAt: serverTimestamp() }, { merge: true });
       await batch.commit();
-      console.log('Ensured order document exists:', message.orderId.toString());
+      console.log('Ensured order document exists:', orderId.toString());
     } catch (orderError) {
       console.error('Error ensuring order document exists:', orderError);
     }
     
     // Add message to the order's messages subcollection
-    const messagesCollection = getOrderMessagesCollection(message.orderId);
+    const messagesCollection = getOrderMessagesCollection(orderId);
     const docRef = await addDoc(messagesCollection, sanitizedMessage);
-    console.log('Message created with ID:', docRef.id);
+    console.log('Message created with ID:', docRef.id, 'for order:', orderId);
+    
+    // For debugging - immediately try to retrieve the message
+    try {
+      const messageDoc = await doc(messagesCollection, docRef.id);
+      console.log('Message reference path:', messageDoc.path);
+    } catch (readError) {
+      console.error('Could not access newly created message:', readError);
+    }
+    
     return docRef.id;
   } catch (error) {
     console.error('Error creating message:', error);
