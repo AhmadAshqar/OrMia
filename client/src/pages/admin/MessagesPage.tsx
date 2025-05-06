@@ -388,6 +388,14 @@ export default function AdminMessagesPage() {
       return;
     }
     
+    // Store the message content before clearing it
+    const messageContent = replyContent;
+    const imageContent = selectedImage;
+    
+    // Clear the input immediately for better UX
+    setReplyContent('');
+    setSelectedImage(null);
+    
     try {
       // Send message through Firebase
       if (user) {
@@ -397,12 +405,12 @@ export default function AdminMessagesPage() {
         }
         
         await createFirebaseMessage({
-          content: replyContent,
+          content: messageContent,
           orderId: selectedMessage.orderId,
           userId: user.id,
           isAdmin: true,
           isRead: false,
-          imageUrl: selectedImage || undefined
+          imageUrl: imageContent || undefined
         });
         
         // Mark related messages as read
@@ -427,9 +435,6 @@ export default function AdminMessagesPage() {
             }
           }
         }
-        
-        setReplyContent('');
-        setSelectedImage(null);
         
         toast({
           title: 'הודעה נשלחה',
@@ -1069,11 +1074,6 @@ function MessageDetails({
       unsubscribe();
     };
   }, [selectedMessage?.orderId]);
-  
-  // Handle emoji selection
-  const handleEmojiSelect = (emoji: string) => {
-    setReplyContent((prev: string) => prev + emoji);
-  };
   
   // Handle image upload
   const handleImageUploaded = (imageUrl: string) => {
