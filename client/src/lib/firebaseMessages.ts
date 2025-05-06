@@ -78,7 +78,7 @@ export function getUserMessages(userId: number, callback: (messages: FirebaseMes
   const q = query(
     collectionGroup(db, MESSAGES_SUBCOLLECTION),
     where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'asc')
   );
 
   return onSnapshot(q, (querySnapshot) => {
@@ -122,7 +122,7 @@ export function getAllOrdersWithMessages(callback: (messages: Record<number, Fir
   // Query all messages from all orders
   const q = query(
     collectionGroup(db, MESSAGES_SUBCOLLECTION),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'asc')
   );
 
   return onSnapshot(q, (querySnapshot) => {
@@ -161,7 +161,7 @@ export function getAllMessages(callback: (messages: FirebaseMessage[]) => void) 
   // Query all messages from all orders
   const q = query(
     collectionGroup(db, MESSAGES_SUBCOLLECTION),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'asc')
   );
 
   return onSnapshot(q, (querySnapshot) => {

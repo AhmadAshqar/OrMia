@@ -372,10 +372,13 @@ export default function MessagesPage() {
           description: 'ההודעה שלך נשלחה בהצלחה'
         });
         
-        // Scroll to the bottom of the messages
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
+        // Scroll to the bottom of the chat container
+        setTimeout(() => {
+          const chatContainer = document.getElementById('chat-container');
+          if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+          }
+        }, 100);
       } else {
         // Fallback to REST API if Firebase is not available or no order ID
         replyMutation.mutate({ messageId: selectedMessage.id, content: messageContent });
@@ -515,7 +518,7 @@ export default function MessagesPage() {
                           </p>
                         </div>
                         
-                        <div className="flex-1 overflow-auto p-4 bg-gray-50">
+                        <div id="chat-container" className="flex-1 overflow-auto p-4 bg-gray-50">
                           <div className="space-y-4">
                             {/* Initial message */}
                             <div className="flex justify-end mb-3">
