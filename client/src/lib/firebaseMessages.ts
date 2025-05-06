@@ -370,16 +370,27 @@ export interface OrderSummary {
 // Get all orders that have messages
 export async function getOrdersWithMessages(): Promise<OrderSummary[]> {
   try {
-    // First get all distinct orders
+    // First fetch order details from the API to get order numbers
+    const orderNumbersResponse = await fetch('/api/admin/orders');
+    const orderData = await orderNumbersResponse.json();
+    
+    // Create a map of order IDs to order numbers
+    const orderNumberMap = new Map<number, string>();
+    orderData.forEach((order: any) => {
+      orderNumberMap.set(order.id, order.orderNumber);
+    });
+    
+    // Now get all distinct orders with messages
     const ordersQuery = query(collection(db, ORDERS_COLLECTION));
     const ordersSnapshot = await getDocs(ordersQuery);
     
-    const orders: { id: number; date: Date }[] = [];
+    const orders: { id: number; date: Date; orderNumber?: string }[] = [];
     
     ordersSnapshot.forEach(doc => {
       const orderId = Number(doc.id);
       orders.push({
         id: orderId,
+        orderNumber: orderNumberMap.get(orderId),
         date: new Date() // Default date, will be updated with latest message date
       });
     });
@@ -405,6 +416,7 @@ export async function getOrdersWithMessages(): Promise<OrderSummary[]> {
             
           return {
             orderId: order.id,
+            orderNumber: order.orderNumber,
             hasMessages: true,
             date
           };
@@ -412,6 +424,7 @@ export async function getOrdersWithMessages(): Promise<OrderSummary[]> {
         
         return {
           orderId: order.id,
+          orderNumber: order.orderNumber,
           hasMessages: false,
           date: order.date
         };
@@ -435,7 +448,13 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
   fetch('/api/user/orders')
     .then(response => response.json())
     .then(userOrders => {
-      const userOrderIds = userOrders.map(order => order.id);
+      // Create a map of order IDs to order numbers for later use
+      const orderNumberMap = new Map<number, string>();
+      userOrders.forEach((order: any) => {
+        orderNumberMap.set(order.id, order.orderNumber);
+      });
+      
+      const userOrderIds = userOrders.map((order: any) => order.id);
       console.log(`User has ${userOrderIds.length} orders: ${userOrderIds.join(', ')}`);
       
       // Now query all messages
@@ -473,6 +492,7 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
                 // First message for this order, initialize with latest message
                 orderMap.set(orderId, {
                   orderId,
+                  orderNumber: orderNumberMap.get(orderId), // Add order number from the map
                   latestMessage: data,
                   unreadCount: data.isAdmin && !data.isRead ? 1 : 0
                 });
@@ -570,18 +590,28 @@ export function getUnreadMessagesCount(userId: number, isAdmin: boolean, callbac
 export function getOrderConversations(callback: (orders: OrderSummary[]) => void) {
   console.log('Subscribing to order conversations for admin view');
   
-  // Query all messages from all orders without filtering
-  const q = query(
-    collectionGroup(db, MESSAGES_SUBCOLLECTION),
-    orderBy('createdAt', 'desc') // Get in descending order to easily find latest
-  );
-
-  return onSnapshot(q, (querySnapshot) => {
-    console.log(`Received ${querySnapshot.size} messages in admin order conversations snapshot`);
-    const orderMap = new Map<number, OrderSummary>();
-    
-    // Process each message to build order conversations list
-    querySnapshot.forEach((doc) => {
+  // First get all orders from API to map order IDs to order numbers
+  fetch('/api/admin/orders')
+    .then(response => response.json())
+    .then(orderData => {
+      // Create a map of order IDs to order numbers for reference
+      const orderNumberMap = new Map<number, string>();
+      orderData.forEach((order: any) => {
+        orderNumberMap.set(order.id, order.orderNumber);
+      });
+      
+      // Now query all messages from all orders without filtering
+      const q = query(
+        collectionGroup(db, MESSAGES_SUBCOLLECTION),
+        orderBy('createdAt', 'desc') // Get in descending order to easily find latest
+      );
+      
+      return onSnapshot(q, (querySnapshot) => {
+        console.log(`Received ${querySnapshot.size} messages in admin order conversations snapshot`);
+        const orderMap = new Map<number, OrderSummary>();
+        
+        // Process each message to build order conversations list
+        querySnapshot.forEach((doc) => {
       try {
         const data = doc.data() as FirebaseMessage;
         data.id = doc.id;
@@ -604,6 +634,7 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
           // First message for this order (will be the latest due to desc ordering)
           orderMap.set(orderId, {
             orderId,
+            orderNumber: orderNumberMap.get(orderId),
             date,
             hasMessages: true,
             unreadCount: !data.isAdmin && !data.isRead ? 1 : 0
@@ -627,6 +658,14 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
     console.log(`Returning ${orders.length} order conversations in admin view. Order IDs: ${orders.map(o => o.orderId).join(', ')}`);
     callback(orders);
   });
+    })
+    .catch(error => {
+      console.error('Error fetching admin orders:', error);
+      callback([]);
+    });
+    
+  // Return a dummy unsubscribe function
+  return () => {};
 }
 
 // Upload an image and return the URL

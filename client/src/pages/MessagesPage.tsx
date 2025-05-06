@@ -620,7 +620,10 @@ export default function MessagesPage() {
                           {selectedMessage.subject}
                           {selectedMessage.orderId && (
                             <span className="text-sm text-muted-foreground mr-2">
-                              (הזמנה מספר {selectedMessage.orderId})
+                              (הזמנה מספר {
+                                userOrdersWithMessages.find(order => order.orderId === selectedMessage.orderId)?.orderNumber || 
+                                selectedMessage.orderId
+                              })
                             </span>
                           )}
                         </h3>
