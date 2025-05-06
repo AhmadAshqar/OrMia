@@ -2278,6 +2278,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ADMIN: Get all orders that have messages
+  app.get("/api/admin/orders-with-messages", ensureAdmin, async (req, res) => {
+    try {
+      // Get all orders with messages
+      const ordersWithMessages = await storage.getOrdersWithMessages();
+      console.log(`Admin fetched ${ordersWithMessages.length} orders with messages`);
+      res.json(ordersWithMessages);
+    } catch (error) {
+      console.error("Error fetching orders with messages for admin:", error);
+      res.status(500).json({ error: "שגיאה בטעינת הזמנות עם הודעות" });
+    }
+  });
+
   // Set up WebSocket server for real-time messaging
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
