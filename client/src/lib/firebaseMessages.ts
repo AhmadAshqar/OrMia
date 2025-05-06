@@ -10,18 +10,20 @@ import {
   serverTimestamp,
   updateDoc,
   doc,
-  writeBatch
+  writeBatch,
+  collectionGroup
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Collection names
-const MESSAGES_COLLECTION = 'messages';
+const ORDERS_COLLECTION = 'orders';
+const MESSAGES_SUBCOLLECTION = 'messages';
 
 // Message types
 export interface FirebaseMessage {
   id?: string;
   content: string;
-  orderId?: number | null;
+  orderId: number;
   userId: number;
   isAdmin: boolean;
   createdAt: any;
@@ -30,23 +32,39 @@ export interface FirebaseMessage {
   imageUrl?: string;
 }
 
-// Create a new message
+// Helper to get the order document reference
+function getOrderRef(orderId: number) {
+  return doc(db, ORDERS_COLLECTION, orderId.toString());
+}
+
+// Helper to get the messages collection for an order
+function getOrderMessagesCollection(orderId: number) {
+  return collection(getOrderRef(orderId), MESSAGES_SUBCOLLECTION);
+}
+
+// Create a new message for a specific order
 export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' | 'id'>) {
   try {
+    if (!message.orderId) {
+      throw new Error('Order ID is required');
+    }
+
     // Make sure to validate and sanitize data
     const sanitizedMessage = {
       content: message.content || '',
       userId: message.userId,
+      orderId: message.orderId,
       isAdmin: Boolean(message.isAdmin),
       isRead: Boolean(message.isRead),
       createdAt: serverTimestamp(),
       // Only include non-null values
-      ...(message.orderId !== undefined && message.orderId !== null && { orderId: message.orderId }),
       ...(message.subject && { subject: message.subject }),
       ...(message.imageUrl && { imageUrl: message.imageUrl })
     };
     
-    const docRef = await addDoc(collection(db, MESSAGES_COLLECTION), sanitizedMessage);
+    // Add message to the order's messages subcollection
+    const messagesCollection = getOrderMessagesCollection(message.orderId);
+    const docRef = await addDoc(messagesCollection, sanitizedMessage);
     return docRef.id;
   } catch (error) {
     console.error('Error creating message:', error);
@@ -54,59 +72,106 @@ export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' |
   }
 }
 
-// Get messages for a specific user
+// Get messages for a specific user by joining all their orders' messages
 export function getUserMessages(userId: number, callback: (messages: FirebaseMessage[]) => void) {
+  // Query all messages from all orders
   const q = query(
-    collection(db, MESSAGES_COLLECTION),
+    collectionGroup(db, MESSAGES_SUBCOLLECTION),
     where('userId', '==', userId),
-    orderBy('createdAt', 'asc')
-  );
-
-  return onSnapshot(q, (querySnapshot) => {
-    const messages: FirebaseMessage[] = [];
-    querySnapshot.forEach((doc) => {
-      messages.push({
-        id: doc.id,
-        ...doc.data()
-      } as FirebaseMessage);
-    });
-    callback(messages);
-  });
-}
-
-// Get messages for an order
-export function getOrderMessages(orderId: number, callback: (messages: FirebaseMessage[]) => void) {
-  const q = query(
-    collection(db, MESSAGES_COLLECTION),
-    where('orderId', '==', orderId),
-    orderBy('createdAt', 'asc')
-  );
-
-  return onSnapshot(q, (querySnapshot) => {
-    const messages: FirebaseMessage[] = [];
-    querySnapshot.forEach((doc) => {
-      messages.push({
-        id: doc.id,
-        ...doc.data()
-      } as FirebaseMessage);
-    });
-    callback(messages);
-  });
-}
-
-// Get all messages (admin only)
-export function getAllMessages(callback: (messages: FirebaseMessage[]) => void) {
-  const q = query(
-    collection(db, MESSAGES_COLLECTION),
     orderBy('createdAt', 'desc')
   );
 
   return onSnapshot(q, (querySnapshot) => {
     const messages: FirebaseMessage[] = [];
     querySnapshot.forEach((doc) => {
+      const data = doc.data();
       messages.push({
         id: doc.id,
-        ...doc.data()
+        ...data,
+        // Ensure orderId is included since we're using collectionGroup
+        orderId: data.orderId
+      } as FirebaseMessage);
+    });
+    callback(messages);
+  });
+}
+
+// Get messages for a specific order
+export function getOrderMessages(orderId: number, callback: (messages: FirebaseMessage[]) => void) {
+  const messagesCollection = getOrderMessagesCollection(orderId);
+  const q = query(
+    messagesCollection,
+    orderBy('createdAt', 'asc')
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const messages: FirebaseMessage[] = [];
+    querySnapshot.forEach((doc) => {
+      messages.push({
+        id: doc.id,
+        ...doc.data(),
+        orderId // Ensure orderId is included
+      } as FirebaseMessage);
+    });
+    callback(messages);
+  });
+}
+
+// Get all messages grouped by order (admin only)
+export function getAllOrdersWithMessages(callback: (messages: Record<number, FirebaseMessage[]>) => void) {
+  // Query all messages from all orders
+  const q = query(
+    collectionGroup(db, MESSAGES_SUBCOLLECTION),
+    orderBy('createdAt', 'desc')
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const messagesByOrder: Record<number, FirebaseMessage[]> = {};
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const orderId = data.orderId;
+      
+      if (!messagesByOrder[orderId]) {
+        messagesByOrder[orderId] = [];
+      }
+      
+      messagesByOrder[orderId].push({
+        id: doc.id,
+        ...data,
+        orderId
+      } as FirebaseMessage);
+    });
+    
+    // Sort messages within each order
+    Object.keys(messagesByOrder).forEach((orderId) => {
+      messagesByOrder[Number(orderId)].sort((a, b) => {
+        const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return aTime - bTime;
+      });
+    });
+    
+    callback(messagesByOrder);
+  });
+}
+
+// Get all messages (admin only) - for backward compatibility
+export function getAllMessages(callback: (messages: FirebaseMessage[]) => void) {
+  // Query all messages from all orders
+  const q = query(
+    collectionGroup(db, MESSAGES_SUBCOLLECTION),
+    orderBy('createdAt', 'desc')
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const messages: FirebaseMessage[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      messages.push({
+        id: doc.id,
+        ...data,
+        orderId: data.orderId
       } as FirebaseMessage);
     });
     callback(messages);
@@ -114,20 +179,20 @@ export function getAllMessages(callback: (messages: FirebaseMessage[]) => void) 
 }
 
 // Mark a message as read
-export async function markMessageAsRead(messageId: string | string[]) {
+export async function markMessageAsRead(messageId: string | string[], orderId: number) {
   try {
     if (Array.isArray(messageId)) {
       // Batch update for multiple messages
       const batch = writeBatch(db);
       messageId.forEach((id) => {
-        const messageRef = doc(db, MESSAGES_COLLECTION, id);
+        const messageRef = doc(getOrderMessagesCollection(orderId), id);
         batch.update(messageRef, { isRead: true });
       });
       await batch.commit();
       return true;
     } else {
       // Single message update
-      const messageRef = doc(db, MESSAGES_COLLECTION, messageId);
+      const messageRef = doc(getOrderMessagesCollection(orderId), messageId);
       await updateDoc(messageRef, {
         isRead: true
       });
@@ -139,11 +204,27 @@ export async function markMessageAsRead(messageId: string | string[]) {
   }
 }
 
+// Get unread messages count for a user or admin
+export function getUnreadMessagesCount(userId: number, isAdmin: boolean, callback: (count: number) => void) {
+  // Query all messages from all orders that are unread
+  const q = query(
+    collectionGroup(db, MESSAGES_SUBCOLLECTION),
+    where('isRead', '==', false),
+    ...(isAdmin ? 
+      [where('isAdmin', '==', false)] : // Admin sees unread messages from users
+      [where('userId', '==', userId), where('isAdmin', '==', true)]) // User sees unread messages from admin
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    callback(querySnapshot.size);
+  });
+}
+
 // Upload an image and return the URL
-export async function uploadMessageImage(file: File, userId: number): Promise<string> {
+export async function uploadMessageImage(file: File, userId: number, orderId: number): Promise<string> {
   try {
     const timestamp = Date.now();
-    const storageRef = ref(storage, `message-images/${userId}_${timestamp}_${file.name}`);
+    const storageRef = ref(storage, `order-messages/${orderId}/${userId}_${timestamp}_${file.name}`);
     const uploadResult = await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(uploadResult.ref);
     return downloadURL;

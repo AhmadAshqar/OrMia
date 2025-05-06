@@ -6,7 +6,15 @@ import { he } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
-import { createMessage as createFirebaseMessage, FirebaseMessage, markMessageAsRead, getAllMessages, getOrderMessages } from '@/lib/firebaseMessages';
+import { 
+  createMessage as createFirebaseMessage, 
+  FirebaseMessage, 
+  markMessageAsRead, 
+  getOrderMessages,
+  getUserMessages,
+  getUnreadMessagesCount,
+  uploadMessageImage as uploadOrderImage
+} from '@/lib/firebaseMessages';
 
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Message } from '@shared/schema';
-import { Loader2, CheckCheck } from 'lucide-react';
+import { Loader2, CheckCheck, ShoppingBag } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { EmojiPicker } from '@/components/ui/EmojiPicker';
 import { ImageUploader } from '@/components/ui/ImageUploader';
@@ -241,11 +249,11 @@ export default function MessagesPage() {
     };
   }, [user]);
   
-  // Effect to load Firebase messages
+  // Effect to load Firebase messages for the user
   useEffect(() => {
     if (!user) return;
     
-    const unsubscribe = getAllMessages((messages) => {
+    const unsubscribe = getUserMessages(user.id, (messages) => {
       setFirebaseMessages(messages);
     });
     
@@ -276,6 +284,30 @@ export default function MessagesPage() {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [selectedMessage]);
+  
+  // Effect to load order-specific Firebase messages when an order is selected
+  const [orderMessages, setOrderMessages] = useState<FirebaseMessage[]>([]);
+  
+  useEffect(() => {
+    if (!selectedMessage || !selectedMessage.orderId) return;
+    
+    // Unsubscribe from previous subscription
+    let unsubscribe = () => {};
+    
+    // Subscribe to order-specific messages
+    unsubscribe = getOrderMessages(selectedMessage.orderId, (messages) => {
+      setOrderMessages(messages);
+      
+      // Scroll to the bottom when messages update
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedMessage?.orderId]);
 
   // Handle message click
   const handleMessageClick = (message: Message) => {
@@ -295,7 +327,7 @@ export default function MessagesPage() {
           .map(msg => msg.id as string);
         
         if (messageIds.length > 0) {
-          markMessageAsRead(messageIds)
+          markMessageAsRead(messageIds, message.orderId)
             .catch(error => console.error("Error marking messages as read:", error));
         }
       }
@@ -597,29 +629,46 @@ export default function MessagesPage() {
                                 
                                 {/* Image uploader */}
                                 <ImageUploader 
-                                  onImageUploaded={(imageUrl) => {
-                                    if (!selectedMessage) return;
+                                  onImageUploaded={async (file) => {
+                                    if (!selectedMessage || !user) return;
                                     
-                                    if (websocketRef.current && 
-                                        websocketRef.current.readyState === WebSocket.OPEN && 
-                                        selectedMessage.orderId) {
-                                      // Send image through WebSocket
-                                      websocketRef.current.send(JSON.stringify({
-                                        type: 'message',
-                                        content: '📷 תמונה',
-                                        imageUrl: imageUrl,
-                                        orderId: selectedMessage.orderId,
-                                        parentId: selectedMessage.id
-                                      }));
-                                    } else {
-                                      // Fall back to API
-                                      createFirebaseMessage({
+                                    try {
+                                      if (!selectedMessage.orderId) {
+                                        toast({
+                                          title: 'שגיאה',
+                                          description: 'לא ניתן להעלות תמונה להודעה ללא מספר הזמנה',
+                                          variant: 'destructive'
+                                        });
+                                        return;
+                                      }
+                                      
+                                      // Upload the image to Firebase Storage
+                                      const imageUrl = await uploadOrderImage(
+                                        file, 
+                                        user.id, 
+                                        selectedMessage.orderId
+                                      );
+                                      
+                                      // Send message with the image URL
+                                      await createFirebaseMessage({
                                         content: '📷 תמונה',
                                         imageUrl: imageUrl,
                                         userId: user.id,
                                         isAdmin: false,
                                         orderId: selectedMessage.orderId,
                                         isRead: false
+                                      });
+                                      
+                                      toast({
+                                        title: 'תמונה נשלחה',
+                                        description: 'התמונה שלך נשלחה בהצלחה'
+                                      });
+                                    } catch (error) {
+                                      console.error("Error uploading image:", error);
+                                      toast({
+                                        title: 'שגיאה',
+                                        description: 'לא ניתן להעלות את התמונה',
+                                        variant: 'destructive'
                                       });
                                     }
                                   }}
