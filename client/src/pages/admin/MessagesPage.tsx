@@ -78,7 +78,7 @@ export default function AdminMessagesPage() {
   const [firebaseMessages, setFirebaseMessages] = useState<FirebaseMessage[]>([]);
   const [orderConversations, setOrderConversations] = useState<OrderSummary[]>([]);
   const websocketRef = useRef<WebSocket | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Removed messagesEndRef as we're using container IDs for scrolling
 
   // Query to fetch all users
   const { data: users, isLoading: isLoadingUsers } = useQuery({
@@ -1291,8 +1291,6 @@ interface ChatThreadProps {
 }
 
 function ChatThread({ messages, currentUserId }: ChatThreadProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     setTimeout(() => {
