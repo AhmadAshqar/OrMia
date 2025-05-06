@@ -2277,6 +2277,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "שגיאה בטעינת הודעות הזמנה" });
     }
   });
+  
+  // Create a new message for an order as admin
+  app.post("/api/admin/orders/:orderId/messages", ensureAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const { content, imageUrl, isRead } = req.body;
+      
+      if (!content && !imageUrl) {
+        return res.status(400).json({ error: "נדרש תוכן או תמונה להודעה" });
+      }
+      
+      const order = await storage.getOrder(orderId);
+      if (!order) {
+        return res.status(404).json({ error: "הזמנה לא נמצאה" });
+      }
+      
+      const message = await storage.createMessage({
+        userId: req.user.id,
+        subject: `הודעה להזמנה ${order.orderNumber}`,
+        content,
+        orderId,
+        imageUrl: imageUrl || null,
+        isFromAdmin: true,
+        isRead: isRead || false
+      });
+      
+      // Broadcast the new message to all clients
+      broadcastToOrder(orderId, {
+        type: 'new_message',
+        orderId,
+        message
+      });
+      
+      console.log(`Admin created new message for order ${orderId}`);
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error creating message as admin:", error);
+      res.status(500).json({ error: "שגיאה ביצירת הודעה" });
+    }
+  });
 
   // ADMIN: Get all orders that have messages
   app.get("/api/admin/orders-with-messages", ensureAdmin, async (req, res) => {
