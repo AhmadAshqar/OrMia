@@ -448,7 +448,7 @@ export default function AdminMessagesPage() {
 
   // Handle emoji selection
   const handleEmojiSelect = (emoji: string) => {
-    setReplyContent(prev: string => prev + emoji);
+    setReplyContent((prev: string) => prev + emoji);
   };
   
   // Handle image upload
