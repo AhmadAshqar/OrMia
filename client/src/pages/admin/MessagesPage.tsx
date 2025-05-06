@@ -453,7 +453,7 @@ export default function AdminMessagesPage() {
 
   // Handle emoji selection
   const handleEmojiSelect = (emoji: string) => {
-    setReplyContent((prev: string) => prev + emoji);
+    setReplyContent(replyContent + emoji);
   };
   
   // Handle image upload
@@ -1052,7 +1052,7 @@ function MessageDetails({
   
   // Handle emoji selection
   const handleEmojiSelect = (emoji: string) => {
-    setReplyContent((prev) => prev + emoji);
+    setReplyContent(replyContent + emoji);
   };
   
   // Load Firebase messages
