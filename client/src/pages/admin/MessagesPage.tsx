@@ -843,7 +843,7 @@ export default function AdminMessagesPage() {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        onClick={() => handleDirectTestMessage()}
+                        onClick={handleDirectTestMessage}
                         title="צור הודעת בדיקה להזמנה 10"
                       >
                         צור הודעת בדיקה

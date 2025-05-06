@@ -1,37 +1,35 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
-// Log the environment variables being used
-console.log('Firebase Project ID:', import.meta.env.VITE_FIREBASE_PROJECT_ID);
-console.log('Firebase App ID:', import.meta.env.VITE_FIREBASE_APP_ID?.substring(0, 5) + '...');
-console.log('Firebase API Key:', import.meta.env.VITE_FIREBASE_API_KEY?.substring(0, 5) + '...');
-
+// Your web app's Firebase configuration directly from your provided code
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`, 
-  messagingSenderId: "111111111111", // Required by some Firebase versions
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: "AIzaSyDMtrj39cj85SBaycm-G9WBRwsANRgm7KM",
+  authDomain: "ormia-798c7.firebaseapp.com",
+  projectId: "ormia-798c7",
+  storageBucket: "ormia-798c7.appspot.com",
+  messagingSenderId: "682692386052",
+  appId: "1:682692386052:web:a8ebaf7158ff7fc0b50451",
+  measurementId: "G-BG8JZ3RDTN"
 };
 
-// Check if Firebase config is valid
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
-  console.error("Firebase configuration is incomplete. Please check your environment variables.");
-  console.error("Missing:", {
-    apiKey: !firebaseConfig.apiKey,
-    projectId: !firebaseConfig.projectId,
-    appId: !firebaseConfig.appId
-  });
-}
+console.log('Initializing Firebase with direct configuration for project:', firebaseConfig.projectId);
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+// Try to enable offline persistence for better reliability
+try {
+  enableIndexedDbPersistence(db)
+    .then(() => console.log('Firestore persistence enabled successfully'))
+    .catch(err => console.warn('Firestore persistence not available:', err.code));
+} catch (err) {
+  console.warn('Error setting up Firestore persistence:', err);
+}
 
 console.log('Firebase initialized successfully!');
 

@@ -85,14 +85,18 @@ export async function createTestMessage(orderId: number, userId: number, isAdmin
 
 // Create a new message for a specific order
 export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' | 'id'>) {
+  console.log('🔥 Starting createMessage with input:', JSON.stringify(message));
+  
   try {
     if (!message.orderId) {
+      console.error('❌ Order ID is missing in message');
       throw new Error('Order ID is required');
     }
 
     // Convert orderId to a number to ensure consistency
     const orderId = Number(message.orderId);
     if (isNaN(orderId)) {
+      console.error('❌ Invalid order ID format:', message.orderId);
       throw new Error('Invalid order ID - must be a number');
     }
 
@@ -109,38 +113,53 @@ export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' |
       ...(message.imageUrl && { imageUrl: message.imageUrl })
     };
     
-    console.log('Creating message for order:', orderId, sanitizedMessage);
+    console.log('🔥 Creating message for order:', orderId);
+    console.log('🔥 Message data (sanitized):', JSON.stringify({
+      ...sanitizedMessage,
+      createdAt: '(serverTimestamp)'
+    }));
     
     // First get a reference to the order document
     const orderRef = getOrderRef(orderId);
+    console.log('🔥 Order reference path:', orderRef.path);
     
-    // Ensure the order document exists before adding messages
+    // DIRECT METHOD: First ensure the order document exists
+    console.log('🔥 Ensuring order document exists using direct setDoc method');
     try {
-      // This will create the document if it doesn't exist
-      const batch = writeBatch(db);
-      batch.set(orderRef, { exists: true, updatedAt: serverTimestamp() }, { merge: true });
-      await batch.commit();
-      console.log('Ensured order document exists:', orderId.toString());
+      await setDoc(orderRef, { 
+        exists: true, 
+        updatedAt: new Date().toISOString(),
+        orderCreated: true
+      }, { merge: true });
+      console.log('✅ Order document ensured directly:', orderId.toString());
     } catch (orderError) {
-      console.error('Error ensuring order document exists:', orderError);
+      console.error('❌ Error ensuring order document exists (direct method):', orderError);
     }
     
     // Add message to the order's messages subcollection
+    console.log('🔥 Getting messages collection for order', orderId);
     const messagesCollection = getOrderMessagesCollection(orderId);
-    const docRef = await addDoc(messagesCollection, sanitizedMessage);
-    console.log('Message created with ID:', docRef.id, 'for order:', orderId);
+    console.log('🔥 Messages collection path:', messagesCollection.path);
     
-    // For debugging - immediately try to retrieve the message
+    console.log('🔥 Adding document to messages collection');
     try {
-      const messageDoc = await doc(messagesCollection, docRef.id);
-      console.log('Message reference path:', messageDoc.path);
-    } catch (readError) {
-      console.error('Could not access newly created message:', readError);
+      const docRef = await addDoc(messagesCollection, sanitizedMessage);
+      console.log('✅ Message created with ID:', docRef.id, 'for order:', orderId);
+      
+      // Immediately verify the message was created
+      const messageSnapshot = await getDocs(query(messagesCollection, limit(10)));
+      console.log(`🔥 Messages collection now has ${messageSnapshot.size} documents`);
+      messageSnapshot.forEach(doc => {
+        console.log(`🔥 Message found - ID: ${doc.id}, content: ${doc.data().content?.substring(0, 20) || '(no content)'}...`);
+      });
+      
+      return docRef.id;
+    } catch (addError) {
+      console.error('❌ Error adding message to collection:', addError);
+      throw addError;
     }
-    
-    return docRef.id;
   } catch (error) {
-    console.error('Error creating message:', error);
+    console.error('❌ Error creating message:', error);
     throw error;
   }
 }
