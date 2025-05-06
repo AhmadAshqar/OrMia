@@ -434,4 +434,13 @@ export const messagesRelations = relations(messages, ({ one, many }) => ({
   replies: many(messages, { relationName: "replies" }),
 })) as any;
 
+// Define OrderSummary type for admin messaging interface
+export type OrderSummary = {
+  orderId: number;
+  orderNumber?: string;
+  date: Date;
+  hasMessages: boolean;
+  unreadCount?: number;
+};
+
 

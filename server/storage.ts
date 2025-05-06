@@ -12,7 +12,8 @@ import {
   favorites, type Favorite, type InsertFavorite,
   passwordResetTokens, type PasswordResetToken, type InsertPasswordResetToken,
   promoCodes, type PromoCode, type InsertPromoCode,
-  messages, type Message, type InsertMessage
+  messages, type Message, type InsertMessage,
+  type OrderSummary
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, sql, isNotNull } from "drizzle-orm";
@@ -137,6 +138,7 @@ export interface IStorage {
   getUnreadUserMessages(userId: number): Promise<Message[]>;
   getUnreadAdminMessages(): Promise<Message[]>;
   getMessage(id: number): Promise<Message | undefined>;
+  getOrdersWithMessages(): Promise<OrderSummary[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<boolean>;
   replyToMessage(parentId: number, message: InsertMessage): Promise<Message>;
@@ -1762,6 +1764,62 @@ export class DatabaseStorage implements IStorage {
   // Alias for better semantics in admin routes
   async getMessagesByOrderId(orderId: number): Promise<Message[]> {
     return this.getOrderMessages(orderId);
+  }
+  
+  // Get all orders that have messages for the admin view
+  async getOrdersWithMessages(): Promise<OrderSummary[]> {
+    // First, get all unique orderIds from messages table
+    const messagesByOrder = await db.selectDistinct({ 
+      orderId: messages.orderId 
+    })
+    .from(messages)
+    .where(isNotNull(messages.orderId));
+    
+    // Create a map to store unique orders with message info
+    const orderMap = new Map<number, OrderSummary>();
+    
+    // For each orderId, fetch additional order details and message counts
+    for (const item of messagesByOrder) {
+      if (!item.orderId) continue;
+      
+      // Get the order details
+      const order = await this.getOrder(item.orderId);
+      if (!order) continue;
+      
+      // Get unread message count (messages from users, not from admin)
+      const unreadMessages = await db.select({ id: messages.id })
+        .from(messages)
+        .where(
+          and(
+            eq(messages.orderId, item.orderId),
+            eq(messages.isRead, false),
+            eq(messages.isFromAdmin, false)
+          )
+        );
+      
+      // Get the latest message date for this order
+      const latestMessages = await db.select()
+        .from(messages)
+        .where(eq(messages.orderId, item.orderId))
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
+      
+      const latestDate = latestMessages.length > 0 
+        ? latestMessages[0].createdAt 
+        : order.createdAt;
+      
+      // Add to our map
+      orderMap.set(item.orderId, {
+        orderId: item.orderId,
+        orderNumber: order.orderNumber,
+        date: latestDate,
+        hasMessages: true,
+        unreadCount: unreadMessages.length
+      });
+    }
+    
+    // Convert map to array and sort by orderId (ascending)
+    return Array.from(orderMap.values()).sort((a, b) => a.orderId - b.orderId);
   }
 
   async getUnreadUserMessages(userId: number): Promise<Message[]> {

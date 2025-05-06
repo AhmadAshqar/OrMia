@@ -36,6 +36,29 @@ export default function AdminMessagesPage() {
   const [isFirebaseMessagePending, setIsFirebaseMessagePending] = useState(false);
   const websocketRef = useRef<WebSocket | null>(null);
 
+  // Fetch orders with messages from the admin endpoint
+  const {
+    data: ordersWithMessages,
+    isLoading: isLoadingOrders,
+    refetch: refetchOrdersWithMessages
+  } = useQuery({
+    queryKey: ['/api/admin/orders-with-messages'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/orders-with-messages');
+      if (!response.ok) {
+        throw new Error('Error fetching orders with messages');
+      }
+      return response.json();
+    }
+  });
+
+  // Update orderConversations state when the API returns data
+  useEffect(() => {
+    if (ordersWithMessages) {
+      setOrderConversations(ordersWithMessages);
+    }
+  }, [ordersWithMessages]);
+
   // Fetch messages for a specific order via API (using admin-specific endpoint)
   const { 
     data: orderApiMessages,
@@ -65,6 +88,11 @@ export default function AdminMessagesPage() {
       
       const messages = await response.json();
       console.log(`Fetched ${messages.length} messages for order ${orderId} from API`);
+      
+      // Mark messages as read when viewing them
+      await fetch(`/api/admin/orders/${orderId}/messages/mark-read`, { 
+        method: 'POST' 
+      });
       
     } catch (error) {
       console.error(`Error fetching messages for order ${orderId}:`, error);
