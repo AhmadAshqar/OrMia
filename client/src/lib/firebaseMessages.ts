@@ -31,7 +31,8 @@ export interface FirebaseMessage {
   content: string;
   orderId: number;
   userId: number;
-  isAdmin: boolean;
+  isAdmin?: boolean;
+  isFromAdmin?: boolean;
   createdAt: any;
   isRead: boolean;
   subject?: string;
@@ -114,7 +115,7 @@ export async function createMessage(message: Omit<FirebaseMessage, 'createdAt' |
       content: message.content || '',
       userId: Number(message.userId),
       orderId: orderId,
-      isAdmin: Boolean(message.isAdmin),
+      isFromAdmin: Boolean(message.isFromAdmin || message.isAdmin),
       isRead: Boolean(message.isRead),
       createdAt: serverTimestamp(),
       // Only include non-null values

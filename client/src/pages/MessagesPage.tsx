@@ -638,7 +638,7 @@ export default function MessagesPage() {
                           {orderMessages.length > 0 ? (
                             <div className="space-y-4">
                               {orderMessages.map((message) => {
-                                const isFromUser = !message.isAdmin;
+                                const isFromUser = !message.isFromAdmin;
                                 const senderName = isFromUser ? "אני" : "אור מיה";
                                 
                                 return (
@@ -721,7 +721,7 @@ export default function MessagesPage() {
                                       content: '📷 תמונה',
                                       imageUrl: imageUrl,
                                       userId: user.id,
-                                      isAdmin: false,
+                                      isFromAdmin: false,
                                       orderId: selectedMessage.orderId || 0,
                                       isRead: false
                                     });
