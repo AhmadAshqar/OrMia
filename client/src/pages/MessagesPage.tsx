@@ -114,8 +114,8 @@ export default function MessagesPage() {
     content: "",
     isRead: true,
     isFromAdmin: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: new Date(),
+    // No updatedAt field needed
     replies: []
   });
 
@@ -661,7 +661,7 @@ export default function MessagesPage() {
                                       imageUrl: imageUrl,
                                       userId: user.id,
                                       isAdmin: false,
-                                      orderId: selectedMessage.orderId,
+                                      orderId: selectedMessage.orderId || 0,
                                       isRead: false
                                     });
                                     
