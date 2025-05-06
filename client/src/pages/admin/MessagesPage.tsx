@@ -6,6 +6,27 @@ import { he } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
+
+// Import Firebase functions
+import { 
+  db, 
+  storage 
+} from '@/lib/firebase';
+
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  doc, 
+  setDoc, 
+  serverTimestamp, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot,
+  collectionGroup
+} from 'firebase/firestore';
+
 import { 
   createMessage as createFirebaseMessage, 
   FirebaseMessage, 
@@ -15,7 +36,8 @@ import {
   getAllOrdersWithMessages,
   uploadMessageImage as uploadOrderImage,
   getOrderConversations,
-  OrderSummary
+  OrderSummary,
+  createTestMessage
 } from '@/lib/firebaseMessages';
 
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -369,39 +391,55 @@ export default function AdminMessagesPage() {
     }
   };
   
-  // Create a test message for debugging purposes
-  const handleCreateTestMessage = async (orderId: number) => {
+  // Direct Firebase test message - creates a guaranteed message in Firebase
+  const handleDirectTestMessage = async () => {
     if (!user) return;
     
     try {
-      console.log("Creating test message for order", orderId);
+      const orderId = 10; // Test with order 10
       
-      // Use our improved test message function that directly creates the message
-      const messageId = await createTestMessage(orderId, user.id, true);
+      console.log("Creating direct test message in Firebase for order", orderId);
       
-      console.log("Test message created successfully with ID:", messageId);
+      // Create a direct message in Firebase
+      const orderRef = doc(db, 'orders', orderId.toString());
+      
+      // First ensure the order doc exists
+      await setDoc(orderRef, { exists: true, updatedAt: new Date().toISOString() }, { merge: true });
+      
+      // Then create the message directly
+      const messagesCollection = collection(orderRef, 'messages');
+      const messageData = {
+        content: `Direct test message created at ${new Date().toLocaleString()}`,
+        orderId: orderId,
+        userId: user.id,
+        isAdmin: true,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      };
+      
+      const docRef = await addDoc(messagesCollection, messageData);
+      console.log("Direct test message created with ID:", docRef.id);
       
       toast({
         title: 'הודעה נוצרה',
-        description: `הודעת בדיקה נוצרה להזמנה ${orderId} עם מזהה ${messageId}`
+        description: `הודעת בדיקה נוצרה ישירות בפיירבייס להזמנה ${orderId} עם מזהה ${docRef.id}`
       });
       
-      // Force refresh the order conversations
-      // This is a workaround to ensure the UI updates
+      // Force refresh the messages
       setTimeout(() => {
         console.log("Forcing refresh of message lists");
-        // If the order is selected, refresh its messages
+        // Check if we have the order selected, and refresh
         if (selectedOrderId === orderId) {
           const tempId = selectedOrderId;
           setSelectedOrderId(null);
-          setTimeout(() => setSelectedOrderId(tempId), 10);
+          setTimeout(() => setSelectedOrderId(tempId), 100);
         }
       }, 1000);
     } catch (error) {
-      console.error("Error creating test message:", error);
+      console.error("Error creating direct test message:", error);
       toast({
         title: 'שגיאה',
-        description: 'לא ניתן ליצור הודעת בדיקה',
+        description: `לא ניתן ליצור הודעת בדיקה: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`,
         variant: 'destructive'
       });
     }
@@ -805,7 +843,7 @@ export default function AdminMessagesPage() {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        onClick={() => createTestMessage(10)}
+                        onClick={() => handleDirectTestMessage()}
                         title="צור הודעת בדיקה להזמנה 10"
                       >
                         צור הודעת בדיקה
