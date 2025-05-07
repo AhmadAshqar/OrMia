@@ -570,6 +570,11 @@ export default function MessagesPage() {
                                   
                                   if (messageIds.length > 0) {
                                     markMessageAsRead(messageIds, order.orderId)
+                                      .then(() => {
+                                        // After successfully marking as read, invalidate the unread count query
+                                        // to update badges elsewhere
+                                        queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+                                      })
                                       .catch(error => console.error("Error marking messages as read:", error));
                                   }
                                 }
@@ -592,7 +597,7 @@ export default function MessagesPage() {
                                   <div className="flex items-center">
                                     <p className="font-medium truncate">הזמנה מספר {order.orderNumber || order.orderId}</p>
                                     {order.unreadCount > 0 && (
-                                      <Badge variant="outline" className="text-primary ml-2">
+                                      <Badge variant="destructive" className="ml-2">
                                         {order.unreadCount}
                                       </Badge>
                                     )}
