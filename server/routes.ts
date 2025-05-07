@@ -21,6 +21,9 @@ import { WebSocketServer, WebSocket } from 'ws';
 
 import { randomUUID } from "crypto";
 
+// Cache for unread messages count to avoid frequent database queries
+const unreadMessagesCountCache = new Map<string, number>();
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes and middleware
   setupAuth(app);
@@ -2002,8 +2005,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const messages = await storage.getUnreadUserMessages(req.user.id);
-      res.json({ count: messages.length });
+      const userId = req.user.id;
+      const cacheKey = `user-${userId}`;
+      
+      // Check if we have a cached count
+      if (unreadMessagesCountCache.has(cacheKey)) {
+        console.log(`Using cached unread count for user ${userId}: ${unreadMessagesCountCache.get(cacheKey)}`);
+        return res.json({ count: unreadMessagesCountCache.get(cacheKey) });
+      }
+      
+      // If not cached, get from database
+      const messages = await storage.getUnreadUserMessages(userId);
+      const count = messages.length;
+      
+      // Cache the result for 30 seconds
+      unreadMessagesCountCache.set(cacheKey, count);
+      
+      // Set a timeout to invalidate the cache after 30 seconds
+      setTimeout(() => {
+        unreadMessagesCountCache.delete(cacheKey);
+      }, 30000);
+      
+      console.log(`Fetched unread count for user ${userId}: ${count}`);
+      res.json({ count });
     } catch (error) {
       console.error("Error fetching unread messages count:", error);
       res.status(500).json({ error: "שגיאה בטעינת מספר הודעות שלא נקראו" });
