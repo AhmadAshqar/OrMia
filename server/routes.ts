@@ -21,9 +21,6 @@ import { WebSocketServer, WebSocket } from 'ws';
 
 import { randomUUID } from "crypto";
 
-// Cache for unread messages count to avoid frequent database queries
-const unreadMessagesCountCache = new Map<string, number>();
-
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes and middleware
   setupAuth(app);
@@ -2005,29 +2002,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const userId = req.user.id;
-      const cacheKey = `user-${userId}`;
-      
-      // Check if we have a cached count
-      if (unreadMessagesCountCache.has(cacheKey)) {
-        console.log(`Using cached unread count for user ${userId}: ${unreadMessagesCountCache.get(cacheKey)}`);
-        return res.json({ count: unreadMessagesCountCache.get(cacheKey) });
-      }
-      
-      // If not cached, get from database
-      const messages = await storage.getUnreadUserMessages(userId);
-      const count = messages.length;
-      
-      // Cache the result for 30 seconds
-      unreadMessagesCountCache.set(cacheKey, count);
-      
-      // Set a timeout to invalidate the cache after 30 seconds
-      setTimeout(() => {
-        unreadMessagesCountCache.delete(cacheKey);
-      }, 30000);
-      
-      console.log(`Fetched unread count for user ${userId}: ${count}`);
-      res.json({ count });
+      const messages = await storage.getUnreadUserMessages(req.user.id);
+      res.json({ count: messages.length });
     } catch (error) {
       console.error("Error fetching unread messages count:", error);
       res.status(500).json({ error: "שגיאה בטעינת מספר הודעות שלא נקראו" });
@@ -2276,50 +2252,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const messages = await storage.getOrderMessages(orderId);
-      
-      // If this is a regular user (not admin), mark admin messages as read
-      if (!isAdmin && order.userId === req.user.id) {
-        await storage.markOrderMessagesAsReadByUser(orderId, req.user.id);
-        
-        // Invalidate unread count cache
-        unreadMessagesCountCache.delete(`user-${req.user.id}`);
-      }
-      
       res.json(messages);
     } catch (error) {
       console.error("Error fetching order messages:", error);
       res.status(500).json({ error: "שגיאה בטעינת הודעות הזמנה" });
-    }
-  });
-  
-  // Mark order messages as read for user (explicit endpoint)
-  app.post("/api/orders/:orderId/messages/mark-read", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "לא מחובר" });
-    }
-    
-    try {
-      const orderId = parseInt(req.params.orderId);
-      const order = await storage.getOrder(orderId);
-      
-      if (!order) {
-        return res.status(404).json({ error: "הזמנה לא נמצאה" });
-      }
-      
-      // Check if user has permission to mark this order's messages
-      if (order.userId !== req.user.id) {
-        return res.status(403).json({ error: "אין הרשאה לסמן הודעות כנקראו עבור הזמנה זו" });
-      }
-      
-      await storage.markOrderMessagesAsReadByUser(orderId, req.user.id);
-      
-      // Invalidate unread count cache
-      unreadMessagesCountCache.delete(`user-${req.user.id}`);
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error marking messages as read:", error);
-      res.status(500).json({ error: "שגיאה בסימון הודעות כנקראו" });
     }
   });
   

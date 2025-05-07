@@ -16,7 +16,7 @@ import {
   type OrderSummary
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, or, sql, isNotNull, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, or, sql, isNotNull } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -141,8 +141,6 @@ export interface IStorage {
   getOrdersWithMessages(): Promise<OrderSummary[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<boolean>;
-  markOrderMessagesAsRead(orderId: number): Promise<boolean>;
-  markOrderMessagesAsReadByUser(orderId: number, userId: number): Promise<boolean>;
   replyToMessage(parentId: number, message: InsertMessage): Promise<Message>;
 }
 
@@ -1825,32 +1823,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadUserMessages(userId: number): Promise<Message[]> {
-    // First, get all orders for this user
-    const userOrders = await db.select().from(orders)
-      .where(eq(orders.userId, userId));
-    
-    if (userOrders.length === 0) {
-      return []; // No orders, so no messages
-    }
-    
-    // Get order IDs
-    const orderIds = userOrders.map(order => order.id);
-    
-    // Add some debugging logs
-    console.log(`Searching for unread messages for user ${userId} with orders: ${orderIds.join(', ')}`);
-    
-    // Use Drizzle ORM with inArray operator for type safety
     const unreadMessages = await db.select().from(messages)
       .where(
         and(
-          inArray(messages.orderId, orderIds),
+          eq(messages.userId, userId),
           eq(messages.isRead, false),
           eq(messages.isFromAdmin, true)
         )
       )
       .orderBy(desc(messages.createdAt));
     
-    console.log(`Found ${unreadMessages.length} unread messages for user ${userId}`);
     return unreadMessages;
   }
 
@@ -1932,36 +1914,6 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return result.length >= 0; // Consider success even if no messages were updated
-  }
-  
-  async markOrderMessagesAsReadByUser(orderId: number, userId: number): Promise<boolean> {
-    // Mark all admin messages for this order as read by the user (user reading admin messages)
-    
-    try {
-      // Use Drizzle ORM method for type safety and error handling
-      const result = await db.update(messages)
-        .set({ isRead: true })
-        .where(
-          and(
-            eq(messages.orderId, orderId),
-            eq(messages.isFromAdmin, true),
-            eq(messages.isRead, false)
-          )
-        )
-        .returning();
-      
-      console.log(`Marked ${result.length} admin messages as read for order ${orderId}`);
-      
-      // If any messages were marked as read, invalidate the cache
-      if (result.length > 0) {
-        // We would invalidate a cache here if we had one
-      }
-      
-      return true; // Consider success even if no messages were updated
-    } catch (error) {
-      console.error(`Error marking messages as read for order ${orderId}:`, error);
-      return false;
-    }
   }
 
   async replyToMessage(parentId: number, message: InsertMessage): Promise<Message> {
