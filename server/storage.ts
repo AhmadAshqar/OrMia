@@ -1839,11 +1839,11 @@ export class DatabaseStorage implements IStorage {
     // Add some debugging logs
     console.log(`Searching for unread messages for user ${userId} with orders: ${orderIds.join(', ')}`);
     
-    // Use the Drizzle ORM query for better type handling
+    // Use Drizzle ORM with inArray operator for type safety
     const unreadMessages = await db.select().from(messages)
       .where(
         and(
-          sql`${messages.orderId} IN (${orderIds.join(', ')})`,
+          inArray(messages.orderId, orderIds),
           eq(messages.isRead, false),
           eq(messages.isFromAdmin, true)
         )
@@ -1936,17 +1936,32 @@ export class DatabaseStorage implements IStorage {
   
   async markOrderMessagesAsReadByUser(orderId: number, userId: number): Promise<boolean> {
     // Mark all admin messages for this order as read by the user (user reading admin messages)
-    // Use raw SQL for more direct control
-    const result = await db.execute(sql`
-      UPDATE messages
-      SET is_read = true
-      WHERE order_id = ${orderId}
-      AND is_from_admin = true
-      AND is_read = false
-      RETURNING *
-    `);
     
-    return result.length >= 0; // Consider success even if no messages were updated
+    try {
+      // Use Drizzle ORM method for type safety and error handling
+      const result = await db.update(messages)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(messages.orderId, orderId),
+            eq(messages.isFromAdmin, true),
+            eq(messages.isRead, false)
+          )
+        )
+        .returning();
+      
+      console.log(`Marked ${result.length} admin messages as read for order ${orderId}`);
+      
+      // If any messages were marked as read, invalidate the cache
+      if (result.length > 0) {
+        // We would invalidate a cache here if we had one
+      }
+      
+      return true; // Consider success even if no messages were updated
+    } catch (error) {
+      console.error(`Error marking messages as read for order ${orderId}:`, error);
+      return false;
+    }
   }
 
   async replyToMessage(parentId: number, message: InsertMessage): Promise<Message> {
