@@ -560,7 +560,7 @@ export default function MessagesPage() {
                               // Mark unread messages as read
                               if (order.unreadCount > 0) {
                                 const unreadMessages = firebaseMessages.filter(msg => 
-                                  msg.orderId === order.orderId && msg.isAdmin && !msg.isRead
+                                  msg.orderId === order.orderId && msg.isFromAdmin && !msg.isRead
                                 );
                                 
                                 if (unreadMessages.length > 0) {
