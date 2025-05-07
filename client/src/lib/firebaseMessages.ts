@@ -483,7 +483,7 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
             const orderId = data.orderId;
             
             // DEBUG: Show all messages we're receiving
-            console.log(`Checking message for order ${orderId}, from ${data.isAdmin ? 'admin' : 'user'} ${data.userId}`);
+            console.log(`Checking message for order ${orderId}, from ${data.isFromAdmin ? 'admin' : 'user'} ${data.userId}`);
             
             // We're ONLY interested in messages for this user's orders
             if (userOrderIds.includes(orderId)) {
@@ -578,8 +578,8 @@ export function getUnreadMessagesCount(userId: number, isAdmin: boolean, callbac
     collectionGroup(db, MESSAGES_SUBCOLLECTION),
     where('isRead', '==', false),
     ...(isAdmin ? 
-      [where('isAdmin', '==', false)] : // Admin sees unread messages from users
-      [where('userId', '==', userId), where('isAdmin', '==', true)]) // User sees unread messages from admin
+      [where('isFromAdmin', '==', false)] : // Admin sees unread messages from users
+      [where('userId', '==', userId), where('isFromAdmin', '==', true)]) // User sees unread messages from admin
   );
 
   return onSnapshot(q, (querySnapshot) => {
@@ -624,7 +624,7 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
         }
         
         const orderId = data.orderId;
-        console.log(`Processing message in admin view for order ${orderId}, from ${data.isAdmin ? 'admin' : 'user'} ${data.userId}, content: ${data.content.substring(0, 20)}...`);
+        console.log(`Processing message in admin view for order ${orderId}, from ${data.isFromAdmin ? 'admin' : 'user'} ${data.userId}, content: ${data.content.substring(0, 20)}...`);
         
         // Get creation date
         const date = data.createdAt?.toDate?.() 
@@ -638,14 +638,14 @@ export function getOrderConversations(callback: (orders: OrderSummary[]) => void
             orderNumber: orderNumberMap.get(orderId),
             date,
             hasMessages: true,
-            unreadCount: !data.isAdmin && !data.isRead ? 1 : 0
+            unreadCount: !data.isFromAdmin && !data.isRead ? 1 : 0
           });
         } else {
           // Already have an entry for this order
           const orderData = orderMap.get(orderId)!;
           
           // Update unread count if needed
-          if (!data.isAdmin && !data.isRead) {
+          if (!data.isFromAdmin && !data.isRead) {
             orderData.unreadCount = (orderData.unreadCount || 0) + 1;
           }
         }
