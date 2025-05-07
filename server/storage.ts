@@ -141,6 +141,8 @@ export interface IStorage {
   getOrdersWithMessages(): Promise<OrderSummary[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<boolean>;
+  markOrderMessagesAsRead(orderId: number): Promise<boolean>;
+  markOrderMessagesAsReadByUser(orderId: number, userId: number): Promise<boolean>;
   replyToMessage(parentId: number, message: InsertMessage): Promise<Message>;
 }
 
@@ -1834,16 +1836,14 @@ export class DatabaseStorage implements IStorage {
     // Get order IDs
     const orderIds = userOrders.map(order => order.id);
     
-    // Find unread messages from admin that belong to this user's orders
-    const unreadMessages = await db.select().from(messages)
-      .where(
-        and(
-          inArray(messages.orderId, orderIds),
-          eq(messages.isRead, false),
-          eq(messages.isFromAdmin, true)
-        )
-      )
-      .orderBy(desc(messages.createdAt));
+    // Use SQL directly for more control
+    const unreadMessages = await db.execute(sql`
+      SELECT * FROM messages 
+      WHERE order_id IN (${sql.join(orderIds, sql`, `)})
+      AND is_read = false 
+      AND is_from_admin = true
+      ORDER BY created_at DESC
+    `);
     
     return unreadMessages;
   }
@@ -1924,6 +1924,21 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .returning();
+    
+    return result.length >= 0; // Consider success even if no messages were updated
+  }
+  
+  async markOrderMessagesAsReadByUser(orderId: number, userId: number): Promise<boolean> {
+    // Mark all admin messages for this order as read by the user (user reading admin messages)
+    // Use raw SQL for more direct control
+    const result = await db.execute(sql`
+      UPDATE messages
+      SET is_read = true
+      WHERE order_id = ${orderId}
+      AND is_from_admin = true
+      AND is_read = false
+      RETURNING *
+    `);
     
     return result.length >= 0; // Consider success even if no messages were updated
   }
