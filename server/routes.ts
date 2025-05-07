@@ -2252,10 +2252,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const messages = await storage.getOrderMessages(orderId);
+      
+      // If this is a regular user (not admin), mark admin messages as read
+      if (!isAdmin && order.userId === req.user.id) {
+        await storage.markOrderMessagesAsReadByUser(orderId, req.user.id);
+        
+        // Invalidate unread count cache
+        unreadMessagesCountCache.delete(`user-${req.user.id}`);
+      }
+      
       res.json(messages);
     } catch (error) {
       console.error("Error fetching order messages:", error);
       res.status(500).json({ error: "שגיאה בטעינת הודעות הזמנה" });
+    }
+  });
+  
+  // Mark order messages as read for user (explicit endpoint)
+  app.post("/api/orders/:orderId/messages/mark-read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+    
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const order = await storage.getOrder(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: "הזמנה לא נמצאה" });
+      }
+      
+      // Check if user has permission to mark this order's messages
+      if (order.userId !== req.user.id) {
+        return res.status(403).json({ error: "אין הרשאה לסמן הודעות כנקראו עבור הזמנה זו" });
+      }
+      
+      await storage.markOrderMessagesAsReadByUser(orderId, req.user.id);
+      
+      // Invalidate unread count cache
+      unreadMessagesCountCache.delete(`user-${req.user.id}`);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ error: "שגיאה בסימון הודעות כנקראו" });
     }
   });
   
