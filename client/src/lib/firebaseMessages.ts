@@ -548,26 +548,35 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
 // Mark a message as read
 export async function markMessageAsRead(messageId: string | string[], orderId: number) {
   try {
-    if (Array.isArray(messageId)) {
-      // Batch update for multiple messages
-      const batch = writeBatch(db);
-      messageId.forEach((id) => {
-        const messageRef = doc(getOrderMessagesCollection(orderId), id);
-        batch.update(messageRef, { isRead: true });
-      });
-      await batch.commit();
-      return true;
-    } else {
-      // Single message update
-      const messageRef = doc(getOrderMessagesCollection(orderId), messageId);
-      await updateDoc(messageRef, {
-        isRead: true
-      });
-      return true;
+    console.log(`Marking messages as read for order ${orderId}`);
+    
+    // Use API endpoint to mark all messages for an order as read
+    const response = await fetch(`/api/orders/${orderId}/messages/mark-read`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error marking messages as read: ${response.statusText}`);
     }
+    
+    console.log(`Successfully marked messages as read for order ${orderId}`);
+    
+    // Invalidate query caches to update badges
+    try {
+      const { queryClient } = await import('@/lib/queryClient');
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+    } catch (cacheError) {
+      console.error('Error invalidating cache:', cacheError);
+    }
+    
+    return true;
   } catch (error) {
     console.error('Error marking message as read:', error);
-    throw error;
+    return false;
   }
 }
 
