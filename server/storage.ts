@@ -1836,15 +1836,21 @@ export class DatabaseStorage implements IStorage {
     // Get order IDs
     const orderIds = userOrders.map(order => order.id);
     
-    // Use SQL directly for more control
-    const unreadMessages = await db.execute(sql`
-      SELECT * FROM messages 
-      WHERE order_id IN (${sql.join(orderIds, sql`, `)})
-      AND is_read = false 
-      AND is_from_admin = true
-      ORDER BY created_at DESC
-    `);
+    // Add some debugging logs
+    console.log(`Searching for unread messages for user ${userId} with orders: ${orderIds.join(', ')}`);
     
+    // Use the Drizzle ORM query for better type handling
+    const unreadMessages = await db.select().from(messages)
+      .where(
+        and(
+          sql`${messages.orderId} IN (${orderIds.join(', ')})`,
+          eq(messages.isRead, false),
+          eq(messages.isFromAdmin, true)
+        )
+      )
+      .orderBy(desc(messages.createdAt));
+    
+    console.log(`Found ${unreadMessages.length} unread messages for user ${userId}`);
     return unreadMessages;
   }
 
