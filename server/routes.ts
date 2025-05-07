@@ -2376,7 +2376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Handle authentication
         if (data.type === 'auth') {
-          const { userId, token, isAdmin } = data;
+          const { userId, token, isAdmin, isFromAdmin } = data;
           
           // TODO: Add proper token validation
           // For now, we'll trust the client and just store the info
@@ -2385,7 +2385,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clients.set(clientId, {
             ...clients.get(clientId),
             userId,
-            isAdmin: isAdmin === true
+            isAdmin: isAdmin === true,
+            isFromAdmin: isFromAdmin === true || isAdmin === true // Accept either property
           });
           
           // Send success response
@@ -2451,7 +2452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             orderId,
             subject: 'הודעה בנוגע להזמנה',
             content,
-            isFromAdmin: client.isAdmin,
+            isFromAdmin: client.isFromAdmin || client.isAdmin, // Use either property
             parentId
           });
           

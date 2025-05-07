@@ -208,7 +208,8 @@ export default function AdminMessagesPage() {
             ws.send(JSON.stringify({ 
               type: 'auth', 
               userId: user.id,
-              isAdmin: true
+              isAdmin: true,
+              isFromAdmin: true
             }));
           }
         };

@@ -148,7 +148,7 @@ export default function MessagesPage() {
         await createFirebaseMessage({
           content: replyContent,
           userId: user?.id || 0,
-          isAdmin: false,
+          isFromAdmin: false,
           orderId: selectedMessage.orderId,
           isRead: false
         });
@@ -254,7 +254,8 @@ export default function MessagesPage() {
           ws.send(JSON.stringify({
             type: 'auth',
             userId: user.id,
-            isAdmin: user.role === 'admin'
+            isAdmin: user.role === 'admin',
+            isFromAdmin: user.role === 'admin'
           }));
         };
         
