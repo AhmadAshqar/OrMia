@@ -76,7 +76,7 @@ export async function createTestMessage(orderId: number, userId: number, isAdmin
       content: `Test message created at ${new Date().toLocaleString()}`,
       orderId: orderId,
       userId: userId,
-      isAdmin: isAdmin,
+      isFromAdmin: isAdmin,
       isRead: false,
       createdAt: new Date(),
       subject: `Test message for order ${orderId}`
@@ -220,7 +220,7 @@ export function getOrderMessages(orderId: number, callback: (messages: FirebaseM
     querySnapshot.forEach((doc) => {
       try {
         const data = doc.data();
-        console.log(`Message for order ${orderId}: ${data.content?.substring(0, 20) || '(no content)'}... from ${data.isAdmin ? 'admin' : 'user'} (${data.userId})`);
+        console.log(`Message for order ${orderId}: ${data.content?.substring(0, 20) || '(no content)'}... from ${data.isFromAdmin ? 'admin' : 'user'} (${data.userId})`);
         
         messages.push({
           id: doc.id,
@@ -321,14 +321,14 @@ export function getAllOrdersWithLatestMessages(callback: (orders: OrderWithLates
         orderMap.set(orderId, {
           orderId,
           latestMessage: data,
-          unreadCount: !data.isAdmin && !data.isRead ? 1 : 0
+          unreadCount: !data.isFromAdmin && !data.isRead ? 1 : 0
         });
       } else {
         // Already have an entry for this order
         const orderData = orderMap.get(orderId)!;
         
         // Update unread count if needed
-        if (!data.isAdmin && !data.isRead) {
+        if (!data.isFromAdmin && !data.isRead) {
           orderData.unreadCount++;
         }
       }
@@ -495,14 +495,14 @@ export function getUserOrdersWithMessages(userId: number, callback: (orders: Ord
                   orderId,
                   orderNumber: orderNumberMap.get(orderId), // Add order number from the map
                   latestMessage: data,
-                  unreadCount: data.isAdmin && !data.isRead ? 1 : 0
+                  unreadCount: data.isFromAdmin && !data.isRead ? 1 : 0
                 });
               } else {
                 // Already have an entry for this order
                 const orderData = orderMap.get(orderId)!;
                 
                 // Update unread count if needed
-                if (data.isAdmin && !data.isRead) {
+                if (data.isFromAdmin && !data.isRead) {
                   orderData.unreadCount++;
                 }
                 
