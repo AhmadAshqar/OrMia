@@ -16,7 +16,7 @@ import {
   type OrderSummary
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, or, sql, isNotNull } from "drizzle-orm";
+import { eq, and, desc, asc, or, sql, isNotNull, inArray } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -1823,10 +1823,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadUserMessages(userId: number): Promise<Message[]> {
+    // First, get all orders for this user
+    const userOrders = await db.select().from(orders)
+      .where(eq(orders.userId, userId));
+    
+    if (userOrders.length === 0) {
+      return []; // No orders, so no messages
+    }
+    
+    // Get order IDs
+    const orderIds = userOrders.map(order => order.id);
+    
+    // Find unread messages from admin that belong to this user's orders
     const unreadMessages = await db.select().from(messages)
       .where(
         and(
-          eq(messages.userId, userId),
+          inArray(messages.orderId, orderIds),
           eq(messages.isRead, false),
           eq(messages.isFromAdmin, true)
         )
