@@ -83,23 +83,37 @@ export default function AdminMessagesPage() {
       if (!response.ok) throw new Error(`Failed to fetch messages for order ${orderId}`);
       
       const messages = await response.json();
+      
+      // Mark messages from users as read
+      try {
+        const markReadResponse = await fetch(`/api/admin/messages/mark-read/${orderId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (markReadResponse.ok) {
+          console.log(`Successfully marked messages as read for order ${orderId}`);
+          
+          // Update local state to remove unread badges
+          setOrderConversations(prevOrders => 
+            prevOrders.map(order => 
+              order.orderId === orderId 
+                ? { ...order, unreadCount: 0 } 
+                : order
+            )
+          );
+          
+          // Invalidate queries to update badge counts elsewhere
+          queryClient.invalidateQueries({ queryKey: ['/api/admin/messages/unread/count'] });
+        }
+      } catch (markError) {
+        console.error('Error marking messages as read:', markError);
+      }
       console.log(`Fetched ${messages.length} messages for order ${orderId} from API`);
       
-      // Mark messages as read when viewing them
-      await fetch(`/api/admin/orders/${orderId}/messages/mark-read`, { 
-        method: 'POST' 
-      });
-      
-      // Update orders list to reflect read status changes
-      // Find the order in the conversations list and update its unreadCount
-      const updatedConversations = orderConversations.map(order => {
-        if (order.orderId === orderId) {
-          return { ...order, unreadCount: 0 };
-        }
-        return order;
-      });
-      
-      setOrderConversations(updatedConversations);
+
       
     } catch (error) {
       console.error(`Error fetching messages for order ${orderId}:`, error);

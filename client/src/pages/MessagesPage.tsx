@@ -546,6 +546,32 @@ export default function MessagesPage() {
                             } ${order.unreadCount > 0 ? 'font-semibold' : ''}`}
                             onClick={() => {
                               setSelectedOrderId(order.orderId);
+                              
+                              // Mark all messages for this order as read
+                              if (order.unreadCount > 0) {
+                                console.log(`Marking messages as read for order ${order.orderId}`);
+                                markMessageAsRead([], order.orderId)
+                                  .then(() => {
+                                    console.log(`Successfully marked messages as read for order ${order.orderId}`);
+                                    // Force refetch unread counts after marking as read
+                                    queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+                                    queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+                                    
+                                    // Update the local state immediately to hide the unread badge
+                                    setUserOrdersWithMessages(prevOrders => 
+                                      prevOrders.map(prevOrder => {
+                                        if (prevOrder.orderId === order.orderId) {
+                                          return { ...prevOrder, unreadCount: 0 };
+                                        }
+                                        return prevOrder;
+                                      })
+                                    );
+                                  })
+                                  .catch(error => {
+                                    console.error('Error marking messages as read:', error);
+                                  });
+                              }
+                              
                               // Find a message with this orderId, or create a placeholder
                               const existingMessage = messages?.find(
                                 (m: Message) => m.orderId === order.orderId
@@ -558,38 +584,7 @@ export default function MessagesPage() {
                                 setSelectedMessage(createPlaceholderMessage(order.orderId));
                               }
                               
-                              // Mark unread messages as read
-                              if (order.unreadCount > 0) {
-                                const unreadMessages = firebaseMessages.filter(msg => 
-                                  msg.orderId === order.orderId && msg.isFromAdmin && !msg.isRead
-                                );
-                                
-                                if (unreadMessages.length > 0) {
-                                  const messageIds = unreadMessages
-                                    .filter(msg => msg.id)
-                                    .map(msg => msg.id as string);
-                                  
-                                  if (messageIds.length > 0) {
-                                    markMessageAsRead(messageIds, order.orderId)
-                                      .then(() => {
-                                        // After successfully marking as read, invalidate the unread count query
-                                        // to update badges elsewhere
-                                        queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
-                                      })
-                                      .catch(error => console.error("Error marking messages as read:", error));
-                                  }
-                                }
-                                
-                                // Update the local state immediately to hide the unread badge
-                                setUserOrdersWithMessages(prevOrders => 
-                                  prevOrders.map(prevOrder => {
-                                    if (prevOrder.orderId === order.orderId) {
-                                      return { ...prevOrder, unreadCount: 0 };
-                                    }
-                                    return prevOrder;
-                                  })
-                                );
-                              }
+
                             }}
                           >
                             <div className="flex flex-col">
