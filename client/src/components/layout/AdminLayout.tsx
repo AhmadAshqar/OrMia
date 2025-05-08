@@ -140,7 +140,10 @@ export default function AdminLayout({ children, title }: AdminLayoutProps & { ti
         <aside className="hidden border-l bg-background md:block">
           <div className="sticky top-0 flex flex-col gap-2 p-4">
             <div className="flex h-16 items-center px-4 font-bold text-xl">
-              <span className="text-primary">ממשק ניהול</span>
+              <Link href="/" className="flex items-center gap-2 text-primary">
+                <ChevronLeft className="h-5 w-5" />
+                <span>חזרה לחנות</span>
+              </Link>
             </div>
             <nav className="grid gap-2 px-2 text-lg">
               {routes.map((route) => (
