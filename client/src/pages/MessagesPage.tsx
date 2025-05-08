@@ -454,8 +454,21 @@ export default function MessagesPage() {
     }
 
     try {
+      console.log(`Fetching messages for order ${orderId}`);
       const response = await fetch(`/api/orders/${orderId}/messages`);
-      if (!response.ok) throw new Error(`Failed to fetch messages for order ${orderId}`);
+      
+      if (!response.ok) {
+        // Get detailed error information from the response
+        let errorDetails = "";
+        try {
+          const errorData = await response.json();
+          errorDetails = errorData.error || errorData.message || response.statusText;
+        } catch {
+          errorDetails = response.statusText;
+        }
+        
+        throw new Error(`Failed to fetch messages for order ${orderId}: ${errorDetails} (${response.status})`);
+      }
       
       const messages = await response.json();
       console.log(`Fetched ${messages.length} messages for order ${orderId} from API`);
@@ -463,9 +476,15 @@ export default function MessagesPage() {
       
     } catch (error) {
       console.error(`Error fetching messages for order ${orderId}:`, error);
+      // Display an error toast to the user
+      toast({
+        title: 'שגיאה בטעינת הודעות',
+        description: `לא ניתן לטעון הודעות להזמנה ${orderId}`,
+        variant: 'destructive'
+      });
       setOrderMessages([]);
     }
-  }, []);
+  }, [toast]);
 
   // Initial fetch and refresh messages periodically
   useEffect(() => {
