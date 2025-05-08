@@ -428,11 +428,11 @@ export default function MessagesPage() {
         isRead: msg.isRead || false
       }));
       
-      // Sort messages by createdAt timestamp in DESCENDING order (newest first)
+      // Sort messages by createdAt timestamp in ASCENDING order (oldest first)
       const sortedMessages = [...safeMessages].sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
-        return dateB - dateA; // Newest first
+        return dateA - dateB; // Oldest first
       });
       
       // First pass - collect all orders and their latest messages
@@ -518,7 +518,15 @@ export default function MessagesPage() {
       
       const messages = await response.json();
       console.log(`Fetched ${messages.length} messages for order ${orderId} from API`);
-      setOrderMessages(messages);
+      
+      // Sort messages by createdAt timestamp in ASCENDING order (oldest first)
+      const sortedMessages = [...messages].sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateA - dateB; // Oldest first
+      });
+      
+      setOrderMessages(sortedMessages);
       
     } catch (error) {
       console.error(`Error fetching messages for order ${orderId}:`, error);
