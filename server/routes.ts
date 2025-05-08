@@ -2266,6 +2266,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Mark all messages for an order as read (for normal users)
+  app.post("/api/orders/:orderId/messages/mark-read", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const order = await storage.getOrder(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: "הזמנה לא נמצאה" });
+      }
+      
+      // Check if user has permission to mark messages for this order as read
+      if (order.userId !== req.user.id) {
+        return res.status(403).json({ error: "אין הרשאה לסמן הודעות עבור הזמנה זו כנקראו" });
+      }
+      
+      // Get unread admin messages for this order
+      const unreadMessages = await storage.getOrderMessages(orderId);
+      const unreadAdminMessages = unreadMessages.filter(
+        msg => msg.isFromAdmin && !msg.isRead
+      );
+      
+      // Mark each unread admin message as read
+      for (const message of unreadAdminMessages) {
+        await storage.markMessageAsRead(message.id);
+      }
+      
+      console.log(`User ${req.user.id} marked ${unreadAdminMessages.length} messages as read for order ${orderId}`);
+      
+      // Invalidate unread count cache
+      broadcastToOrder(orderId, {
+        type: 'messages_read',
+        orderId
+      });
+      
+      res.json({ success: true, count: unreadAdminMessages.length });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ error: "שגיאה בסימון הודעות כנקראו" });
+    }
+  });
+  
   // ADMIN: Get all messages related to an order - specifically for admin interface
   app.get("/api/admin/orders/:orderId/messages", ensureAdmin, async (req, res) => {
     try {

@@ -714,25 +714,24 @@ export default function MessagesPage() {
                               
                               // Mark unread messages as read
                               if (order.unreadCount > 0) {
-                                const unreadMessages = firebaseMessages.filter(msg => 
-                                  msg.orderId === order.orderId && msg.isFromAdmin && !msg.isRead
-                                );
-                                
-                                if (unreadMessages.length > 0) {
-                                  const messageIds = unreadMessages
-                                    .filter(msg => msg.id)
-                                    .map(msg => msg.id as string);
-                                  
-                                  if (messageIds.length > 0) {
-                                    markMessageAsRead(messageIds, order.orderId)
-                                      .then(() => {
-                                        // After successfully marking as read, invalidate the unread count query
-                                        // to update badges elsewhere
-                                        queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
-                                      })
-                                      .catch(error => console.error("Error marking messages as read:", error));
-                                  }
-                                }
+                                // Use our new API endpoint to mark all messages for this order as read
+                                apiRequest('POST', `/api/orders/${order.orderId}/messages/mark-read`)
+                                  .then((response) => {
+                                    if (response.ok) {
+                                      // After successfully marking as read, invalidate the unread count query
+                                      // to update badges elsewhere
+                                      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+                                      
+                                      console.log(`Successfully marked messages as read for order ${order.orderId}`);
+                                      
+                                      // Also invalidate the messages query to refresh the message list
+                                      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+                                      queryClient.invalidateQueries({ queryKey: [`/api/orders/${order.orderId}/messages`] });
+                                    }
+                                  })
+                                  .catch((error) => {
+                                    console.error("Error marking messages as read:", error);
+                                  });
                                 
                                 // Update the local state immediately to hide the unread badge
                                 setUserOrdersWithMessages(prevOrders => 
