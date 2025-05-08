@@ -268,7 +268,7 @@ export default function DashboardPage() {
                           {new Date(order.createdAt).toLocaleDateString('he-IL')}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-2 space-x-reverse rtl:space-x-reverse">
+                      <div className="flex items-center gap-2">
                         <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                           order.shipmentStatus === "processing" 
                             ? 'bg-blue-100 text-blue-800' 
@@ -292,6 +292,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
                           ₪{(order.total / 100).toLocaleString()}
+                        </div>
                       </div>
                     </div>
                   ))}
