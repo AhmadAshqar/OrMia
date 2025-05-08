@@ -266,6 +266,7 @@ export default function AdminMessagesPage() {
         
         ws.onclose = (event) => {
           console.log('WebSocket connection closed:', event);
+          websocketRef.current = null;
           
           // Only attempt to reconnect if this wasn't an intentional close
           if (event.code !== 1000) {

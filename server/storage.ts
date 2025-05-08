@@ -1728,8 +1728,8 @@ export class DatabaseStorage implements IStorage {
       query = query.where(eq(messages.userId, userId));
     }
     
-    // Execute query with ordering
-    const allMessages = await query.orderBy(desc(messages.createdAt));
+    // Execute query with ordering - using ascending order (oldest first)
+    const allMessages = await query.orderBy(asc(messages.createdAt));
     
     return allMessages;
   }
@@ -1748,7 +1748,7 @@ export class DatabaseStorage implements IStorage {
           )
         )
       )
-      .orderBy(desc(messages.createdAt));
+      .orderBy(asc(messages.createdAt)); // Changed from desc to asc for oldest-first ordering
     
     return userMessages;
   }

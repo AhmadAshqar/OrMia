@@ -313,6 +313,7 @@ export default function MessagesPage() {
         ws.onclose = (event) => {
           console.log('WebSocket connection closed:', event);
           setIsConnected(false);
+          websocketRef.current = null;
           
           // Only attempt to reconnect if this wasn't an intentional close
           if (event.code !== 1000) {
