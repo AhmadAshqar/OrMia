@@ -370,7 +370,18 @@ export default function MessagesPage() {
     try {
       // First get order details to map ID to order number
       const ordersResponse = await fetch('/api/user/orders');
-      if (!ordersResponse.ok) throw new Error('Failed to fetch orders');
+      if (!ordersResponse.ok) {
+        // Get error details
+        let errorDetails = "";
+        try {
+          const errorData = await ordersResponse.json();
+          errorDetails = errorData.error || errorData.message || ordersResponse.statusText;
+        } catch {
+          errorDetails = ordersResponse.statusText;
+        }
+        
+        throw new Error(`Failed to fetch orders: ${errorDetails} (${ordersResponse.status})`);
+      }
       
       const orders = await ordersResponse.json();
       const orderNumberMap = new Map<number, string>();
@@ -380,17 +391,45 @@ export default function MessagesPage() {
       
       // Fetch all messages for this user (includes both sent and received)
       const response = await fetch('/api/messages');
-      if (!response.ok) throw new Error('Failed to fetch messages');
+      if (!response.ok) {
+        // Get error details
+        let errorDetails = "";
+        try {
+          const errorData = await response.json();
+          errorDetails = errorData.error || errorData.message || response.statusText;
+        } catch {
+          errorDetails = response.statusText;
+        }
+        
+        throw new Error(`Failed to fetch messages: ${errorDetails} (${response.status})`);
+      }
       
       const messages = await response.json();
       console.log(`Fetched ${messages.length} messages from API`);
       
+      // If no messages, return early with empty list
+      if (!messages || messages.length === 0) {
+        console.log('No messages found for this user');
+        setUserOrdersWithMessages([]);
+        setFirebaseMessages([]);
+        return;
+      }
+      
       // Process messages to build order list with latest messages
       const orderMap = new Map<number, OrderWithLatestMessage>();
       
+      // Handle missing properties defensively
+      const safeMessages = messages.map((msg: any) => ({
+        ...msg,
+        orderId: msg.orderId || 0,
+        content: msg.content || '',
+        createdAt: msg.createdAt || new Date().toISOString(),
+        isFromAdmin: msg.isFromAdmin || false,
+        isRead: msg.isRead || false
+      }));
+      
       // Sort messages by createdAt timestamp in DESCENDING order (newest first)
-      // This ensures we encounter the newest messages first when iterating
-      const sortedMessages = [...messages].sort((a, b) => {
+      const sortedMessages = [...safeMessages].sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
         return dateB - dateA; // Newest first
@@ -414,7 +453,7 @@ export default function MessagesPage() {
       }
       
       // Second pass - count unread messages from admins
-      for (const message of messages) {
+      for (const message of safeMessages) {
         if (!message.orderId) continue;
         
         const orderId = message.orderId;
@@ -434,15 +473,22 @@ export default function MessagesPage() {
       
       console.log(`Processed ${ordersList.length} orders with messages`);
       setUserOrdersWithMessages(ordersList);
-      setFirebaseMessages(messages);  // Keep this for compatibility
+      setFirebaseMessages(safeMessages);  // Keep this for compatibility
       
     } catch (error) {
       console.error('Error fetching messages:', error);
-      toast({
-        title: 'שגיאה',
-        description: 'לא ניתן לטעון את ההודעות',
-        variant: 'destructive'
-      });
+      // Don't show toast for auth errors to avoid spamming the user
+      if (!(error instanceof Error && error.message.includes('401'))) {
+        toast({
+          title: 'שגיאה',
+          description: 'לא ניתן לטעון את ההודעות',
+          variant: 'destructive'
+        });
+      }
+      
+      // Set empty lists to avoid rendering errors
+      setUserOrdersWithMessages([]);
+      setFirebaseMessages([]);
     }
   }, [user, toast]);
 

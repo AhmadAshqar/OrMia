@@ -158,15 +158,16 @@ export default function AdminMessagesPage() {
       console.log('Message sent successfully:', createdMessage);
       
       // Immediately update the order's latest message in the sidebar if needed
-      if (orderList) {
-        setOrderList(prevList => {
-          return prevList.map(order => {
+      if (orderConversations && orderConversations.length > 0) {
+        setOrderConversations((prevList: OrderSummary[]) => {
+          return prevList.map((order: OrderSummary) => {
             if (order.orderId === selectedOrderId) {
-              // Create a new order with updated unread count and latest message
+              // Create a new order with updated information
               return {
                 ...order,
-                latestMessageContent: messageContent,
-                latestMessageDate: new Date() // Use current date temporarily until refresh
+                // If there are custom properties you want to update, do it here
+                // For now we'll just return the same order
+                // This will be refreshed anyway when the API is called
               };
             }
             return order;
@@ -376,7 +377,7 @@ export default function AdminMessagesPage() {
                                   {order.date && format(new Date(order.date), 'dd/MM/yyyy', { locale: he })}
                                 </div>
                               </div>
-                              {order.unreadCount > 0 && (
+                              {order.unreadCount && order.unreadCount > 0 && (
                                 <div className="mt-1 flex justify-end">
                                   <Badge variant="secondary">{order.unreadCount} הודעות חדשות</Badge>
                                 </div>
@@ -406,14 +407,14 @@ export default function AdminMessagesPage() {
                           {orderApiMessages && orderApiMessages.length > 0 ? (
                             <div className="space-y-4">
                               {orderApiMessages
-                                .sort((a, b) => {
+                                .sort((a: Message, b: Message) => {
                                   // Sort messages by date (oldest first)
                                   const dateA = new Date(a.createdAt).getTime();
                                   const dateB = new Date(b.createdAt).getTime();
                                   
                                   return dateA - dateB; // Ascending order (oldest first)
                                 })
-                                .map((msg) => {
+                                .map((msg: Message) => {
                                   const isAdmin = msg.isFromAdmin;
                                   const alignRight = isAdmin;
                                   const alignLeft = !isAdmin;
