@@ -190,6 +190,12 @@ export default function MessagesPage() {
       const orderInfo = userOrdersWithMessages.find(order => order.orderId === selectedMessage.orderId);
       const orderNumber = orderInfo?.orderNumber || selectedMessage.orderId.toString();
       
+      // Store the content before clearing it to update UI immediately
+      const messageContent = orderReplyContent.trim();
+      
+      // Clear input immediately for better UX
+      setOrderReplyContent('');
+      
       // Use API endpoint directly to create a message
       const response = await fetch('/api/messages', {
         method: 'POST',
@@ -197,7 +203,7 @@ export default function MessagesPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          content: orderReplyContent,
+          content: messageContent,
           orderId: selectedMessage.orderId,
           subject: `הזמנה #${orderNumber}`
         })
@@ -207,8 +213,29 @@ export default function MessagesPage() {
         throw new Error('Failed to send message via API');
       }
       
-      setOrderReplyContent('');
-      // Refresh messages after sending
+      // Get the created message to update the UI immediately
+      const createdMessage = await response.json();
+      console.log('Message sent successfully:', createdMessage);
+      
+      // Immediately update the order's latest message in the sidebar
+      setUserOrdersWithMessages(prev => {
+        return prev.map(order => {
+          if (order.orderId === selectedMessage.orderId) {
+            // Create a new order with the latest message updated
+            return {
+              ...order,
+              latestMessage: {
+                ...order.latestMessage,
+                content: messageContent,
+                createdAt: new Date() // Use current date temporarily until refresh
+              }
+            };
+          }
+          return order;
+        });
+      });
+      
+      // Also refresh messages to get the actual server data
       fetchMessages();
       if (selectedOrderId) {
         fetchOrderMessages(selectedOrderId);
@@ -361,40 +388,48 @@ export default function MessagesPage() {
       // Process messages to build order list with latest messages
       const orderMap = new Map<number, OrderWithLatestMessage>();
       
-      for (const message of messages) {
+      // Sort messages by createdAt timestamp in DESCENDING order (newest first)
+      // This ensures we encounter the newest messages first when iterating
+      const sortedMessages = [...messages].sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA; // Newest first
+      });
+      
+      // First pass - collect all orders and their latest messages
+      for (const message of sortedMessages) {
         if (!message.orderId) continue;
         
         const orderId = message.orderId;
         
         if (!orderMap.has(orderId)) {
+          // First (newest) message for this order - since we sorted by newest first
           orderMap.set(orderId, {
             orderId,
             orderNumber: orderNumberMap.get(orderId),
             latestMessage: message,
-            unreadCount: message.isFromAdmin && !message.isRead ? 1 : 0
+            unreadCount: 0 // Initialize with 0, we'll count in second pass
           });
-        } else {
-          // Check if this message is newer than what we have
-          const existing = orderMap.get(orderId)!;
-          const existingDate = new Date(existing.latestMessage.createdAt);
-          const messageDate = new Date(message.createdAt);
-          
-          if (messageDate > existingDate) {
-            existing.latestMessage = message;
-          }
-          
-          // Update unread count
-          if (message.isFromAdmin && !message.isRead) {
-            existing.unreadCount++;
-          }
         }
       }
       
-      // Convert to array and sort by latest first
+      // Second pass - count unread messages from admins
+      for (const message of messages) {
+        if (!message.orderId) continue;
+        
+        const orderId = message.orderId;
+        const orderData = orderMap.get(orderId);
+        
+        if (orderData && message.isFromAdmin && !message.isRead) {
+          orderData.unreadCount++;
+        }
+      }
+      
+      // Convert to array and sort by latest message timestamp (newest first)
       const ordersList = Array.from(orderMap.values()).sort((a, b) => {
-        const dateA = new Date(a.latestMessage.createdAt);
-        const dateB = new Date(b.latestMessage.createdAt);
-        return dateB.getTime() - dateA.getTime();
+        const dateA = new Date(a.latestMessage.createdAt).getTime();
+        const dateB = new Date(b.latestMessage.createdAt).getTime();
+        return dateB - dateA; // Newest first
       });
       
       console.log(`Processed ${ordersList.length} orders with messages`);
@@ -611,8 +646,10 @@ export default function MessagesPage() {
                                 </span>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1 truncate">
-                                {order.latestMessage.content.substring(0, 40) + 
-                                  (order.latestMessage.content.length > 40 ? '...' : '')}
+                                {order.latestMessage?.content ? 
+                                  (order.latestMessage.content.substring(0, 40) + 
+                                   (order.latestMessage.content.length > 40 ? '...' : '')) 
+                                  : 'אין תוכן הודעה'}
                               </p>
                             </div>
                           </div>

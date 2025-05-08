@@ -127,6 +127,14 @@ export default function AdminMessagesPage() {
     try {
       setIsMessageSending(true);
       
+      // Store message content before clearing
+      const messageContent = replyContent.trim();
+      const imageUrlToSend = selectedImage || undefined;
+      
+      // Clear the input immediately for better UX
+      setReplyContent('');
+      setSelectedImage(null);
+      
       // Send the message using the API endpoint
       const response = await fetch(`/api/admin/orders/${selectedOrderId}/messages`, {
         method: 'POST',
@@ -134,8 +142,8 @@ export default function AdminMessagesPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          content: replyContent,
-          imageUrl: selectedImage || undefined,
+          content: messageContent,
+          imageUrl: imageUrlToSend,
           isFromAdmin: true,
           isRead: false
         }),
@@ -145,9 +153,26 @@ export default function AdminMessagesPage() {
         throw new Error('Failed to send message via API');
       }
       
-      // Clear the input
-      setReplyContent('');
-      setSelectedImage(null);
+      // Get the created message
+      const createdMessage = await response.json();
+      console.log('Message sent successfully:', createdMessage);
+      
+      // Immediately update the order's latest message in the sidebar if needed
+      if (orderList) {
+        setOrderList(prevList => {
+          return prevList.map(order => {
+            if (order.orderId === selectedOrderId) {
+              // Create a new order with updated unread count and latest message
+              return {
+                ...order,
+                latestMessageContent: messageContent,
+                latestMessageDate: new Date() // Use current date temporarily until refresh
+              };
+            }
+            return order;
+          });
+        });
+      }
       
       // Success toast
       toast({
