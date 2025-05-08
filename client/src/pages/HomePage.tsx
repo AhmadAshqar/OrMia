@@ -13,6 +13,7 @@ import {
   ArrowUp,
   Star
 } from "lucide-react";
+import instagramImage from "@assets/photo-1611085583191-a3b181a88401.avif";
 
 const HomePage = () => {
   const { t } = useTranslation();
@@ -332,11 +333,11 @@ const HomePage = () => {
             </a>
             <a href="#" className="block group relative overflow-hidden slide-in">
               <img 
-                src="/images/04d5a7e99691c5490bb1118ad9a6b502.png"
+                src={instagramImage}
                 alt={t("instagram_image")}
                 className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Instagram className="text-white text-3xl" />
               </div>
             </a>
