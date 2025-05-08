@@ -56,12 +56,19 @@ const FeatureSection = () => {
   ];
 
   return (
-    <section ref={sectionRef} className="py-20 relative bg-cover bg-center" style={{ backgroundImage: 'url("/diamond-dust-bg.jpg")' }}>
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+    <section ref={sectionRef} className="py-20 relative bg-cover bg-center">
+      {/* Feature section background with improved styling */}
+      <div className="absolute inset-0 hero-background">
+        <div className="absolute inset-0 bg-black" style={{ backgroundImage: 'url("/diamond-dust-bg.jpg")' }}></div>
+        {/* Gradient overlay for better readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-black/10"></div>
+      </div>
       
-      <div className="container mx-auto px-4">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent z-10"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent z-10"></div>
+      
+      <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-serif font-bold mb-4 text-gold-gradient bg-white px-6 py-3 rounded-lg inline-block shadow-md border border-primary/20">למה לבחור באור מיה?</h2>
           <p className="max-w-2xl mx-auto text-lg text-gray-800 bg-white px-4 py-2 rounded-lg inline-block shadow-md border border-primary/20">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
@@ -77,9 +84,9 @@ const FeatureSection = () => {
               
               <div className="relative">
                 {/* Icon with gold gradients and shadow effects */}
-                <div className="w-20 h-20 mb-6 text-primary flex items-center justify-center relative">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/10 to-primary/5"></div>
-                  <div className="relative">
+                <div className="w-20 h-20 mb-6 flex items-center justify-center relative">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FFD700]/20 to-[#FFD700]/5"></div>
+                  <div className="relative hero-icon">
                     {feature.icon}
                   </div>
                 </div>

@@ -8,13 +8,16 @@ const HeroSection = () => {
   return (
     <section className="relative h-screen w-full overflow-hidden hero-section">
       <div className="absolute inset-0 bg-black">
-        <img 
-          src={diamondBg}
-          alt="תכשיטי יוקרה מויסנייט" 
-          className="w-full h-full object-cover"
-        />
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/50 z-[1]"></div>
+        <div className="hero-background w-full h-full">
+          <img 
+            src={diamondBg}
+            alt="תכשיטי יוקרה מויסנייט" 
+            className="w-full h-full object-cover filter blur-[2px] brightness-75"
+          />
+        </div>
+        
+        {/* Gradient overlay for better readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30 z-[1]"></div>
         
         {/* Luxury overlay patterns */}
         <div className="absolute inset-0 opacity-10 z-[2]" style={{ 
@@ -35,12 +38,12 @@ const HeroSection = () => {
           </p>
           
           <div className="hero-buttons flex flex-col sm:flex-row gap-5">
-            <Link href="/products" className="hero-button-primary relative overflow-hidden bg-[#D4AF37] hover:bg-[#c19a36] text-white px-10 py-4 inline-block font-medium transition-all duration-300 text-center rounded-lg shadow-lg">
-              <span className="relative z-10">גלה את הקולקציה</span>
+            <Link href="/products" className="hero-button-primary relative overflow-hidden bg-[#FFD700] hover:bg-[#c19a36] text-black px-10 py-4 inline-block font-medium transition-all duration-300 text-center rounded-lg shadow-lg">
+              <span className="relative z-10 font-bold hero-text">גלה את הקולקציה</span>
             </Link>
             
             <Link href="/about" className="hero-button-secondary bg-black border border-white/30 hover:border-white text-white hover:bg-white/10 px-10 py-4 inline-block font-medium transition-all duration-300 text-center rounded-lg">
-              קרא עוד
+              <span className="hero-text">קרא עוד</span>
             </Link>
           </div>
         </div>
