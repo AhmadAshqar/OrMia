@@ -226,7 +226,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        ₪{order.total.toLocaleString()}
+                        ₪{Math.round(order.total).toLocaleString()}
                       </div>
                     </div>
                   ))}
