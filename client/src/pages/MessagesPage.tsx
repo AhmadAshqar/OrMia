@@ -370,43 +370,58 @@ export default function MessagesPage() {
 
     try {
       // First get order details to map ID to order number
-      const ordersResponse = await fetch('/api/user/orders');
-      if (!ordersResponse.ok) {
-        // Get error details
-        let errorDetails = "";
-        try {
-          const errorData = await ordersResponse.json();
-          errorDetails = errorData.error || errorData.message || ordersResponse.statusText;
-        } catch {
-          errorDetails = ordersResponse.statusText;
-        }
-        
-        throw new Error(`Failed to fetch orders: ${errorDetails} (${ordersResponse.status})`);
-      }
+      let orders = [];
+      let orderNumberMap = new Map<number, string>();
       
-      const orders = await ordersResponse.json();
-      const orderNumberMap = new Map<number, string>();
-      orders.forEach((order: any) => {
-        orderNumberMap.set(order.id, order.orderNumber);
-      });
+      try {
+        const ordersResponse = await fetch('/api/user/orders');
+        if (!ordersResponse.ok) {
+          // Get error details
+          let errorDetails = "";
+          try {
+            const errorData = await ordersResponse.json();
+            errorDetails = errorData.error || errorData.message || ordersResponse.statusText;
+          } catch {
+            errorDetails = ordersResponse.statusText;
+          }
+          
+          console.warn(`Warning fetching orders: ${errorDetails} (${ordersResponse.status})`);
+          // Continue execution - we'll just use order IDs directly if we can't map them
+        } else {
+          orders = await ordersResponse.json();
+          orders.forEach((order: any) => {
+            orderNumberMap.set(order.id, order.orderNumber);
+          });
+        }
+      } catch (orderError) {
+        console.warn('Error fetching order details:', orderError);
+        // Continue execution - we'll just use order IDs directly
+      }
       
       // Fetch all messages for this user (includes both sent and received)
-      const response = await fetch('/api/messages');
-      if (!response.ok) {
-        // Get error details
-        let errorDetails = "";
-        try {
-          const errorData = await response.json();
-          errorDetails = errorData.error || errorData.message || response.statusText;
-        } catch {
-          errorDetails = response.statusText;
+      let messages = [];
+      try {
+        const response = await fetch('/api/messages');
+        if (!response.ok) {
+          // Get error details
+          let errorDetails = "";
+          try {
+            const errorData = await response.json();
+            errorDetails = errorData.error || errorData.message || response.statusText;
+          } catch {
+            errorDetails = response.statusText;
+          }
+          
+          throw new Error(`Failed to fetch messages: ${errorDetails} (${response.status})`);
         }
         
-        throw new Error(`Failed to fetch messages: ${errorDetails} (${response.status})`);
+        messages = await response.json();
+        console.log(`Fetched ${messages.length} messages from API`);
+      } catch (messagesError) {
+        console.error('Error fetching messages:', messagesError);
+        // Rethrow to be caught by outer try/catch
+        throw messagesError;
       }
-      
-      const messages = await response.json();
-      console.log(`Fetched ${messages.length} messages from API`);
       
       // If no messages, return early with empty list
       if (!messages || messages.length === 0) {
@@ -429,29 +444,40 @@ export default function MessagesPage() {
         isRead: msg.isRead || false
       }));
       
-      // Sort messages by createdAt timestamp in ASCENDING order (oldest first)
-      const sortedMessages = [...safeMessages].sort((a, b) => {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
-        return dateA - dateB; // Oldest first
-      });
+      // First, group messages by order ID
+      const messagesByOrder = new Map<number, Message[]>();
       
-      // First pass - collect all orders and their latest messages
-      for (const message of sortedMessages) {
-        if (!message.orderId) continue;
+      safeMessages.forEach(message => {
+        if (!message.orderId) return;
         
         const orderId = message.orderId;
-        
-        if (!orderMap.has(orderId)) {
-          // First (newest) message for this order - since we sorted by newest first
-          orderMap.set(orderId, {
-            orderId,
-            orderNumber: orderNumberMap.get(orderId),
-            latestMessage: message,
-            unreadCount: 0 // Initialize with 0, we'll count in second pass
-          });
+        if (!messagesByOrder.has(orderId)) {
+          messagesByOrder.set(orderId, []);
         }
-      }
+        
+        messagesByOrder.get(orderId)!.push(message);
+      });
+      
+      // For each order, find the latest message and create the order entry
+      messagesByOrder.forEach((messagesForOrder, orderId) => {
+        // Sort messages for this order by date (newest first)
+        const sortedOrderMessages = [...messagesForOrder].sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA; // newest first
+        });
+        
+        // The first message in the sorted array is the latest
+        const latestMessage = sortedOrderMessages[0];
+        
+        // Create the order entry with the latest message
+        orderMap.set(orderId, {
+          orderId,
+          orderNumber: orderNumberMap.get(orderId) || String(orderId),
+          latestMessage: latestMessage,
+          unreadCount: 0 // Initialize with 0, we'll count in second pass
+        });
+      });
       
       // Second pass - count unread messages from admins
       for (const message of safeMessages) {
@@ -469,7 +495,7 @@ export default function MessagesPage() {
       const ordersList = Array.from(orderMap.values()).sort((a, b) => {
         const dateA = new Date(a.latestMessage.createdAt).getTime();
         const dateB = new Date(b.latestMessage.createdAt).getTime();
-        return dateB - dateA; // Newest first
+        return dateB - dateA; // Newest first for the order list
       });
       
       console.log(`Processed ${ordersList.length} orders with messages`);
