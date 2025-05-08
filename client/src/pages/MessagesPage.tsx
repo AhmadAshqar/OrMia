@@ -740,13 +740,13 @@ export default function MessagesPage() {
                                   </div>
                                 </div>
                                 <span className="text-xs text-muted-foreground">
-                                  {order.latestMessage.createdAt?.toDate ? 
+                                  {typeof order.latestMessage.createdAt === 'object' && order.latestMessage.createdAt?.toDate ? 
                                     format(new Date(order.latestMessage.createdAt.toDate()), 'dd/MM/yyyy', { locale: he }) :
                                     format(new Date(order.latestMessage.createdAt), 'dd/MM/yyyy', { locale: he })}
                                 </span>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1 truncate">
-                                {order.latestMessage?.content ? 
+                                {order.latestMessage && order.latestMessage.content ? 
                                   (order.latestMessage.content.substring(0, 40) + 
                                    (order.latestMessage.content.length > 40 ? '...' : '')) 
                                   : 'אין תוכן הודעה'}
