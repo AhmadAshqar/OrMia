@@ -1833,6 +1833,7 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(messages.createdAt));
     
+    console.log(`Found ${unreadMessages.length} unread messages for user ${userId}`);
     return unreadMessages;
   }
 

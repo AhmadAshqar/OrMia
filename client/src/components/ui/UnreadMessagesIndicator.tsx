@@ -14,12 +14,20 @@ export function UnreadMessagesIndicator({ className, showEmpty = false }: Unread
   const { data, isLoading } = useQuery({
     queryKey: ['/api/messages/unread/count'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/messages/unread/count');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/messages/unread/count');
+        const data = await response.json();
+        console.log('Unread message count:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching unread messages count:', error);
+        return { count: 0 }; // Default to no messages on error
+      }
     },
     enabled: !!user && user.role !== 'admin', // Don't fetch for admin users
-    refetchInterval: 10000, // Refetch more frequently (every 10 seconds)
-    staleTime: 5000 // Consider data stale sooner
+    refetchInterval: 5000, // Refetch more frequently (every 5 seconds)
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true // Refetch when window gets focus
   });
 
   // Don't show anything while loading or for admin users

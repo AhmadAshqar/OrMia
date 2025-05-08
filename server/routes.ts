@@ -2003,6 +2003,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const messages = await storage.getUnreadUserMessages(req.user.id);
+      
+      // Log the count for debugging
+      console.log(`Unread message count for user ${req.user.id}: ${messages.length}`);
+      
+      // Force a count of 1 for testing if needed - REMOVE IN PRODUCTION
+      // const count = 1;
+      
       res.json({ count: messages.length });
     } catch (error) {
       console.error("Error fetching unread messages count:", error);

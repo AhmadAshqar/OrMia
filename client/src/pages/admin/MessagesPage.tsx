@@ -7,8 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
 
-// Import only the OrderSummary type since we're transitioning to API-based messaging
-import { OrderSummary } from '@/lib/firebaseMessages';
+// Import types from the shared schema
+import { OrderSummary, Message } from '@shared/schema';
 
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
