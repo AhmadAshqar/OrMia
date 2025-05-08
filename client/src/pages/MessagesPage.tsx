@@ -460,17 +460,30 @@ export default function MessagesPage() {
       
       // For each order, find the latest message and create the order entry
       messagesByOrder.forEach((messagesForOrder, orderId) => {
+        // Before we sort, ensure we have the most accurate timestamps by normalizing them
+        const normalizedMessages = messagesForOrder.map(msg => {
+          if (typeof msg.createdAt === 'object' && msg.createdAt?.toDate) {
+            return {
+              ...msg,
+              _sortTimestamp: new Date(msg.createdAt.toDate()).getTime()
+            };
+          } else {
+            return {
+              ...msg,
+              _sortTimestamp: new Date(msg.createdAt).getTime()
+            };
+          }
+        });
+        
         // Sort messages for this order by date (newest first)
-        const sortedOrderMessages = [...messagesForOrder].sort((a, b) => {
-          const dateA = new Date(a.createdAt).getTime();
-          const dateB = new Date(b.createdAt).getTime();
-          return dateB - dateA; // newest first
+        const sortedOrderMessages = [...normalizedMessages].sort((a, b) => {
+          return b._sortTimestamp - a._sortTimestamp; // newest first
         });
         
         // The first message in the sorted array is the latest
         const latestMessage = sortedOrderMessages[0];
         
-        console.log(`Order ${orderId} latest message:`, latestMessage);
+        console.log(`Order ${orderId} latest message (sorted by newest first):`, latestMessage);
         
         // Create the order entry with the latest message
         orderMap.set(orderId, {

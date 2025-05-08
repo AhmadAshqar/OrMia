@@ -1735,21 +1735,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserMessages(userId: number): Promise<Message[]> {
-    // Get messages where:
-    // 1. Messages created by this user, OR
-    // 2. Admin messages directed specifically to this user
-    const userMessages = await db.select().from(messages)
-      .where(
-        or(
-          eq(messages.userId, userId),
-          and(
-            eq(messages.isFromAdmin, true),
-            eq(messages.userId, userId)
-          )
-        )
-      )
-      .orderBy(asc(messages.createdAt)); // Changed from desc to asc for oldest-first ordering
+    // Step 1: Get all orders belonging to this user
+    const userOrders = await db.select().from(orders)
+      .where(eq(orders.userId, userId));
     
+    // Step 2: Extract order IDs
+    const orderIds = userOrders.map(order => order.id);
+    
+    // Step 3: Get all messages for these orders, regardless of who sent them
+    let query;
+    
+    if (orderIds.length > 0) {
+      // If user has orders, get messages for these orders OR direct messages from the user
+      query = db.select().from(messages)
+        .where(
+          or(
+            inArray(messages.orderId, orderIds),  // Messages for user's orders
+            eq(messages.userId, userId)           // Direct messages from the user
+          )
+        );
+    } else {
+      // If user has no orders, just get direct messages from the user
+      query = db.select().from(messages)
+        .where(eq(messages.userId, userId));
+    }
+    
+    const userMessages = await query.orderBy(asc(messages.createdAt));
+    
+    console.log(`Found ${userMessages.length} messages for user ${userId} across ${orderIds.length} orders`);
     return userMessages;
   }
 
@@ -1823,17 +1836,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadUserMessages(userId: number): Promise<Message[]> {
-    const unreadMessages = await db.select().from(messages)
-      .where(
-        and(
-          eq(messages.userId, userId),
-          eq(messages.isRead, false),
-          eq(messages.isFromAdmin, true)
-        )
-      )
-      .orderBy(desc(messages.createdAt));
+    // Step 1: Get all orders belonging to this user
+    const userOrders = await db.select().from(orders)
+      .where(eq(orders.userId, userId));
     
-    console.log(`Found ${unreadMessages.length} unread messages for user ${userId}`);
+    // Step 2: Extract order IDs
+    const orderIds = userOrders.map(order => order.id);
+    
+    // Step 3: Build a query for unread messages
+    let query;
+    
+    if (orderIds.length > 0) {
+      // Get unread admin messages for the user's orders
+      query = db.select().from(messages)
+        .where(
+          and(
+            inArray(messages.orderId, orderIds),    // Messages for user's orders
+            eq(messages.isRead, false),             // That are unread
+            eq(messages.isFromAdmin, true)          // And are from admin
+          )
+        );
+    } else {
+      // If user has no orders, they can't have unread messages
+      return [];
+    }
+    
+    const unreadMessages = await query.orderBy(desc(messages.createdAt));
+    
+    console.log(`Found ${unreadMessages.length} unread messages for user ${userId} across ${orderIds.length} orders`);
     return unreadMessages;
   }
 
