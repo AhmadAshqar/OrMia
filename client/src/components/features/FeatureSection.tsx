@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useRef, useEffect } from "react";
 import { GemIcon, TruckIcon, AwardIcon } from "lucide-react";
+import glitterBg from "@assets/close-up-glitter-decoration-detail_23-2149048285.avif";
 import diamondBg from "@assets/falling-3d-diamonds-black-background_167862-5303.avif";
 
 const FeatureSection = () => {
@@ -40,26 +41,26 @@ const FeatureSection = () => {
 
   const features = [
     {
-      icon: <GemIcon className="h-12 w-12" />,
+      icon: <GemIcon className="h-12 w-12 text-[#D4AF37]" />,
       title: t("feature_quality_title"),
       description: t("feature_quality_desc")
     },
     {
-      icon: <TruckIcon className="h-12 w-12" />,
+      icon: <TruckIcon className="h-12 w-12 text-[#D4AF37]" />,
       title: t("feature_shipping_title"),
       description: t("feature_shipping_desc")
     },
     {
-      icon: <AwardIcon className="h-12 w-12" />,
+      icon: <AwardIcon className="h-12 w-12 text-[#D4AF37]" />,
       title: t("feature_warranty_title"),
       description: t("feature_warranty_desc")
     }
   ];
 
   return (
-    <section ref={sectionRef} className="section-background py-20 relative bg-cover bg-center" style={{ backgroundImage: `url(${diamondBg})` }}>
-      {/* Dark overlay gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/60 z-[1]"></div>
+    <section ref={sectionRef} className="section-background py-20 relative bg-cover bg-center" style={{ backgroundImage: `url(${glitterBg})` }}>
+      {/* Dark overlay gradient - adjusted for glitter background */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-black/70 z-[1]"></div>
       
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent z-[2]"></div>
@@ -88,7 +89,7 @@ const FeatureSection = () => {
                   </div>
                 </div>
                 
-                <h3 className="card-title text-2xl font-serif mb-4 text-[#000] px-4 py-2 rounded-lg shadow-sm border border-[#D4AF37]/10">{feature.title}</h3>
+                <h3 className="card-title text-2xl font-serif mb-4 text-gold-gradient px-4 py-2 rounded-lg shadow-sm border border-[#D4AF37]/10">{feature.title}</h3>
                 <p className="card-text text-[#333] leading-relaxed px-3 py-2 rounded-lg shadow-sm">{feature.description}</p>
               </div>
             </div>
