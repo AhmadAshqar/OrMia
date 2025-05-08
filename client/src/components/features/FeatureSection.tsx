@@ -59,23 +59,24 @@ const FeatureSection = () => {
 
   return (
     <section ref={sectionRef} className="section-background py-20 relative bg-cover bg-center" style={{ backgroundImage: `url(${glitterBg})` }}>
-      {/* Dark overlay gradient - adjusted for glitter background */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-black/70 z-[1]"></div>
+      {/* Dark overlay gradient - only applies to background */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/70 via-black/50 to-black/70 z-[1]"></div>
       
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent z-[2]"></div>
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent z-[2]"></div>
       
+      {/* Content container with higher z-index to stay above the overlay */}
       <div className="container mx-auto px-4 relative z-[10]">
         <div className="text-center mb-16">
-          <h2 className="section-title text-4xl font-serif font-bold mb-4 text-[#D4AF37] px-6 py-3 rounded-lg inline-block shadow-lg bg-black/70 backdrop-blur-sm border border-[#D4AF37]/20">למה לבחור באור מיה?</h2>
-          <p className="max-w-2xl mx-auto text-lg text-white/90 px-4 py-2 rounded-lg inline-block shadow-lg bg-black/70 backdrop-blur-sm border border-[#D4AF37]/20">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
+          <h2 className="section-title text-4xl font-serif font-bold mb-4 text-[#D4AF37] px-6 py-3 rounded-lg inline-block shadow-xl bg-black/80 backdrop-blur-sm border border-[#D4AF37]/30">למה לבחור באור מיה?</h2>
+          <p className="max-w-2xl mx-auto text-lg text-white px-4 py-2 rounded-lg inline-block shadow-xl bg-black/80 backdrop-blur-sm border border-[#D4AF37]/30">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="card slide-in flex flex-col items-center text-center p-8 relative group bg-white/85 backdrop-blur-sm rounded-lg shadow-lg hover:transform hover:-translate-y-2 transition-all duration-300"
+              className="card slide-in flex flex-col items-center text-center p-8 relative group bg-white/90 backdrop-blur-sm rounded-lg shadow-xl hover:transform hover:-translate-y-2 transition-all duration-300 border border-white/10"
             >
               {/* Background decorations */}
               <div className="absolute -inset-0.5 bg-gradient-to-tr from-[#D4AF37]/20 to-[#D4AF37]/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
