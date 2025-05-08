@@ -16,7 +16,7 @@ import {
   type OrderSummary
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, or, sql, isNotNull, in_ } from "drizzle-orm";
+import { eq, and, desc, asc, or, sql, isNotNull, gte } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -1246,7 +1246,7 @@ export class DatabaseStorage implements IStorage {
     })
     .from(orders)
     .where(
-      gte(orders.createdAt, oneMonthAgo)
+      sql`${orders.createdAt} >= ${oneMonthAgo.toISOString()}`
     );
     
     // Group by date and count

@@ -7,6 +7,11 @@ import { Inventory, Product } from "@shared/schema";
 import { BarChart3, Package, ShoppingBag, AlertTriangle, TrendingUp, Calendar, Loader2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+interface OrdersByDay {
+  date: string;
+  count: number;
+}
+
 export default function DashboardPage() {
   const { toast } = useToast();
   const [lowStockItems, setLowStockItems] = useState<(Inventory & {product?: Product})[]>([]);
@@ -19,6 +24,11 @@ export default function DashboardPage() {
   // Fetch inventory
   const { data: inventory, isLoading: inventoryLoading } = useQuery<Inventory[]>({
     queryKey: ["/api/admin/inventory"],
+  });
+  
+  // Fetch orders by day for chart
+  const { data: ordersByDay, isLoading: ordersChartLoading } = useQuery<OrdersByDay[]>({
+    queryKey: ["/api/admin/orders/stats/by-day"],
   });
 
   useEffect(() => {
@@ -35,7 +45,7 @@ export default function DashboardPage() {
     }
   }, [inventory, products]);
 
-  const isLoading = productsLoading || inventoryLoading;
+  const isLoading = productsLoading || inventoryLoading || ordersChartLoading;
 
   // Dashboard stats
   const stats = [
@@ -105,6 +115,63 @@ export default function DashboardPage() {
           </Card>
         ))}
       </div>
+      
+      <Card className="mb-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">הזמנות בחודש האחרון</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {ordersChartLoading ? (
+            <div className="flex justify-center p-4">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : ordersByDay && ordersByDay.length > 0 ? (
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={ordersByDay}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#FFD700" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#FFD700" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(value) => {
+                      const [year, month, day] = value.split('-');
+                      return `${day}/${month}`;
+                    }}
+                  />
+                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '0.5rem' }}
+                    labelFormatter={(value) => {
+                      const [year, month, day] = value.split('-');
+                      return `תאריך: ${day}/${month}/${year}`;
+                    }}
+                    formatter={(value) => [`${value} הזמנות`, '']}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="count" 
+                    stroke="#FFD700" 
+                    fillOpacity={1} 
+                    fill="url(#colorOrders)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>אין נתוני הזמנות להצגה</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
