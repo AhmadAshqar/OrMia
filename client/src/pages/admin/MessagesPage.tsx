@@ -387,9 +387,9 @@ export default function AdminMessagesPage() {
                                     : 'אין תוכן הודעה'}
                                 </p>
                               )}
-                              {order.unreadCount > 0 && (
+                              {(order.unreadCount ?? 0) > 0 && (
                                 <div className="mt-1 flex justify-end">
-                                  <Badge variant="secondary">{order.unreadCount} הודעות חדשות</Badge>
+                                  <Badge variant="secondary">{order.unreadCount ?? 0} הודעות חדשות</Badge>
                                 </div>
                               )}
                             </div>
