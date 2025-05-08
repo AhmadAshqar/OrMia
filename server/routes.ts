@@ -2377,8 +2377,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const orderId = parseInt(req.params.orderId);
       
-      // Mark all messages for this order as read
-      await storage.markOrderMessagesAsRead(orderId);
+      // Mark all messages for this order as read - pass true for isAdmin
+      await storage.markOrderMessagesAsRead(orderId, true);
       
       console.log(`Admin marked messages as read for order ${orderId}`);
       res.sendStatus(200);
