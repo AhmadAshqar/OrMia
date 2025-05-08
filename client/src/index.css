@@ -313,22 +313,20 @@ select,
 .hero-heading {
   font-size: 2.5rem;
   color: #ffffff;
-  font-weight: 600;
+  font-weight: bold;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
   position: relative;
   animation: fadeIn 1s ease-in-out;
-  z-index: 2;
 }
 
 .hero-subheading {
   font-size: 1.5rem;
-  color: #FFD700;  /* Brighter gold color as requested */
-  font-weight: 600;
+  color: #D4AF37;
+  font-weight: 400;
   position: relative;
   margin-top: 0.5rem;
   animation: fadeIn 1.5s ease-in-out;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-  z-index: 2;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
 }
 
 .hero-buttons {
@@ -371,28 +369,6 @@ select,
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Text and icon styling for hero section */
-.hero-text {
-  color: #FFD700;  /* Gold color */
-  font-weight: 600;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-  z-index: 2;
-  position: relative;
-}
-
-.hero-icon {
-  color: #FFD700;
-  font-size: 2rem;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-}
-
-/* Background styling for hero and feature sections */
-.hero-background {
-  background-size: cover;
-  background-position: center;
-  position: relative;
-}
-
 /* Media Queries for Responsiveness */
 @media (max-width: 768px) {
   .hero-heading {
@@ -406,18 +382,5 @@ select,
   .hero-buttons {
     flex-direction: column;
     gap: 0.5rem;
-  }
-  
-  .hero-background {
-    background-size: contain;
-    filter: blur(1px) brightness(0.7);
-  }
-  
-  .hero-text {
-    font-size: 1.2rem;
-  }
-  
-  .hero-icon {
-    font-size: 1.5rem;
   }
 }
