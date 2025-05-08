@@ -441,6 +441,7 @@ export type OrderSummary = {
   date: Date;
   hasMessages: boolean;
   unreadCount?: number;
+  latestMessage?: Message;  // Include the latest message for display in the sidebar
 };
 
 

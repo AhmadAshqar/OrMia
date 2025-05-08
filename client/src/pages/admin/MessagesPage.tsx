@@ -378,6 +378,15 @@ export default function AdminMessagesPage() {
                                   {order.date && format(new Date(order.date), 'dd/MM/yyyy', { locale: he })}
                                 </div>
                               </div>
+                              {/* Display latest message content if available */}
+                              {order.latestMessage && (
+                                <p className="text-sm text-muted-foreground mt-1 truncate">
+                                  {order.latestMessage.content 
+                                    ? (order.latestMessage.content.substring(0, 40) + 
+                                      (order.latestMessage.content.length > 40 ? '...' : '')) 
+                                    : 'אין תוכן הודעה'}
+                                </p>
+                              )}
                               {order.unreadCount && order.unreadCount > 0 && (
                                 <div className="mt-1 flex justify-end">
                                   <Badge variant="secondary">{order.unreadCount} הודעות חדשות</Badge>
