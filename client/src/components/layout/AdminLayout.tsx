@@ -69,16 +69,6 @@ export default function AdminLayout({ children, title }: AdminLayoutProps & { ti
       href: "/admin/messages",
       icon: <MessageSquare className="ml-2 h-5 w-5" />,
     },
-    {
-      title: "פניות",
-      href: "/admin/contact",
-      icon: <MessageSquare className="ml-2 h-5 w-5" />,
-    },
-    {
-      title: "הגדרות",
-      href: "/admin/settings",
-      icon: <Settings className="ml-2 h-5 w-5" />,
-    },
   ];
   
   return (
