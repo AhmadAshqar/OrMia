@@ -470,6 +470,8 @@ export default function MessagesPage() {
         // The first message in the sorted array is the latest
         const latestMessage = sortedOrderMessages[0];
         
+        console.log(`Order ${orderId} latest message:`, latestMessage);
+        
         // Create the order entry with the latest message
         orderMap.set(orderId, {
           orderId,
@@ -486,8 +488,12 @@ export default function MessagesPage() {
         const orderId = message.orderId;
         const orderData = orderMap.get(orderId);
         
+        // Debug log for message status
+        console.log(`Message ${message.id}: isFromAdmin=${message.isFromAdmin}, isRead=${message.isRead}`);
+        
         if (orderData && message.isFromAdmin && !message.isRead) {
           orderData.unreadCount++;
+          console.log(`  Incrementing unread count for order ${orderId}`);
         }
       }
       
