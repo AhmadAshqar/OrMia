@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Inventory, Product } from "@shared/schema";
-import { BarChart3, Package, ShoppingBag, AlertTriangle, TrendingUp, Calendar, Loader2 } from "lucide-react";
+import { Inventory, Order, Product } from "@shared/schema";
+import { BarChart3, Package, ShoppingBag, AlertTriangle, TrendingUp, Calendar, Loader2, Box } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface OrdersByDay {
@@ -15,6 +15,7 @@ interface OrdersByDay {
 export default function DashboardPage() {
   const { toast } = useToast();
   const [lowStockItems, setLowStockItems] = useState<(Inventory & {product?: Product})[]>([]);
+  const [packagingOrders, setPackagingOrders] = useState<number>(0);
 
   // Fetch products
   const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
@@ -24,6 +25,11 @@ export default function DashboardPage() {
   // Fetch inventory
   const { data: inventory, isLoading: inventoryLoading } = useQuery<Inventory[]>({
     queryKey: ["/api/admin/inventory"],
+  });
+  
+  // Fetch orders
+  const { data: orders, isLoading: ordersLoading } = useQuery<Order[]>({
+    queryKey: ["/api/admin/orders"],
   });
   
   // Fetch orders by day for chart
@@ -45,7 +51,15 @@ export default function DashboardPage() {
     }
   }, [inventory, products]);
 
-  const isLoading = productsLoading || inventoryLoading || ordersChartLoading;
+  // Count orders with "באריזה" (packaging) status
+  useEffect(() => {
+    if (orders) {
+      const packagingOrdersCount = orders.filter(order => order.shipmentStatus === "באריזה").length;
+      setPackagingOrders(packagingOrdersCount);
+    }
+  }, [orders]);
+
+  const isLoading = productsLoading || inventoryLoading || ordersChartLoading || ordersLoading;
 
   // Calculate current month's order count
   const getCurrentMonthOrderCount = (): number => {
@@ -73,17 +87,17 @@ export default function DashboardPage() {
       color: "bg-red-100 dark:bg-red-900/20",
     },
     {
+      title: "משלוחים ממתינים לשליח",
+      value: packagingOrders,
+      icon: <Box className="h-8 w-8 text-green-500" />,
+      color: "bg-green-100 dark:bg-green-900/20",
+    },
+    {
       title: "מוצרים במלאי",
       value: inventory ? inventory.reduce((total: number, item: Inventory) => 
         total + item.quantity, 0) : 0,
       icon: <Package className="h-8 w-8 text-blue-500" />,
       color: "bg-blue-100 dark:bg-blue-900/20",
-    },
-    {
-      title: "מוצרים ייחודיים",
-      value: products?.length || 0,
-      icon: <ShoppingBag className="h-8 w-8 text-purple-500" />,
-      color: "bg-purple-100 dark:bg-purple-900/20",
     },
     {
       title: "פריטים במלאי נמוך",
