@@ -47,8 +47,31 @@ export default function DashboardPage() {
 
   const isLoading = productsLoading || inventoryLoading || ordersChartLoading;
 
+  // Calculate current month's order count
+  const getCurrentMonthOrderCount = (): number => {
+    if (!ordersByDay) return 0;
+    
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    return ordersByDay.reduce((total, dayData) => {
+      const orderDate = new Date(dayData.date);
+      if (orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear) {
+        return total + dayData.count;
+      }
+      return total;
+    }, 0);
+  };
+
   // Dashboard stats
   const stats = [
+    {
+      title: "הזמנות החודש",
+      value: getCurrentMonthOrderCount(),
+      icon: <BarChart3 className="h-8 w-8 text-red-500" />,
+      color: "bg-red-100 dark:bg-red-900/20",
+    },
     {
       title: "מוצרים במלאי",
       value: inventory ? inventory.reduce((total: number, item: Inventory) => 
@@ -67,13 +90,6 @@ export default function DashboardPage() {
       value: lowStockItems.length,
       icon: <AlertTriangle className="h-8 w-8 text-amber-500" />,
       color: "bg-amber-100 dark:bg-amber-900/20",
-    },
-    {
-      title: "מוצרים בדרך",
-      value: inventory ? inventory.reduce((total: number, item: Inventory) => 
-        total + (item.onOrder || 0), 0) : 0,
-      icon: <TrendingUp className="h-8 w-8 text-green-500" />,
-      color: "bg-green-100 dark:bg-green-900/20",
     }
   ];
 
