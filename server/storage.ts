@@ -82,6 +82,7 @@ export interface IStorage {
   
   // Order methods
   getOrders(): Promise<Order[]>;
+  getOrdersByDay(): Promise<{ date: string; count: number; }[]>;
   getUserOrders(userId: number): Promise<Order[]>;
   getOrder(id: number): Promise<Order | undefined>;
   getOrderByNumber(orderNumber: string): Promise<Order | undefined>;
@@ -1234,6 +1235,41 @@ export class DatabaseStorage implements IStorage {
   async getOrders(): Promise<Order[]> {
     return db.select().from(orders)
       .orderBy(desc(orders.createdAt));
+  }
+  
+  async getOrdersByDay(): Promise<{ date: string; count: number; }[]> {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+    
+    const allOrders = await db.select({
+      createdAt: orders.createdAt
+    })
+    .from(orders)
+    .where(
+      gte(orders.createdAt, oneMonthAgo)
+    );
+    
+    // Group by date and count
+    const ordersByDay: Record<string, number> = {};
+    
+    // Initialize all days in the past month with 0 count
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+      ordersByDay[dateString] = 0;
+    }
+    
+    // Count orders for each day
+    allOrders.forEach(order => {
+      const dateString = new Date(order.createdAt).toISOString().split('T')[0];
+      ordersByDay[dateString] = (ordersByDay[dateString] || 0) + 1;
+    });
+    
+    // Convert to array and sort by date
+    return Object.entries(ordersByDay)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
   
   async getUserOrders(userId: number): Promise<Order[]> {
