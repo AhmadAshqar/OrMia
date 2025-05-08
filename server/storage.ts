@@ -1946,19 +1946,20 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
   
-  async markOrderMessagesAsRead(orderId: number): Promise<boolean> {
-    // Mark all non-admin messages for this order as read
-    // (messages from users to admin need to be marked as read by the admin)
+  async markOrderMessagesAsRead(orderId: number, isAdmin: boolean = false): Promise<boolean> {
+    // For regular users, mark all admin messages as read
+    // For admins, mark all user messages as read
     const result = await db.update(messages)
       .set({ isRead: true })
       .where(
         and(
           eq(messages.orderId, orderId),
-          eq(messages.isFromAdmin, false)
+          eq(messages.isFromAdmin, !isAdmin) // Mark admin messages for users, user messages for admin
         )
       )
       .returning();
     
+    console.log(`Marked ${result.length} messages as read for order ${orderId}, isAdmin=${isAdmin}`);
     return result.length >= 0; // Consider success even if no messages were updated
   }
 

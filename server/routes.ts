@@ -2016,6 +2016,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "שגיאה בטעינת מספר הודעות שלא נקראו" });
     }
   });
+  
+  // New endpoint: Mark all messages for a specific order as read for a user
+  app.post("/api/messages/mark-read-by-order/:orderId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "לא מחובר" });
+    }
+
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const order = await storage.getOrder(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ error: "הזמנה לא נמצאה" });
+      }
+      
+      // Check if user has permission to mark messages for this order as read
+      if (order.userId !== req.user?.id && !req.user?.role?.includes('admin')) {
+        return res.status(403).json({ error: "אין הרשאה לסמן הודעות עבור הזמנה זו כנקראו" });
+      }
+      
+      // Use the updated markOrderMessagesAsRead method with isAdmin parameter
+      const isAdmin = req.user?.role?.includes('admin') || false;
+      const success = await storage.markOrderMessagesAsRead(orderId, isAdmin);
+      
+      if (success) {
+        console.log(`User ${req.user?.id} (isAdmin=${isAdmin}) marked messages as read for order ${orderId}`);
+        
+        // Broadcast to invalidate caches
+        broadcastToOrder(orderId, {
+          type: 'messages_read',
+          orderId
+        });
+        
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ error: "שגיאה בסימון הודעות כנקראו" });
+      }
+    } catch (error) {
+      console.error("Error marking order messages as read:", error);
+      res.status(500).json({ error: "שגיאה בסימון הודעות כנקראו" });
+    }
+  });
 
   // Get a specific message by ID
   app.get("/api/messages/:id", async (req, res) => {
