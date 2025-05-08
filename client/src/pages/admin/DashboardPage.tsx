@@ -51,10 +51,10 @@ export default function DashboardPage() {
     }
   }, [inventory, products]);
 
-  // Count orders with "באריזה" (packaging) status
+  // Count orders with "processing" (packaging/באריזה) status
   useEffect(() => {
     if (orders) {
-      const packagingOrdersCount = orders.filter(order => order.shipmentStatus === "באריזה").length;
+      const packagingOrdersCount = orders.filter(order => order.shipmentStatus === "processing").length;
       setPackagingOrders(packagingOrdersCount);
     }
   }, [orders]);
@@ -213,10 +213,10 @@ export default function DashboardPage() {
               <div className="flex justify-center p-4">
                 <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
               </div>
-            ) : orders && orders.filter(order => order.shipmentStatus === "באריזה").length > 0 ? (
+            ) : orders && orders.filter(order => order.shipmentStatus === "processing").length > 0 ? (
               <div className="space-y-4">
                 {orders
-                  .filter(order => order.shipmentStatus === "באריזה")
+                  .filter(order => order.shipmentStatus === "processing")
                   .map((order) => (
                     <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
@@ -269,13 +269,25 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        order.shipmentStatus === "באריזה" 
+                        order.shipmentStatus === "processing" 
                           ? 'bg-blue-100 text-blue-800' 
-                          : order.shipmentStatus === "נשלח" 
+                          : order.shipmentStatus === "in_transit" 
                             ? 'bg-purple-100 text-purple-800'
-                            : 'bg-green-100 text-green-800'
+                            : order.shipmentStatus === "delivered"
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-blue-50 text-blue-600'
                       }`}>
-                        {order.shipmentStatus}
+                        {order.shipmentStatus === "processing" 
+                          ? "באריזה" 
+                          : order.shipmentStatus === "in_transit" 
+                            ? "בדרך" 
+                            : order.shipmentStatus === "delivered" 
+                              ? "נמסר" 
+                              : order.shipmentStatus === "pending" 
+                                ? "ממתין לעיבוד" 
+                                : order.shipmentStatus === "failed" 
+                                  ? "נכשל" 
+                                  : "חדש"}
                       </div>
                     </div>
                   ))}
