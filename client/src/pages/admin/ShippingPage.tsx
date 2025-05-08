@@ -120,7 +120,7 @@ export default function ShippingPage() {
       case 'failed':
         return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">נכשל</Badge>;
       default:
-        return <Badge variant="outline">לא ידוע</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">חדש</Badge>;
     }
   };
 
@@ -150,7 +150,7 @@ export default function ShippingPage() {
       case 'failed':
         return <X className="h-5 w-5 text-red-500" />;
       default:
-        return <AlertTriangle className="h-5 w-5 text-gray-500" />;
+        return <ShoppingBag className="h-5 w-5 text-blue-500" />;
     }
   };
 
@@ -229,7 +229,7 @@ export default function ShippingPage() {
       case 'in_transit': return 'בדרך';
       case 'delivered': return 'נמסר';
       case 'failed': return 'נכשל';
-      default: return 'לא ידוע';
+      default: return 'חדש';
     }
   };
 

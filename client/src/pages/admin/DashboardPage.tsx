@@ -258,7 +258,7 @@ export default function DashboardPage() {
                     const product = products?.find(p => p.id === item.productId);
                     const expectedDate = item.expectedDelivery 
                       ? new Date(item.expectedDelivery).toLocaleDateString('he-IL')
-                      : 'לא ידוע';
+                      : 'חדש';
                     
                     return (
                       <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">

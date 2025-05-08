@@ -82,9 +82,9 @@ const shippingStatusMap: Record<string, { color: string; icon: React.ReactNode; 
     text: "נכשל"
   },
   default: {
-    color: "bg-gray-100 text-gray-800 border-gray-300",
-    icon: <AlertCircle className="h-4 w-4 mr-1" />,
-    text: "לא ידוע"
+    color: "bg-blue-50 text-blue-600 border-blue-200",
+    icon: <ShoppingBag className="h-4 w-4 mr-1" />,
+    text: "חדש"
   }
 };
 
