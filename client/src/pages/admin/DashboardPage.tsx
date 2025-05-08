@@ -89,8 +89,8 @@ export default function DashboardPage() {
     {
       title: "משלוחים ממתינים לשליח",
       value: packagingOrders,
-      icon: <Box className="h-8 w-8 text-green-500" />,
-      color: "bg-green-100 dark:bg-green-900/20",
+      icon: <Box className="h-8 w-8 text-blue-500" />,
+      color: "bg-blue-100 dark:bg-blue-900/20",
     },
     {
       title: "מוצרים במלאי",
@@ -204,7 +204,7 @@ export default function DashboardPage() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-xl">הזמנות ממתינות לשליח</CardTitle>
           </CardHeader>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
                   .filter(order => order.shipmentStatus === 'באריזה')
                   .slice(0, 5) // Limit to 5 items
                   .map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg bg-white dark:bg-black/20">
                       <div>
                         <h4 className="font-medium">הזמנה #{order.orderNumber}</h4>
                         <p className="text-sm text-muted-foreground">לקוח: {order.customerName}</p>
