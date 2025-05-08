@@ -16,7 +16,7 @@ import {
   type OrderSummary
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, or, sql, isNotNull } from "drizzle-orm";
+import { eq, and, desc, asc, or, sql, isNotNull, in_ } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -1735,35 +1735,49 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserMessages(userId: number): Promise<Message[]> {
-    // Step 1: Get all orders belonging to this user
+    // Get all messages created by this user
+    const userCreatedMessages = await db.select().from(messages)
+      .where(eq(messages.userId, userId))
+      .orderBy(asc(messages.createdAt));
+      
+    // Get all orders belonging to this user
     const userOrders = await db.select().from(orders)
       .where(eq(orders.userId, userId));
-    
-    // Step 2: Extract order IDs
-    const orderIds = userOrders.map(order => order.id);
-    
-    // Step 3: Get all messages for these orders, regardless of who sent them
-    let query;
-    
-    if (orderIds.length > 0) {
-      // If user has orders, get messages for these orders OR direct messages from the user
-      query = db.select().from(messages)
-        .where(
-          or(
-            inArray(messages.orderId, orderIds),  // Messages for user's orders
-            eq(messages.userId, userId)           // Direct messages from the user
-          )
-        );
-    } else {
-      // If user has no orders, just get direct messages from the user
-      query = db.select().from(messages)
-        .where(eq(messages.userId, userId));
+      
+    // No orders? Just return user-created messages
+    if (userOrders.length === 0) {
+      return userCreatedMessages;
     }
     
-    const userMessages = await query.orderBy(asc(messages.createdAt));
+    // Get messages for each order
+    const allMessages: Message[] = [...userCreatedMessages];
     
-    console.log(`Found ${userMessages.length} messages for user ${userId} across ${orderIds.length} orders`);
-    return userMessages;
+    // Since we can't use in_ operator, we'll fetch each order's messages individually
+    for (const order of userOrders) {
+      const orderMessages = await db.select().from(messages)
+        .where(
+          and(
+            eq(messages.orderId, order.id),
+            isNotNull(messages.orderId)
+          )
+        )
+        .orderBy(asc(messages.createdAt));
+        
+      // Add to our collection, avoiding duplicates
+      for (const message of orderMessages) {
+        if (!allMessages.some(m => m.id === message.id)) {
+          allMessages.push(message);
+        }
+      }
+    }
+    
+    // Sort all messages by timestamp (oldest first)
+    allMessages.sort((a, b) => {
+      return a.createdAt.getTime() - b.createdAt.getTime();
+    });
+    
+    console.log(`Found ${allMessages.length} messages for user ${userId} across ${userOrders.length} orders`);
+    return allMessages;
   }
 
   async getOrderMessages(orderId: number): Promise<Message[]> {
@@ -1836,35 +1850,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadUserMessages(userId: number): Promise<Message[]> {
-    // Step 1: Get all orders belonging to this user
+    // Get all orders belonging to this user
     const userOrders = await db.select().from(orders)
       .where(eq(orders.userId, userId));
-    
-    // Step 2: Extract order IDs
-    const orderIds = userOrders.map(order => order.id);
-    
-    // Step 3: Build a query for unread messages
-    let query;
-    
-    if (orderIds.length > 0) {
-      // Get unread admin messages for the user's orders
-      query = db.select().from(messages)
-        .where(
-          and(
-            inArray(messages.orderId, orderIds),    // Messages for user's orders
-            eq(messages.isRead, false),             // That are unread
-            eq(messages.isFromAdmin, true)          // And are from admin
-          )
-        );
-    } else {
-      // If user has no orders, they can't have unread messages
+      
+    // No orders? No unread messages
+    if (userOrders.length === 0) {
       return [];
     }
     
-    const unreadMessages = await query.orderBy(desc(messages.createdAt));
+    // Collect all unread messages
+    const allUnreadMessages: Message[] = [];
     
-    console.log(`Found ${unreadMessages.length} unread messages for user ${userId} across ${orderIds.length} orders`);
-    return unreadMessages;
+    // Since we can't use in_ operator, we'll fetch each order's unread messages individually
+    for (const order of userOrders) {
+      const orderUnreadMessages = await db.select().from(messages)
+        .where(
+          and(
+            eq(messages.orderId, order.id),
+            eq(messages.isRead, false),
+            eq(messages.isFromAdmin, true)
+          )
+        )
+        .orderBy(desc(messages.createdAt));
+        
+      // Add to our collection
+      allUnreadMessages.push(...orderUnreadMessages);
+    }
+    
+    console.log(`Found ${allUnreadMessages.length} unread messages for user ${userId} across ${userOrders.length} orders`);
+    return allUnreadMessages;
   }
 
   async getUnreadAdminMessages(userId?: number): Promise<Message[]> {
