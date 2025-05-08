@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-// Import the diamond background directly from public path instead of using assets
-// This ensures it works without requiring build setup changes
+import diamondBg from "@assets/falling-3d-diamonds-black-background_167862-5303.avif";
 
 const HeroSection = () => {
   const { t } = useTranslation();
@@ -10,7 +9,7 @@ const HeroSection = () => {
     <section className="relative h-screen w-full overflow-hidden hero-section">
       <div className="absolute inset-0 bg-black">
         <img 
-          src="/images/falling-3d-diamonds-black-background_167862-5303.avif"
+          src={diamondBg}
           alt="תכשיטי יוקרה מויסנייט" 
           className="w-full h-full object-cover"
         />
