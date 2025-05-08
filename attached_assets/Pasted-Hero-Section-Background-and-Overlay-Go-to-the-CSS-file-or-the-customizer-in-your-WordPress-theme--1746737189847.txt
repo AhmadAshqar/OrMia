@@ -1,0 +1,148 @@
+Hero Section Background and Overlay:
+
+Go to the CSS file or the customizer in your WordPress theme.
+
+Locate the hero section styling and add the following CSS to apply a subtle dark overlay:
+
+css
+Copy
+Edit
+.hero-section {
+  position: relative;
+  background: url('path-to-your-background-image.jpg') center/cover no-repeat;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Adjust opacity as needed */
+  z-index: 1;
+}
+Main Heading:
+
+Locate the hero section heading in your HTML or theme editor.
+
+Update the heading styling to reflect the desired look:
+
+css
+Copy
+Edit
+.hero-heading {
+  font-size: 2.5rem;
+  color: #ffffff;
+  font-weight: bold;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+  z-index: 2;
+  position: relative;
+  animation: fadeIn 1s ease-in-out;
+}
+HTML Structure:
+
+html
+Copy
+Edit
+<div class="hero-heading">נוכחות שאי אפשר להתעלם ממנה.</div>
+Subheading:
+
+Update the subheading styling:
+
+css
+Copy
+Edit
+.hero-subheading {
+  font-size: 1.5rem;
+  color: #D4AF37;
+  font-weight: 400;
+  z-index: 2;
+  position: relative;
+  margin-top: 0.5rem;
+  animation: fadeIn 1.5s ease-in-out;
+}
+HTML Structure:
+
+html
+Copy
+Edit
+<div class="hero-subheading">תכשיטים שמאירים את הדרך ליוקרה בלתי נשכחת.</div>
+Buttons:
+
+Update the button styling to match the design:
+
+css
+Copy
+Edit
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  z-index: 2;
+  position: relative;
+}
+
+.hero-button-primary {
+  background-color: #D4AF37;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.hero-button-primary:hover {
+  background-color: #c19a36;
+}
+
+.hero-button-secondary {
+  background-color: #000000;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.hero-button-secondary:hover {
+  background-color: #333333;
+}
+HTML Structure:
+
+html
+Copy
+Edit
+<div class="hero-buttons">
+  <button class="hero-button-primary">גלה את הקולקציה</button>
+  <button class="hero-button-secondary">קרא עוד</button>
+</div>
+Animations (Optional):
+
+Add fade-in animation for the heading, subheading, and buttons:
+
+css
+Copy
+Edit
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+Responsiveness:
+
+Ensure the layout adjusts to different screen sizes:
+
+css
+Copy
+Edit
+@media (max-width: 768px) {
+  .hero-heading {
+    font-size: 2rem;
+  }
+  .hero-subheading {
+    font-size: 1.25rem;
+  }
+  .hero-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

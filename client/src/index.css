@@ -303,3 +303,84 @@ select,
   left: 30%;
   animation-delay: 3s;
 }
+
+/* Hero Section Styles */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-heading {
+  font-size: 2.5rem;
+  color: #ffffff;
+  font-weight: bold;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+  position: relative;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.hero-subheading {
+  font-size: 1.5rem;
+  color: #D4AF37;
+  font-weight: 400;
+  position: relative;
+  margin-top: 0.5rem;
+  animation: fadeIn 1.5s ease-in-out;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  position: relative;
+  animation: fadeIn 2s ease-in-out;
+}
+
+.hero-button-primary {
+  background-color: #D4AF37;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.hero-button-primary:hover {
+  background-color: #c19a36;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+}
+
+.hero-button-secondary {
+  background-color: #000000;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-button-secondary:hover {
+  background-color: #333333;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+  .hero-heading {
+    font-size: 2rem;
+  }
+  
+  .hero-subheading {
+    font-size: 1.25rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
