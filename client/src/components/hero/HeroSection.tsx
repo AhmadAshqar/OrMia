@@ -1,29 +1,28 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import diamondBg from "@assets/falling-3d-diamonds-black-background_167862-5303.avif";
+import diamondBg from "@assets/ChatGPT Image May 5, 2025, 06_39_04 PM.png";
 
 const HeroSection = () => {
   const { t } = useTranslation();
 
   return (
     <section className="relative h-screen w-full overflow-hidden hero-section">
+      {/* Background image with blur effect */}
       <div className="absolute inset-0 bg-black">
-        <div className="hero-background w-full h-full">
-          <img 
-            src={diamondBg}
-            alt="תכשיטי יוקרה מויסנייט" 
-            className="w-full h-full object-cover filter blur-[2px] brightness-75"
-          />
-        </div>
-        
-        {/* Gradient overlay for better readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30 z-[1]"></div>
-        
-        {/* Luxury overlay patterns */}
-        <div className="absolute inset-0 opacity-10 z-[2]" style={{ 
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.2\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-        }}></div>
+        <img 
+          src={diamondBg}
+          alt="תכשיטי יוקרה מויסנייט" 
+          className="w-full h-full object-cover opacity-90 blur-[1px]"
+        />
       </div>
+      
+      {/* Gradient overlay for better readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/40 z-[1]"></div>
+      
+      {/* Luxury overlay patterns */}
+      <div className="absolute inset-0 opacity-10 z-[2]" style={{ 
+        backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.2\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+      }}></div>
       
       <div className="relative h-full container mx-auto px-4 flex flex-col justify-center items-end text-right z-10">
         {/* Main content */}
