@@ -715,7 +715,7 @@ export default function MessagesPage() {
                               // Mark unread messages as read
                               if (order.unreadCount > 0) {
                                 // Use our new API endpoint to mark all messages for this order as read
-                                apiRequest('POST', `/api/orders/${order.orderId}/messages/mark-read`)
+                                apiRequest('POST', `/api/messages/mark-read-by-order/${order.orderId}`)
                                   .then((response) => {
                                     if (response.ok) {
                                       // After successfully marking as read, invalidate the unread count query
