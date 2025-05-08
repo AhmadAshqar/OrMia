@@ -69,8 +69,8 @@ const FeatureSection = () => {
       {/* Content container with higher z-index to stay above the overlay */}
       <div className="container mx-auto px-4 relative z-[10]">
         <div className="text-center mb-16">
-          <h2 className="section-title text-4xl font-serif font-bold mb-4 text-[#D4AF37] px-6 py-3 rounded-lg inline-block shadow-xl bg-black/80 backdrop-blur-sm border border-[#D4AF37]/30">למה לבחור באור מיה?</h2>
-          <p className="max-w-2xl mx-auto text-lg text-white px-4 py-2 rounded-lg inline-block shadow-xl bg-black/80 backdrop-blur-sm border border-[#D4AF37]/30">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
+          <h2 className="section-title text-4xl font-serif font-bold mb-4 text-[#D4AF37] px-6 py-3 rounded-lg inline-block shadow-xl bg-black/60 backdrop-blur-sm border border-[#D4AF37]/30">למה לבחור באור מיה?</h2>
+          <p className="max-w-2xl mx-auto text-lg text-white px-4 py-2 rounded-lg inline-block shadow-xl bg-black/60 backdrop-blur-sm border border-[#D4AF37]/30">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map((feature, index) => (
