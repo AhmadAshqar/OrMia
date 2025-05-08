@@ -656,6 +656,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get orders by day for the past month (for admin dashboard chart)
+  app.get("/api/admin/orders/stats/by-day", ensureAdmin, async (req, res) => {
+    try {
+      const ordersByDay = await storage.getOrdersByDay();
+      res.json(ordersByDay);
+    } catch (err) {
+      console.error("Error fetching orders by day stats:", err);
+      res.status(500).json({ message: "שגיאה בטעינת סטטיסטיקות הזמנות" });
+    }
+  });
+  
   app.get("/api/admin/orders/:id", ensureAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);

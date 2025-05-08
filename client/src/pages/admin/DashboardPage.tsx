@@ -4,7 +4,8 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Inventory, Product } from "@shared/schema";
-import { BarChart3, Package, ShoppingBag, AlertTriangle, TrendingUp, Calendar } from "lucide-react";
+import { BarChart3, Package, ShoppingBag, AlertTriangle, TrendingUp, Calendar, Loader2 } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
   const { toast } = useToast();
