@@ -89,8 +89,8 @@ export default function DashboardPage() {
     {
       title: "משלוחים ממתינים לשליח",
       value: packagingOrders,
-      icon: <Box className="h-8 w-8 text-blue-500" />,
-      color: "bg-blue-100 dark:bg-blue-900/20",
+      icon: <Box className="h-8 w-8 text-green-500" />,
+      color: "bg-green-100 dark:bg-green-900/20",
     },
     {
       title: "מוצרים במלאי",
@@ -204,35 +204,38 @@ export default function DashboardPage() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/10 dark:border-blue-800">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xl">הזמנות ממתינות לשליח</CardTitle>
+            <CardTitle className="text-xl">פריטים במלאי נמוך</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center p-4">
                 <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
               </div>
-            ) : orders && orders.filter(order => order.shipmentStatus === 'באריזה').length > 0 ? (
+            ) : lowStockItems.length > 0 ? (
               <div className="space-y-4">
-                {orders
-                  .filter(order => order.shipmentStatus === 'באריזה')
-                  .slice(0, 5) // Limit to 5 items
-                  .map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg bg-white dark:bg-black/20">
-                      <div>
-                        <h4 className="font-medium">הזמנה #{order.orderNumber}</h4>
-                        <p className="text-sm text-muted-foreground">לקוח: {order.customerName}</p>
-                      </div>
-                      <div className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        ממתין לשליח
+                {lowStockItems.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{item.product?.name || `מוצר #${item.productId}`}</h4>
+                      <p className="text-sm text-muted-foreground">מק"ט: {item.product?.sku || 'לא ידוע'}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        item.quantity === 0 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {item.quantity === 0 ? 'אזל מהמלאי' : `נותרו ${item.quantity} יח'`}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="text-center py-4 text-muted-foreground">
-                <p>אין הזמנות ממתינות לשליח</p>
+                <p>כל הפריטים במלאי תקין</p>
               </div>
             )}
           </CardContent>
@@ -240,45 +243,41 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xl">הזמנות שבוצעו השבוע</CardTitle>
+            <CardTitle className="text-xl">משלוחים בדרך</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center p-4">
                 <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
               </div>
-            ) : orders ? (
+            ) : inventory && inventory.some((item: Inventory) => (item.onOrder || 0) > 0) ? (
               <div className="space-y-4">
-                {orders
-                  .filter(order => {
-                    // Check if order was created in the current week
-                    const orderDate = new Date(order.createdAt);
-                    const now = new Date();
-                    const weekStart = new Date(now);
-                    weekStart.setDate(now.getDate() - now.getDay()); // Set to Sunday of this week
-                    weekStart.setHours(0, 0, 0, 0);
-                    return orderDate >= weekStart;
-                  })
-                  // Sort by newest first
-                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                  .slice(0, 5) // Limit to 5 items
-                  .map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">הזמנה #{order.orderNumber}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(order.createdAt).toLocaleDateString('he-IL')}
-                        </p>
+                {inventory
+                  .filter((item: Inventory) => (item.onOrder || 0) > 0)
+                  .map((item: Inventory) => {
+                    const product = products?.find(p => p.id === item.productId);
+                    const expectedDate = item.expectedDelivery 
+                      ? new Date(item.expectedDelivery).toLocaleDateString('he-IL')
+                      : 'חדש';
+                    
+                    return (
+                      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{product?.name || `מוצר #${item.productId}`}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            צפי הגעה: {expectedDate}
+                          </p>
+                        </div>
+                        <div className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          {item.onOrder} יח' בדרך
+                        </div>
                       </div>
-                      <div className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        {order.total / 100} ₪
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             ) : (
               <div className="text-center py-4 text-muted-foreground">
-                <p>אין הזמנות שבוצעו השבוע</p>
+                <p>אין משלוחים בדרך כרגע</p>
               </div>
             )}
           </CardContent>
