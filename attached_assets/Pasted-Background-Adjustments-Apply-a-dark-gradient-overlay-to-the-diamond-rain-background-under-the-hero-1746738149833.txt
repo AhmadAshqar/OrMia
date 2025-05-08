@@ -1,0 +1,116 @@
+Background Adjustments:
+
+Apply a dark gradient overlay to the diamond rain background under the hero section to reduce brightness and focus on content:
+
+css
+Copy
+Edit
+.section-background {
+  background-image: url('/path-to-your-diamond-rain-image.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.7) blur(1px);
+}
+
+.section-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3));
+  z-index: 1;
+}
+Text Styling:
+
+Enhance the visibility of the title "למה לבחור באור מיה?" by changing the color to gold and adding a shadow:
+
+css
+Copy
+Edit
+.section-title {
+  color: #D4AF37;
+  font-weight: bold;
+  font-size: 2rem;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+  z-index: 2;
+  position: relative;
+}
+Card Section Styling:
+
+Redesign the three cards to include a slightly darker background, a blur effect, and hover interaction:
+
+css
+Copy
+Edit
+.card {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(5px);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+}
+Icon and Text Styling:
+
+Adjust the icon size and text styling for better emphasis:
+
+css
+Copy
+Edit
+.card-icon {
+  font-size: 1.8rem;
+  color: #D4AF37;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  color: #000;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  color: #333;
+}
+Spacing and Layout:
+
+Add proper spacing and responsive layout adjustments:
+
+css
+Copy
+Edit
+.card-section {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .card-section {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+Hover Effects for Buttons:
+
+Add hover effects for buttons to maintain consistency with the luxury theme:
+
+css
+Copy
+Edit
+.btn-gold {
+  background-color: #D4AF37;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.btn-gold:hover {
+  background-color: #b3922d;
+}

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useRef, useEffect } from "react";
 import { GemIcon, TruckIcon, AwardIcon } from "lucide-react";
+import diamondBg from "@assets/falling-3d-diamonds-black-background_167862-5303.avif";
 
 const FeatureSection = () => {
   const { t } = useTranslation();
@@ -56,36 +57,39 @@ const FeatureSection = () => {
   ];
 
   return (
-    <section ref={sectionRef} className="py-20 relative bg-cover bg-center" style={{ backgroundImage: 'url("/diamond-dust-bg.jpg")' }}>
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+    <section ref={sectionRef} className="section-background py-20 relative bg-cover bg-center" style={{ backgroundImage: `url(${diamondBg})` }}>
+      {/* Dark overlay gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/60 z-[1]"></div>
       
-      <div className="container mx-auto px-4">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent z-[2]"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent z-[2]"></div>
+      
+      <div className="container mx-auto px-4 relative z-[10]">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-serif font-bold mb-4 text-gold-gradient bg-white px-6 py-3 rounded-lg inline-block shadow-md border border-primary/20">למה לבחור באור מיה?</h2>
-          <p className="max-w-2xl mx-auto text-lg text-gray-800 bg-white px-4 py-2 rounded-lg inline-block shadow-md border border-primary/20">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
+          <h2 className="section-title text-4xl font-serif font-bold mb-4 text-[#D4AF37] px-6 py-3 rounded-lg inline-block shadow-lg bg-black/70 backdrop-blur-sm border border-[#D4AF37]/20">למה לבחור באור מיה?</h2>
+          <p className="max-w-2xl mx-auto text-lg text-white/90 px-4 py-2 rounded-lg inline-block shadow-lg bg-black/70 backdrop-blur-sm border border-[#D4AF37]/20">אנו מציעים את האיכות הגבוהה ביותר במחירים הוגנים, עם שירות אישי וחוויית קנייה מושלמת</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="slide-in flex flex-col items-center text-center p-8 relative group bg-white/95 backdrop-blur-sm rounded-lg shadow-md"
+              className="card slide-in flex flex-col items-center text-center p-8 relative group bg-white/85 backdrop-blur-sm rounded-lg shadow-lg hover:transform hover:-translate-y-2 transition-all duration-300"
             >
               {/* Background decorations */}
-              <div className="absolute -inset-0.5 bg-gradient-to-tr from-primary/5 to-primary/0 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-tr from-[#D4AF37]/20 to-[#D4AF37]/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
               
               <div className="relative">
                 {/* Icon with gold gradients and shadow effects */}
-                <div className="w-20 h-20 mb-6 text-primary flex items-center justify-center relative">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/10 to-primary/5"></div>
+                <div className="card-icon w-20 h-20 mb-6 text-[#D4AF37] flex items-center justify-center relative">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5"></div>
                   <div className="relative">
                     {feature.icon}
                   </div>
                 </div>
                 
-                <h3 className="text-2xl font-serif mb-4 text-gold-gradient bg-white px-4 py-2 rounded-lg shadow-sm border border-primary/10">{feature.title}</h3>
-                <p className="text-foreground/90 leading-relaxed bg-white px-3 py-2 rounded-lg shadow-sm">{feature.description}</p>
+                <h3 className="card-title text-2xl font-serif mb-4 text-[#000] px-4 py-2 rounded-lg shadow-sm border border-[#D4AF37]/10">{feature.title}</h3>
+                <p className="card-text text-[#333] leading-relaxed px-3 py-2 rounded-lg shadow-sm">{feature.description}</p>
               </div>
             </div>
           ))}
